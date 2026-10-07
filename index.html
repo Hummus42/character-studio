@@ -249,6 +249,12 @@ button,.btn,.chip,.opt,.rail-btn,.pick,.seg button,.tabs button,.swb,.start,labe
 .pop input.pop-search{width:calc(100% - 24px)}.pop input.pop-custom-in{width:auto}
 @media (pointer:coarse){.wtab{min-height:44px}input[type=search],#output,#qOut,#nOut{font-size:16px}}
 
+.opresets{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin:6px 0 14px}
+.opreset{display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid var(--rule);background:var(--panel);border-radius:10px;padding:10px 12px;min-height:72px}
+.opreset b{font-family:var(--fh);font-size:.96rem}.opreset span{color:var(--muted);font-size:.82rem;line-height:1.35}
+@media (hover:hover){.opreset:hover{border-color:var(--ink)}}
+.opreset:active{background:var(--panel2)}
+
 </style>
 </head>
 <body>
@@ -409,6 +415,22 @@ const SPECIES_INFO={};
   OUTFIT.neckAccessory.push({v:"simple gemstone necklace",t:"CUS"});OUTFIT.wristAccessory.push({v:"simple gemstone bracelet",t:"CUS"});
 })();
 
+(function(){
+  const add=(f,vals,front,grp)=>{const have=new Set(CHAR[f].map(x=>x[0]));const n=vals.filter(v=>!have.has(v)).map(v=>[v,grp||(CHAR[f][0]?CHAR[f][0][1]:"")]);CHAR[f]=front?n.concat(CHAR[f]):CHAR[f].concat(n)};
+  add("hairMovement",["falls smoothly past the waist"],true,"Dynamic");
+  add("hairBlend",["blended gradient streaks between the colors"],false,"Color blending");
+  add("markings",["light freckles dusting the shoulders, chest, stomach, hips, and thighs"],true,"Freckles");
+  add("waistShape",["tiny waist"]);add("stomachShape",["soft stomach"]);add("hipShape",["rounded hips"],true);
+  add("thighBuild",["thick, soft thighs"],true);add("legShape",["shapely legs"]);add("buttSize",["full, round butt"],true);
+  add("bodySoftness",["extremely top-heavy hourglass figure"],true);
+})();
+
+/* ===== One-piece dresses (live in the Top slot, replace the bottom) ===== */
+(function(){
+  const D=[["wrap midi dress","CUS","casual,glam",""],["linen shirt dress","C","casual,preppy","s"],["knit sweater dress","CUS","casual,preppy","w"],["slip dress","US","glam",""],["satin evening gown","CUS","glam",""],["velvet gown","CUS","gothic,glam","w"],["lace-trimmed gothic dress","CUS","gothic",""],["floral sundress","CU","cottage,resort","s"],["smocked midi dress","CUS","cottage",""],["tennis dress","CU","sporty",""],["halter sundress","CUS","resort","s"],["bodycon mini dress","US","glam,edgy",""],["sequin mini dress","US","glam",""]];
+  D.forEach(([v,t,f,s])=>{if(!OUTFIT.top.some(o=>o.v===v)){const o={v,t,f};if(s)o.s=s;OUTFIT.top.push(o)}});
+})();
+
 /* ===== Body presets & starting points (curated values; validated against the option lists at build time) ===== */
 const BODY_PRESETS={
   slender:{label:"Slender",v:{bustSize:"small breasts",heightStature:"slightly above-average height",shoulderShape:"narrow delicate shoulders",waistShape:"narrow waist",hipShape:"narrow hips",buttSize:"small butt",thighBuild:"slender thighs",legShape:"long elegant legs",bodySoftness:"slender soft build",posture:"graceful upright posture"}},
@@ -429,6 +451,14 @@ const MAKEUP_PRESETS={
   sexy:{label:"Sexy",adultOnly:true,v:{makeupStyle:"smoky evening makeup",eyelinerStyle:"cat-eye eyeliner",eyeshadowStyle:"smoky eyeshadow",lashStyle:"dramatic lashes",blushStyle:"diffused blush",lipFinish:"high-shine lips",faceAccents:"subtle highlighting"}}
 };
 const TEMPLATES=[
+ {id:"bluelong",name:"Creamsicle long hair",blurb:"Powder blue, milky white and creamsicle orange. Odd-eyed, with very long straight hair and an hourglass figure.",
+  pal:{primary:"powder blue",secondary:"milky white",third:"creamsicle orange",accent:"pale gold",extra:"soft peach"},
+  c:{age:"young woman",faceShape:"refined face",eyeConfig:"heterochromatic",eyeOne:"sky blue",eyeTwo:"honey orange",
+    hairStyle:"long straight hair",hairMovement:"falls smoothly past the waist",hairBase:"deep powder blue",hairUnderlayer:"@secondary",hairInner:"@third",hairHighlights:"@accent",
+    hairBlend:"blended gradient streaks between the colors",
+    skinTone:"warm light-brown",undertone:"golden",markings:"light freckles dusting the shoulders, chest, stomach, hips, and thighs",
+    bustSize:"very large breasts",bustShape:"full, naturally rounded shape",shoulderShape:"narrow delicate shoulders",waistShape:"tiny waist",stomachShape:"soft stomach",hipShape:"rounded hips",buttSize:"full, round butt",thighBuild:"thick, soft thighs",legShape:"shapely legs",bodySoftness:"extremely top-heavy hourglass figure"},
+  outfit:{look:"",items:{}}},
  {id:"redgold",name:"Powder-red heterochrome",blurb:"Powder red, milky white, soft black and pale gold. Odd-eyed, freckled, with a long high ponytail.",
   pal:{primary:"powder red",secondary:"milky white",third:"soft black",accent:"pale gold",extra:"warm honey gold"},
   c:{age:"young woman",faceShape:"refined face",browShape:"thin, delicate eyebrows",noseShape:"small nose",mouthShape:"soft lips",faceMark:"a subtle beauty mark",eyeConfig:"heterochromatic",irisDetail:"bright, intricately detailed irises",lashNatural:"long eyelashes",
@@ -483,6 +513,37 @@ const TEMPLATES=[
   pal:{primary:"black",secondary:"red",third:"silver",accent:"white",extra:""},
   c:{age:"woman",faceShape:"refined face",expression:"playful smile",eyeShape:"hooded eyes",eyeConfig:"matching",eyeOne:"gray",hairStyle:"shag cut",hairLength:"shoulder-length",hairBase:"black",hairHighlights:"@secondary",bangs:"curtain bangs",skinTone:"fair",makeupStyle:"festival makeup",eyelinerStyle:"smudged eyeliner",_body:"athletic"},
   outfit:{look:"edgy",items:{top:["ripped graphic tank","@primary"],bottom:["plaid mini skirt","@secondary"],legwear:["striped knee-high socks","@primary"],outerwear:["leather jacket","@primary"],belt:["studded belt","@third"],neckAccessory:["chain necklace","-"],wristAccessory:["studded wristband","-"]}}}
+];
+
+/* ===== Outfit starting points. Colors follow the palette roles unless a slot or "-" (no color) is given. ===== */
+const OUTFIT_PRESETS=[
+ {id:"cafe",name:"Cozy café day",blurb:"Oversized knit, high-waisted jeans, a scarf and a beanie.",look:"casual",season:"w",
+  items:{top:["oversized cotton sweater","auto"],bottom:["high-waisted jeans","-"],legwear:["ankle socks","@accent"],headwear:["beanie","@secondary"],neckAccessory:["silk scarf","@accent"],wristAccessory:["wristwatch","-"],hipAccessory:["crossbody bag","@third"]},
+  details:{detailTwo:"slightly oversized fit"}},
+ {id:"preppy",name:"Smart preppy",blurb:"Sweater vest, pleated midi skirt, blazer and knee socks.",look:"preppy",
+  items:{top:["sweater vest over a collared shirt","auto"],bottom:["pleated midi skirt","auto"],legwear:["knee-high socks","@secondary"],outerwear:["tailored blazer","auto"],neckAccessory:["ribbon bow tie","@accent"],eyewear:["tortoiseshell glasses","-"],wristAccessory:["classic watch","-"],hipAccessory:["structured satchel","@third"]},
+  details:{detailOne:"contrast piping",detailTwo:"neatly tucked in"}},
+ {id:"picnic",name:"Garden picnic",blurb:"Linen blouse, floral midi skirt, straw hat and a wicker bag.",look:"cottage",season:"s",
+  items:{top:["puff-sleeve linen blouse","auto"],bottom:["floral midi skirt","auto"],headwear:["straw hat","-"],neckAccessory:["cameo necklace","-"],wristAccessory:["woven flower bracelet","@accent"],waistAccessory:["woven sash","@accent"],hipAccessory:["wicker basket bag","-"]},
+  details:{detailOne:"embroidered flowers",detailTwo:"flowy layered fabric"}},
+ {id:"velvet",name:"Midnight velvet",blurb:"Lace blouse, layered skirt, velvet blazer, choker and veil.",look:"gothic",season:"w",
+  items:{top:["high-neck lace blouse","auto"],bottom:["layered midi skirt","auto"],legwear:["opaque tights","@third"],outerwear:["velvet blazer","auto"],headwear:["lace veil","@third"],neckAccessory:["velvet choker","@accent"],wristAccessory:["lace wrist cuffs","@third"],belt:["studded belt","@third"],hipAccessory:["mini coffin purse","@third"]},
+  details:{detailOne:"lace trim",detailThree:"velvet texture"}},
+ {id:"punk",name:"Street punk",blurb:"Ripped tank, plaid skirt, leather jacket, studs and chains.",look:"edgy",
+  items:{top:["ripped graphic tank","auto"],bottom:["plaid mini skirt","auto"],legwear:["striped knee-high socks","@third"],outerwear:["leather jacket","@third"],neckAccessory:["spiked choker","@accent"],wristAccessory:["studded wristband","@accent"],belt:["studded belt","@accent"],gloves:["fingerless leather gloves","-"],hipAccessory:["chain wallet","-"]},
+  details:{detailOne:"safety pin accents",detailTwo:"deliberately torn edges"}},
+ {id:"neon",name:"Neon city",blurb:"Holographic crop top, strapped cargos, windbreaker and visor.",look:"cyber",
+  items:{top:["holographic crop top","auto"],bottom:["cargo pants with straps","auto"],legwear:["striped leg warmers","@accent"],outerwear:["reflective windbreaker","auto"],headwear:["futuristic visor","@accent"],neckAccessory:["headphones around the neck","@accent"],wristAccessory:["smartwatch","@accent"],belt:["utility belt","@accent"],gloves:["fingerless tech gloves","@third"]},
+  details:{detailOne:"reflective piping",detailThree:"holographic finish"}},
+ {id:"gown",name:"Black-tie evening",blurb:"A satin gown with opera gloves, pearls and a jeweled comb.",look:"glam",
+  items:{top:["satin evening gown","auto"],outerwear:["fur stole","@secondary"],gloves:["opera satin gloves","@third"],headwear:["jeweled hair comb","@accent"],neckAccessory:["pearl necklace","-"],hipAccessory:["mini clutch bag","@accent"]},
+  details:{detailTwo:"fitted evening silhouette",detailThree:"satin finish"}},
+ {id:"beach",name:"Beach afternoon",blurb:"Crochet halter, sarong skirt, sheer cover-up and a wide hat.",look:"resort",season:"s",
+  items:{top:["crochet halter top","auto"],bottom:["wrap sarong skirt","auto"],outerwear:["sheer kimono cover-up","@accent"],headwear:["wide-brim sun hat","-"],neckAccessory:["shell necklace","-"],wristAccessory:["beaded bracelets","@accent"],eyewear:["oversized round sunglasses","-"],hipAccessory:["straw beach bag","-"]},
+  details:{detailThree:"crochet texture"}},
+ {id:"gym",name:"Gym day",blurb:"Seamless top, bike shorts, track jacket and a headband.",look:"sporty",
+  items:{top:["seamless sports top","auto"],bottom:["high-waisted bike shorts","auto"],legwear:["crew socks","@accent"],outerwear:["zip-up track jacket","@third"],headwear:["sports headband","@accent"],wristAccessory:["fitness tracker","@accent"],hipAccessory:["belt bag","@third"]},
+  details:{detailTwo:"athletic fit"}}
 ];
 
 const YOUTH_RX=/school|sailor|uniform|lolita|\bloli\b|doll-like|babydoll|bloomer|youthful|kawaii|toy-box|candy-shop|varsity|campus|cheer|pinafore|plush-inspired|pigtail/i;
@@ -931,6 +992,7 @@ const OUT_GROUPS=[
  {id:"underwear",label:"Underwear",fields:["bra","panties"]},
  {id:"details",label:"Details",fields:["detailOne","detailTwo","detailThree"]}
 ];
+KIND_RULES.top.unshift(["dress",/dress|gown/]);
 const OUT_LABEL={top:"Top",bottom:"Bottom",corset:"Corset or bodice layer",outerwear:"Outerwear",legwear:"Legwear",belt:"Belt",waistAccessory:"Waist piece",neckAccessory:"Neck",wristAccessory:"Wrist",headwear:"Headwear",eyewear:"Eyewear",gloves:"Gloves",tagCharm:"Pin or charm",hipAccessory:"Bag or hip piece",bra:"Bra",panties:"Panties",detailOne:"Trim and embellishment",detailTwo:"Cut and fit",detailThree:"Material and finish"};
 const ROLE_AUTO={top:"primary",bottom:"secondary",corset:"accent",outerwear:"third",legwear:"secondary",bra:"third",panties:"third",belt:"accent",waistAccessory:"accent",neckAccessory:"accent",wristAccessory:"accent",headwear:"accent",eyewear:"accent",gloves:"third",tagCharm:"accent",hipAccessory:"third"};
 const OUT_ITEM_FIELDS=OUT_GROUPS.flatMap(g=>g.id==="details"?[]:g.fields);
@@ -1236,9 +1298,11 @@ function outfitState(o){
   if(noLegs){["legwear"].forEach(f=>it[f]&&dropIt(f,`${OUT_LABEL[f]} “${it[f].v}” doesn’t fit a body with no legs.`,rm(f)));
     if(it.bottom&&/pants|shorts|midi|skirt/.test("")){}
     if(it.bottom){const k=parseOpt("bottom",it.bottom.v).kind;if(k==="pants"||k==="shorts")dropIt("bottom",`Bottom “${it.bottom.v}” needs legs.`,rm("bottom"))}}
+  const isDress=!!(it.top&&parseOpt("top",it.top.v).kind==="dress");
+  if(isDress&&it.bottom)dropIt("bottom",`“${it.top.v}” already covers the lower body, so “${it.bottom.v}” isn’t needed.`,rm("bottom"));
   const topShown=it.top&&!drop.top,botShown=it.bottom&&!drop.bottom;
   if(it.bra||it.panties){
-    const braHidden=!!(topShown||it.corset),panHidden=!!botShown;
+    const braHidden=!!(topShown||it.corset),panHidden=!!botShown||(isDress&&!!topShown);
     if(it.bra&&braHidden&&!o.showUnder)dropIt("bra","Bra is covered by the top or corset layer.",{label:"Show underwear",fn:()=>mut(()=>{cur().showUnder=true})});
     if(it.panties&&panHidden&&!o.showUnder)dropIt("panties","Panties are covered by the bottom.",{label:"Show underwear",fn:()=>mut(()=>{cur().showUnder=true})});
     if(o.showUnder&&((it.bra&&braHidden)||(it.panties&&panHidden)))note("info","Underwear is set to show under covering clothes, so the generator may draw the clothes as see-through.");
@@ -1356,6 +1420,12 @@ const Preview=(()=>{
       const p=parseOpt(f,it.v),c=itemColor(f,it);
       m.items[f]={v:it.v,kind:p.kind,cls:p.cls,hex:c?(hexFor(c)||Sprite.hexFor(c)):null};
     });
+    if(m.items.top&&m.items.top.kind==="dress"){
+      const d=m.items.top,t=d.v.toLowerCase();
+      const len=/mini|tennis/.test(t)?"mini skirt":/gown|maxi/.test(t)?"maxi flowy skirt":/slip|wrap|midi|shirt|sweater|smocked|sundress|gothic/.test(t)?"midi skirt":"midi skirt";
+      m.items.bottom={v:len+(/gown|sundress|smocked|wrap/.test(t)?" a-line":""),kind:/mini|tennis/.test(t)?"miniskirt":/gown|maxi/.test(t)?"":"midi",cls:d.cls,hex:d.hex};
+      m.items.top={v:/halter/.test(t)?"halter top":/slip/.test(t)?"camisole":/sleeve|sweater|shirt|gothic/.test(t)?"fitted top":"camisole",kind:/halter/.test(t)?"halter":/slip/.test(t)?"camisole":/gown|sundress|tennis|bodycon|sequin|wrap|smocked/.test(t)?"camisole":"",cls:d.cls,hex:d.hex};
+    }
     const details=Object.values(o.details).filter(Boolean).join(" ");
     if(details)m.items.detailOne={v:details,kind:"",cls:"",hex:null},m.items.detailTwo=null,m.items.detailThree=null;
     const subj=subjectKey(),bf=activeBodyForm(),C=m.chr;
@@ -1423,7 +1493,7 @@ function h(tag,attrs,...kids){
   kids.flat().forEach(c=>{if(c==null||c===false)return;e.append(c.nodeType?c:document.createTextNode(c))});
   return e;
 }
-Object.assign(LABELS,{lashNatural:"Eyelashes",faceMark:"Beauty mark",hairBlend:"Color blending",stomachShape:"Stomach",nailStyle:"Nails",nailColor:"Nail colors",age:"Age category",subjectType:"Species or creature",faceShape:"Face shape",expression:"Expression",browShape:"Brows",noseShape:"Nose",mouthShape:"Mouth",eyeConfig:"Eye setup",eyeShape:"Eye shape",pupilStyle:"Pupils",irisDetail:"Iris detail",eyeOne:"Right eye color",eyeTwo:"Left eye color",hairStyle:"Style",hairLength:"Length",hairTexture:"Texture",bangs:"Bangs",hairMovement:"Movement",hairBase:"Base color",hairUnderlayer:"Underlayer color",hairInner:"Inner sections",hairHighlights:"Highlights",bustSize:"Breast size",bustShape:"Breast shape",bustWeight:"Breast weight",buttSize:"Butt size",heightStature:"Height",shoulderShape:"Shoulders",waistShape:"Waist",hipShape:"Hips",thighBuild:"Thighs",legShape:"Legs",bodySoftness:"Build",posture:"Posture",skinTone:"Skin tone",undertone:"Undertone",skinFinish:"Finish",markings:"Markings",makeupStyle:"Overall style",eyelinerStyle:"Eyeliner",eyeshadowStyle:"Eyeshadow",lashStyle:"Lashes",blushStyle:"Blush",lipFinish:"Lips",faceAccents:"Face accents",makeupColor:"Makeup color",fantasyAccentColor:"Creature accent color",earStyle:"Ears",hornStyle:"Horns",tailStyle:"Tail",wingStyle:"Wings",fangClawStyle:"Fangs and claws",auraStyle:"Aura",animalForm:"Transformation",animalPattern:"Fur pattern",bodyForm:"Lower body",...OUT_LABEL});
+Object.assign(LABELS,{lashNatural:"Eyelashes",faceMark:"Beauty mark",hairBlend:"Color blending",stomachShape:"Stomach",nailStyle:"Nails",nailColor:"Nail colors",age:"Age category",subjectType:"Species or creature",faceShape:"Face shape",expression:"Expression",browShape:"Brows",noseShape:"Nose",mouthShape:"Mouth",eyeConfig:"Eye setup",eyeShape:"Eye shape",pupilStyle:"Pupils",irisDetail:"Iris detail",eyeOne:"Right eye color",eyeTwo:"Left eye color",hairStyle:"Style",hairLength:"Length",hairTexture:"Texture",bangs:"Bangs",hairMovement:"Movement",hairBase:"Base color",hairUnderlayer:"Underlayer color",hairInner:"Inner sections",hairHighlights:"Highlights",bustSize:"Breast size",bustShape:"Breast shape",bustWeight:"Breast weight",buttSize:"Butt",heightStature:"Height",shoulderShape:"Shoulders",waistShape:"Waist",hipShape:"Hips",thighBuild:"Thighs",legShape:"Legs",bodySoftness:"Build",posture:"Posture",skinTone:"Skin tone",undertone:"Undertone",skinFinish:"Finish",markings:"Markings",makeupStyle:"Overall style",eyelinerStyle:"Eyeliner",eyeshadowStyle:"Eyeshadow",lashStyle:"Lashes",blushStyle:"Blush",lipFinish:"Lips",faceAccents:"Face accents",makeupColor:"Makeup color",fantasyAccentColor:"Creature accent color",earStyle:"Ears",hornStyle:"Horns",tailStyle:"Tail",wingStyle:"Wings",fangClawStyle:"Fangs and claws",auraStyle:"Aura",animalForm:"Transformation",animalPattern:"Fur pattern",bodyForm:"Lower body",...OUT_LABEL});
 const STEPS=[
  {id:"concept",label:"Concept",blurb:"Who she is and what she is. Everything else builds on this."},
  {id:"palette",label:"Palette",blurb:"Five colors the whole design shares. Hair, eyes and clothes can follow them."},
@@ -1696,7 +1766,7 @@ function stepBody(){
   bar.append(h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{STEP_FIELDS.body.slice(0,13).forEach(i=>delete S.c[i])}),text:"Clear body"}));
   f.append(bar);
   f.append(sub("Bust"));["bustSize","bustShape","bustWeight"].forEach(id=>f.append(fieldRow(id)));
-  f.append(sub("Proportions"));["heightStature","shoulderShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture"].forEach(id=>f.append(fieldRow(id)));
+  f.append(sub("Proportions"));["heightStature","shoulderShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture"].forEach(id=>f.append(fieldRow(id,{forcePick:id==="buttSize"})));
   f.append(sub("Skin"));["skinTone","undertone","skinFinish","markings"].forEach(id=>f.append(fieldRow(id,{forcePick:true})));
   return f;
 }
@@ -1782,6 +1852,60 @@ function detailRow(field){
   const w=h("div",{class:"pickwrap"},b);if(v)w.append(h("button",{type:"button",class:"clear","aria-label":"Clear",onclick:()=>mut(()=>{delete cur().details[field]}),text:"×"}));
   return row("d:"+field,OUT_LABEL[field],w,"",v?"set":"");
 }
+/* ---------- outfit presets and randomizer ---------- */
+const pick1=a=>a[Math.floor(Math.random()*a.length)];
+function applyOutfitPreset(p){
+  mut(()=>{
+    const o=cur(),def=!Object.keys(o.items).length||/^Outfit( \d+)?$/.test(o.name||"")||/ outfit$/.test(o.name||"")||/ mix$/.test(o.name||"")||OUTFIT_PRESETS.some(x=>x.name===o.name);
+    o.items={};o.details={};o.showUnder=false;o.look=p.look||"";o.season=p.season||"";o.cover="";
+    Object.entries(p.items).forEach(([f,[v,c]])=>{o.items[f]={v,c}});
+    Object.assign(o.details,p.details||{});
+    if(def)o.name=p.name;
+  });
+  toast(`Loaded “${p.name}”. Colors follow your palette.`);
+}
+function randomizeOutfit(){
+  const o=cur(),looks=LOOKS.map(l=>l[0]).filter(l=>l!=="boudoir");
+  const look=o.look||pick1(looks),cov=o.cover||"",sea=o.season||"";
+  const bf=activeBodyForm(),noLegs=!!(bf&&(bf.noLegs||bf.dropLegs))||fullBeast();
+  const wings=!!traitValue("wingStyle"),hat=!!(traitValue("earStyle")||traitValue("hornStyle"));
+  const pool=(field,pred)=>{
+    const ok=(OUTFIT[field]||[]).filter(it=>{
+      if(YOUTH_RX.test(it.v)||!itemAllowed(field,it.v))return false;
+      const t=itemTiers(field,it);
+      if(cov?!t.includes(cov):!/[CUS]/.test(t))return false;
+      if(sea&&it.s&&it.s!==sea)return false;
+      return !pred||pred(it);
+    });
+    const fits=ok.filter(it=>it.f&&it.f.split(",").includes(look));
+    if(fits.length)return fits;
+    const anyLook=ok.filter(it=>!it.f);
+    return anyLook.length||!(field==="top"||field==="bottom")?anyLook:ok;
+  };
+  const pickItem=(f,pred)=>{const a=pool(f,pred);return a.length?{v:pick1(a).v,c:"auto"}:null};
+  const items={};
+  const dressP=sea==="w"?.12:.2;
+  const top=pickItem("top",it=>!/bodysuit|corset|bustier/.test(it.v));
+  const dressTop=pool("top",it=>kindOf("top",it.v)==="dress");
+  let useDress=dressTop.length&&Math.random()<dressP;
+  if(useDress)items.top={v:pick1(dressTop).v,c:"auto"};
+  else{
+    const t=pickItem("top",it=>kindOf("top",it.v)!=="dress"&&!/bodysuit|corset|bustier/.test(it.v));if(t)items.top=t;
+    const b=pickItem("bottom",it=>!noLegs||!/pants|shorts|jeans|trousers|leggings/.test(it.v));if(b)items.bottom=b;
+  }
+  const roll=(f,p,pred)=>{if(Math.random()<p){const x=pickItem(f,pred);if(x)items[f]=x}};
+  if(!noLegs)roll("legwear",sea==="w"?.7:sea==="s"?.3:.5);
+  if(!wings)roll("outerwear",sea==="w"?.85:sea==="s"?.2:.5);
+  roll("headwear",.4,it=>!hat||kindOf("headwear",it.v)!=="beret");
+  roll("neckAccessory",.5);roll("wristAccessory",.4);roll("belt",useDress?0:.25);roll("waistAccessory",.12);
+  roll("hipAccessory",.35);roll("eyewear",.12);roll("tagCharm",.12);
+  roll("gloves",.1);
+  if(items.gloves&&kindOf("gloves",items.gloves.v)==="long")delete items.wristAccessory;
+  const details={};
+  [["detailOne",.55],["detailTwo",.4],["detailThree",.3]].forEach(([f,p])=>{if(Math.random()<p){const a=(OUTFIT[f]||[]).filter(it=>!YOUTH_RX.test(it.v)&&(cov?itemTiers(f,it).includes(cov):/[CUS]/.test(itemTiers(f,it))));if(a.length)details[f]=pick1(a).v}});
+  mut(()=>{const c=cur();c.items=items;c.details=details;c.showUnder=false;if(/^Outfit( \d+)?$|^.+ mix$/.test(c.name||""))c.name=(LOOKS.find(l=>l[0]===look)||[0,"Outfit"])[1].split(/ & |, /)[0]+" mix"});
+  toast(`Randomized: ${(LOOKS.find(l=>l[0]===look)||[0,look])[1]}. Colors follow your palette.`);
+}
 function stepOutfit(){
   const f=document.createDocumentFragment(),o=cur();
   /* wardrobe tabs */
@@ -1794,6 +1918,12 @@ function stepOutfit(){
     h("button",{type:"button",class:"btn sm",onclick:()=>mut(()=>{const c=JSON.parse(JSON.stringify(cur()));c.name+=" copy";S.outfits.splice(S.cur+1,0,c);S.cur++}),text:"Duplicate"}),
     h("button",{type:"button",class:"btn sm",disabled:S.outfits.length<2?true:null,onclick:()=>{if(S.outfits.length<2)return;mut(()=>{S.outfits.splice(S.cur,1);S.cur=Math.max(0,S.cur-1)})},text:"Delete"}),
     h("button",{type:"button",class:"btn sm",onclick:()=>mut(()=>{S.outfits[S.cur]=newOutfit(o.name)}),text:"Clear outfit"})));
+  f.append(h("div",{class:"btnrow"},h("button",{type:"button",class:"btn primary",id:"rndOutfit",onclick:randomizeOutfit,text:"Randomize outfit"}),
+    h("span",{class:"muted small",text:"Builds a matching outfit. It follows the look, coverage and season below, so leave Look on “Any look” for more variety. Undo brings back the last one."})));
+  f.append(sub("Starting points","Load a finished outfit, then change anything. Colors follow your palette."));
+  const pg=h("div",{class:"opresets"});
+  OUTFIT_PRESETS.forEach(p=>pg.append(h("button",{type:"button",class:"opreset",onclick:()=>applyOutfitPreset(p)},h("b",{text:p.name}),h("span",{text:p.blurb}))));
+  f.append(pg);
   /* filters */
   const lookSel=h("select",{"aria-label":"Look",onchange:e=>mut(()=>{cur().look=e.target.value})},h("option",{value:"",text:"Any look"}),LOOKS.map(([id,l])=>h("option",{value:id,selected:o.look===id?true:null,text:l})));
   const covSel=h("select",{"aria-label":"Coverage",onchange:e=>mut(()=>{cur().cover=e.target.value})},COVER.map(([v,l])=>h("option",{value:v,selected:o.cover===v?true:null,disabled:(v==="L"&&girlL())?true:null,text:l+((v==="L"&&girlL())?" (unavailable)":"")})));
