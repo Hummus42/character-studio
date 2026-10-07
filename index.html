@@ -269,6 +269,7 @@ button,.btn,.chip,.opt,.rail-btn,.pick,.seg button,.tabs button,.swb,.start,labe
 .palcard .strip i{width:auto;min-width:0}
 
 .pgroups{display:flex;flex-direction:column;gap:8px;margin:4px 0 6px}.pgl{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin:0 0 4px}.ggh{grid-column:1/-1;font-family:var(--fh);font-weight:700;font-size:.82rem;color:var(--muted);margin:8px 0 -2px}
+.pop.stack .opt{flex-direction:column;align-items:flex-start;gap:2px}.pop.stack .opt small{white-space:normal;text-align:left}
 </style>
 </head>
 <body>
@@ -278,6 +279,7 @@ button,.btn,.chip,.opt,.rail-btn,.pick,.seg button,.tabs button,.swb,.start,labe
   <input id="nameInput" class="design-name" type="text" aria-label="Design name" placeholder="Name this design" maxlength="60">
   <div class="top-actions">
     <button class="btn" id="startsBtn" type="button">Starting points</button>
+    <button class="btn" id="randBtn" type="button" aria-haspopup="dialog">Randomize</button>
     <button class="btn" id="savesBtn" type="button">Save or load</button>
     <button class="btn icon" id="undoBtn" type="button" title="Undo (Ctrl+Z)">Undo</button>
     <button class="btn icon" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)">Redo</button>
@@ -1520,8 +1522,14 @@ const WORN={
 })();
 /* ---- v29: extra options (all wording is covered by the existing age rules) ---- */
 (function(){
-  const D={"bustSize": [["Full figure (adult)", ["very large, full, round breasts"]]], "bustShape": [["Full figure (adult)", ["full, heavy, round shape"]]], "bustWeight": [["Full figure (adult)", ["full, heavy fullness"]]], "hipShape": [["Full figure (adult)", ["lewd, full, rounded hips", "thick, full, round hips"]]], "thighBuild": [["Full figure (adult)", ["sexy, thick thighs", "thick, round, juicy thighs"]]], "bodySoftness": [["Full figure (adult)", ["thick, round, juicy, sexy, lewd curves", "very lewd, thick proportions", "petite, slim frame with thick, lewd curves"]]], "stomachShape": [["Natural and realistic", ["flat, smooth abdomen"]]], "torsoShape": [["Natural and realistic", ["compact torso with delicate proportions through the ribcage", "softly contoured, non-muscular torso"]]], "impression": [["Sultry (adult)", ["an openly lewd, exaggerated figure"]]], "makeupStyle": [["Sultry (adult)", ["seductive, sexy, lewd smoky makeup"]]], "hairMovement": [["Natural and realistic", ["usually swept to one side, cascading well past the chest"]]]};
+  const D={"bustSize": [["Full figure (adult)", ["very large, full, round breasts"]]], "bustShape": [["Full figure (adult)", ["full, heavy, round shape"]]], "bustWeight": [["Full figure (adult)", ["full, heavy fullness"]]], "hipShape": [["Full figure (adult)", ["lewd, full, rounded hips", "thick, full, round hips"]]], "thighBuild": [["Full figure (adult)", ["sexy, thick thighs", "thick, round, juicy thighs"]]], "bodySoftness": [["Full figure (adult)", ["thick, round, juicy, sexy, lewd curves", "very lewd, thick proportions", "petite, slim frame with thick, lewd curves"]]], "stomachShape": [["Natural and realistic", ["flat, smooth abdomen"]]], "torsoShape": [["Natural and realistic", ["compact torso with delicate proportions through the ribcage", "softly contoured, non-muscular torso"]]], "impression": [["Sultry (adult)", ["an openly lewd, exaggerated figure"]]], "makeupStyle": [["Sultry (adult)", ["seductive, sexy, lewd smoky makeup"]]], "hairMovement": [["Natural and realistic", ["is usually swept to one side, cascading well past the chest"]]]};
   Object.entries(D).forEach(([f,groups])=>groups.forEach(([g,vals])=>vals.forEach(v=>{if(!CHAR[f].some(x=>x[0]===v))CHAR[f].push([v,g])})));
+})();
+/* ---- v30: body presets refreshed with the new options ---- */
+(function(){
+  const U={"petiteFlat": {"torsoShape": "narrow ribcage", "armShape": "delicate hands"}, "slender": {"torsoShape": "slim upper torso", "armShape": "slender arms and delicate hands", "legShape": "tall, slender legs"}, "average": {"bodySoftness": "average feminine build with natural proportions", "shoulderShape": "average shoulders", "hipShape": "average-width hips with moderate curves", "thighBuild": "natural, softly shaped thighs", "legShape": "proportional legs", "stomachShape": "natural abdomen", "waistShape": "subtle waistline", "armShape": "softly rounded arms", "torsoShape": "slim upper torso"}, "athletic": {"armShape": "softly toned arms", "torsoShape": "narrow ribcage"}, "curvy": {"torsoShape": "slim upper torso", "armShape": "softly rounded arms", "waistShape": "small, clearly defined waist", "hipShape": "wide, beautifully rounded hips", "buttSize": "full, rounded butt with noticeable projection"}, "thick": {"torsoShape": "compact torso", "armShape": "softly rounded arms"}, "full": {"torsoShape": "compact torso", "armShape": "softly rounded arms"}, "hourglassX": {"torsoShape": "narrow ribcage", "armShape": "slender arms"}, "delicateTop": {"torsoShape": "slim upper torso", "armShape": "slender arms and delicate hands"}, "bombshell": {"torsoShape": "narrow ribcage", "armShape": "softly rounded arms"}},N={"petiteSoft": {"label": "Petite and soft", "v": {"heightStature": "petite stature", "shoulderShape": "narrow, gently rounded shoulders", "torsoShape": "compact torso", "armShape": "slender arms and delicate hands", "bustSize": "small breasts", "waistShape": "small, clearly defined waist", "stomachShape": "flat, smooth abdomen", "hipShape": "gently rounded hips", "buttSize": "small round butt", "thighBuild": "natural, softly shaped thighs", "legShape": "slender legs", "bodySoftness": "delicate soft build", "posture": "soft poised posture"}}, "tallSlender": {"label": "Tall and long-legged", "v": {"heightStature": "tall stature", "shoulderShape": "gently sloping shoulders", "torsoShape": "elongated, relatively slender torso", "armShape": "long, slender arms", "bustSize": "small-to-medium breasts", "waistShape": "defined waist", "stomachShape": "smooth, softly toned stomach", "hipShape": "balanced hips", "buttSize": "medium butt", "thighBuild": "long smooth thighs", "legShape": "tall, slender legs", "bodySoftness": "tall, long-legged, slender figure", "posture": "graceful upright posture"}}, "petiteHourglass": {"label": "Petite hourglass", "adultOnly": true, "v": {"heightStature": "petite stature", "shoulderShape": "narrow, gently sloping shoulders", "torsoShape": "compact torso", "armShape": "slender arms and delicate hands", "bustSize": "large breasts", "bustShape": "naturally rounded shape", "bustWeight": "soft natural fullness", "waistShape": "small, clearly defined waist", "stomachShape": "smooth, softly toned stomach", "hipShape": "wide, beautifully rounded hips", "buttSize": "very full, rounded, prominently projecting butt", "thighBuild": "thick, plush, shapely thighs tapering toward the knees", "legShape": "slender legs", "bodySoftness": "lush, voluptuous hourglass figure combining a petite frame with balanced curves", "posture": "soft poised posture"}}, "bottomHeavy": {"label": "Bottom-heavy hourglass", "adultOnly": true, "v": {"heightStature": "average height", "shoulderShape": "gently sloping shoulders", "torsoShape": "slim upper torso", "armShape": "softly rounded arms", "bustSize": "large breasts", "bustShape": "naturally rounded shape", "waistShape": "small, clearly defined waist", "stomachShape": "mostly flat but naturally soft stomach", "hipShape": "very wide, rounded hips", "buttSize": "very full, rounded, prominently projecting butt", "thighBuild": "exceptionally thick, full, shapely thighs", "legShape": "proportional legs", "bodySoftness": "distinctly voluptuous, bottom-heavy hourglass figure with soft, pronounced curves", "posture": "relaxed posture"}}, "statuesque": {"label": "Tall and statuesque", "adultOnly": true, "v": {"heightStature": "tall, statuesque stature", "shoulderShape": "moderately broad, gently sloping shoulders", "torsoShape": "elongated, relatively slender torso", "armShape": "long, slender arms", "bustSize": "full breasts", "bustShape": "naturally rounded shape", "waistShape": "small, clearly defined waist", "stomachShape": "smooth, softly toned stomach", "hipShape": "wide, beautifully rounded hips", "buttSize": "full, rounded butt with noticeable projection", "thighBuild": "long, full, shapely thighs", "legShape": "long legs tapering into slender lower legs", "bodySoftness": "tall, statuesque hourglass figure with long limbs and balanced curves", "posture": "graceful upright posture"}}, "petiteVoluptuous": {"label": "Petite and very voluptuous", "adultOnly": true, "v": {"heightStature": "petite stature", "shoulderShape": "relatively narrow, softly rounded shoulders", "torsoShape": "short, compact torso", "armShape": "slender arms and delicate hands", "bustSize": "very large breasts", "bustShape": "prominently rounded shape", "bustWeight": "heavy natural fullness", "waistShape": "small, tightly defined waist", "stomachShape": "smooth, softly toned stomach", "hipShape": "very wide, rounded hips", "buttSize": "very full, large, rounded butt with substantial projection and volume", "thighBuild": "exceptionally thick, plush thighs", "legShape": "slender legs", "bodySoftness": "petite, exceptionally voluptuous hourglass figure", "posture": "soft poised posture"}}};
+  Object.entries(U).forEach(([k,v])=>Object.assign(BODY_PRESETS[k].v,v));
+  Object.entries(N).forEach(([k,p])=>{BODY_PRESETS[k]=p});
 })();
 const OUT_ITEM_FIELDS=OUT_GROUPS.flatMap(g=>g.id==="details"?[]:g.fields);
 const COLOR_FIELDS=["eyeOne","eyeTwo","hairBase","hairUnderlayer","hairInner","hairHighlights","makeupColor","fantasyAccentColor"];
@@ -2124,7 +2132,7 @@ function openPop(anchor,cfg){
   const search=h("input",{type:"search",class:"pop-search",placeholder:cfg.searchPlaceholder||"Search",autocomplete:"off","aria-label":"Search options"});
   const list=h("div",{class:"pop-list"+(cfg.grid?" grid":"")});
   const top=h("div",{class:"pop-top"});
-  popEl=h("div",{class:"pop",role:"dialog","aria-label":cfg.title||"Choose"},h("div",{class:"pop-head"},h("strong",{text:cfg.title||"Choose"}),h("button",{class:"x",type:"button","aria-label":"Close",onclick:closePop,text:"×"})),search,top,list);
+  popEl=h("div",{class:"pop"+(cfg.stack?" stack":""),role:"dialog","aria-label":cfg.title||"Choose"},h("div",{class:"pop-head"},h("strong",{text:cfg.title||"Choose"}),h("button",{class:"x",type:"button","aria-label":"Close",onclick:closePop,text:"×"})),cfg.noSearch?null:search,top,list);
   const pick=(v,extra)=>{closePop();cfg.onPick(v,extra)};
   (cfg.top||[]).forEach(t=>{
     top.append(h("button",{type:"button",class:"pop-chip"+(t.on?" on":""),onclick:()=>{closePop();t.fn()}},t.hex?h("i",{class:"sw",style:`background:${t.hex}`}):null,t.label))});
@@ -2269,7 +2277,8 @@ function stepPalette(){
     h("button",{type:"button",class:"btn",onclick:()=>mut(()=>{S.c.hairBase="@primary";S.c.hairUnderlayer="@secondary";S.c.hairInner="@third";S.c.hairHighlights="@accent"}),text:"Hair follows palette"}),
     h("button",{type:"button",class:"btn",onclick:()=>mut(()=>{S.c.eyeOne="@accent";delete S.c.eyeTwo;S.c.eyeConfig="matching"}),text:"Eyes follow accent"}),
     h("button",{type:"button",class:"btn",onclick:()=>mut(()=>{const l=cur();OUT_ITEM_FIELDS.forEach(k=>{if(l.items[k])l.items[k].c="auto"})}),text:"Reset outfit colors to auto"})));
-  f.append(paletteLibrary());
+  const pd=h("details",{class:"palib-d",ontoggle:e=>{palLibOpen=e.target.open}},h("summary",{text:"Palette library (finished five-color palettes)"}),paletteLibrary());if(palLibOpen)pd.open=true;
+  f.append(pd);
   f.append(harmonyBox());
   return f;
 }
@@ -2347,6 +2356,7 @@ function harmonyBox(){
   });
   return box;
 }
+let palLibOpen=false;
 function paletteLibrary(){
   const box=h("div",{class:"palib"},h("div",{class:"sub"},h("h3",{text:"Palette library"}),h("p",{text:"Finished five-color palettes. Tap one to fill every slot. Undo brings back yours."})));
   const bar=h("div",{class:"chips"});
@@ -2363,7 +2373,7 @@ const PRESET_GROUPS={
   face:[{label:"Sweet",keys:["soft","adorable","shy","dollface"]},{label:"Bright and playful",keys:["bright","playful","dreamy"]},{label:"Polished",keys:["elegant","cool","fierce"]},{label:"Adult only",keys:["sultry","seductive","lustful","fatale"]}],
   eye:[{label:"Sweet",keys:["doe","adorable","dolleyes","sparkling","glossy","starry"]},{label:"Everyday",keys:["almond","upturned","sleepy"]},{label:"Striking",keys:["catlike","sharp","celestial"]},{label:"Adult only",keys:["bedroom","heavylid","hypnotic"]}],
   makeup:[{label:"Natural",keys:["natural","dewy"]},{label:"Sweet",keys:["sweet","cute","dollmk"]},{label:"Polished",keys:["glam","editorial","dark"]},{label:"Adult only",keys:["sexy","lewdglam","afterglow","fatalemk"]}],
-  body:[{label:"Petite and slim",keys:["petiteFlat","slender"]},{label:"Everyday",keys:["average","athletic"]},{label:"Curves (adult only)",keys:["curvy","thick","full","delicateTop","hourglassX","bombshell"]}],
+  body:[{label:"Petite and slim",keys:["petiteFlat","petiteSoft","slender","tallSlender"]},{label:"Everyday",keys:["average","athletic"]},{label:"Curves (adult only)",keys:["curvy","thick","full","petiteHourglass","statuesque","bottomHeavy","petiteVoluptuous","delicateTop","hourglassX","bombshell"]}],
   outfit:[{label:"Everyday",keys:["cafe","picnic","preppy"]},{label:"Sporty and resort",keys:["gym","beach"]},{label:"Sweet",keys:["sugar","cuddle"]},{label:"Dressed up",keys:["velvet","gown"]},{label:"Alternative",keys:["punk","neon"]},{label:"Adult only",keys:["lewdlace","lewdlatex"]},{label:"Costume and roleplay (adult only)",keys:["plumber","cheer","teacher","cowgirl","volley"]}],
   start:[{label:"Odd-eyed originals",keys:["bluelong","redgold","bluecream"]},{label:"Everyday",keys:["academic","herbalist","seaside","goldenbrunette"]},{label:"Stylish",keys:["evening","gothic","courier","punk"]},{label:"Fantasy",keys:["kitsune"]},{label:"The two extremes",keys:["maxcute","maxlewd"]}]
 };
@@ -2376,18 +2386,31 @@ function chipGroups(groups,PRESETS,make,extra){
   if(extra)wrap.append(h("div",{class:"pgroup"},extra));
   return wrap;
 }
+/* One compact row with a popover instead of a block of chips */
+function presetRow(id,PRESETS,groups,apply,clearFn,clearLabel,hint,opts){
+  opts=opts||{};
+  const listed=new Set(groups.flatMap(g=>g.keys));
+  const all=groups.concat([{label:"More",keys:Object.keys(PRESETS).filter(k=>!listed.has(k))}]);
+  const sections=()=>all.map(g=>({name:g.label,items:g.keys.filter(k=>PRESETS[k]).map(k=>{const p=PRESETS[k],ok=opts.noCheck?true:presetAvailable(p);
+    return{v:k,label:p.label||p.name,sub:p.blurb||"",dis:ok?null:(Policy.presetNote(p)||"Not available for this age category")}})})).filter(sc=>sc.items.length);
+  const btn=h("button",{type:"button",class:"pick","aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>openPop(e.currentTarget,{title:opts.title||"Presets",current:null,stack:!!opts.noCheck,sections:sections(),
+    top:[{label:clearLabel,fn:clearFn}],onPick:k=>apply(k,PRESETS[k])})},h("span",{text:"Choose a preset…"}),h("i",{class:"caret","aria-hidden":"true"}));
+  return row("preset:"+id,"Preset",h("div",{class:"pickwrap"},btn),hint,"presetrow");
+}
+const PRESET_HINTS={fpreset:"Sets shape, expression, brows, nose, mouth and impression.",epreset:"Sets eye shape, pupils, iris detail and lashes. Colors stay.",mpreset:"Sets the whole makeup look. Change any part afterward.",preset:"Sets every proportion at once. Change any part afterward."};
 function presetBar(PRESETS,FIELDS,clearLabel,key,groups){
+  return presetRow(key,PRESETS,groups,(k,p)=>mut(()=>{FIELDS.forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},key),()=>mut(()=>{FIELDS.forEach(i=>delete S.c[i])}),clearLabel,PRESET_HINTS[key],{title:"Presets"});
+}
+function presetBarOld(PRESETS,FIELDS,clearLabel,key,groups){
   return chipGroups(groups,PRESETS,(k,p)=>{const ok=presetAvailable(p);return h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:Policy.presetNote(p),onclick:()=>mut(()=>{FIELDS.forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},key),text:p.label})},
     h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{FIELDS.forEach(i=>delete S.c[i])}),text:clearLabel}));
 }
 function stepFace(){
   const f=document.createDocumentFragment();
-  f.append(sub("Face presets","A preset sets the face shape, expression, brows, nose, mouth and overall impression. Change any part afterward."));
-  f.append(presetBar(FACE_PRESETS,FACE_FIELDS,"Clear face","fpreset",PRESET_GROUPS.face));
-  f.append(sub("Face"));["faceShape","expression","browShape","noseShape","mouthShape","faceMark","impression"].forEach(id=>f.append(fieldRow(id)));
-  f.append(sub("Eye presets","A preset sets the eye shape, pupils, iris detail and lashes. Colors and the eye setup stay as you have them."));
-  f.append(presetBar(EYE_PRESETS,EYE_FIELDS,"Clear eyes","epreset",PRESET_GROUPS.eye));
+  f.append(sub("Face"));
+  f.append(presetBar(FACE_PRESETS,FACE_FIELDS,"Clear face","fpreset",PRESET_GROUPS.face));["faceShape","expression","browShape","noseShape","mouthShape","faceMark","impression"].forEach(id=>f.append(fieldRow(id)));
   f.append(sub("Eyes"));
+  f.append(presetBar(EYE_PRESETS,EYE_FIELDS,"Clear eyes","epreset",PRESET_GROUPS.eye));
   ["eyeShape","pupilStyle","irisDetail","lashNatural","eyeConfig"].forEach(id=>f.append(fieldRow(id)));
   f.append(colorRow("eyeOne"));f.append(colorRow("eyeTwo","Only needed for two-color eye setups."));
   return f;
@@ -2418,11 +2441,7 @@ function skinSuggestBox(){
 }
 function stepBody(){
   const f=document.createDocumentFragment();
-  f.append(sub("Presets","A preset sets every proportion at once. You can still change any of them after."));
-  f.append(chipGroups(PRESET_GROUPS.body,BODY_PRESETS,(k,p)=>{
-    const ok=presetAvailable(p);
-    return h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:Policy.presetNote(p),onclick:()=>{mut(()=>{STEP_FIELDS.body.slice(0,15).forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},"preset");if(Policy.afterBodyPreset())toast(Policy.afterBodyPreset())},text:p.label});
-  },h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{STEP_FIELDS.body.slice(0,15).forEach(i=>delete S.c[i])}),text:"Clear body"})));
+  f.append(presetRow("preset",BODY_PRESETS,PRESET_GROUPS.body,(k,p)=>{mut(()=>{STEP_FIELDS.body.slice(0,15).forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},"preset");if(Policy.afterBodyPreset())toast(Policy.afterBodyPreset())},()=>mut(()=>{STEP_FIELDS.body.slice(0,15).forEach(i=>delete S.c[i])}),"Clear body",PRESET_HINTS.preset,{title:"Body presets"}));
   if(Policy.callout("body"))f.append(h("p",{class:"callout"},Policy.callout("body")));
   f.append(sub("Bust"));["bustSize","bustShape","bustWeight"].forEach(id=>f.append(fieldRow(id)));
   f.append(sub("Proportions"));["heightStature","shoulderShape","torsoShape","armShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture"].forEach(id=>f.append(fieldRow(id,{forcePick:id==="buttSize"})));
@@ -2442,7 +2461,6 @@ function nailColorRow(){
 }
 function stepMakeup(){
   const f=document.createDocumentFragment();
-  f.append(sub("Presets","A preset sets the whole look. Change any part afterward."));
   f.append(presetBar(MAKEUP_PRESETS,MAKEUP_FIELDS,"Clear makeup","mpreset",PRESET_GROUPS.makeup));f.append(sub("Details"));
   ["makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents"].forEach(id=>f.append(fieldRow(id)));
   f.append(colorRow("makeupColor","Used for “her makeup uses … accents”."));
@@ -2529,6 +2547,67 @@ function detailRow(field){
 }
 /* ---------- outfit presets and randomizer ---------- */
 const pick1=a=>a[Math.floor(Math.random()*a.length)];
+/* ---------- randomize character (not outfit) ---------- */
+const RND_EXOTIC=/fantasy|decorative/i;
+function randomizeCharacter(mode){
+  const adult=mode==="adult",rank=v=>lenRank(v);
+  mut(()=>{
+    /* age: keep the one chosen; with none chosen use an adult category */
+    if(!S.c.age)S.c.age=pick1(["young woman","young woman","woman","mature woman"]);
+    const pool=(f,extra)=>CHAR[f].filter(([v,g])=>!RND_EXOTIC.test(g)&&(!extra||extra(v,g))&&(adult||!/adult/i.test(g))&&Policy.optionAllowed(f,v)).map(x=>x[0]);
+    const ALLF=[...FACE_FIELDS,"faceMark",...EYE_FIELDS,"eyeConfig","eyeOne","eyeTwo","hairStyle","hairLength","hairTexture","bangs","hairMovement","hairBase","hairUnderlayer","hairInner","hairHighlights","hairBlend",...STEP_FIELDS.body.slice(0,15),"skinTone","undertone","skinFinish","markings",...MAKEUP_FIELDS,"makeupColor","nailStyle","nailColor"];
+    ALLF.forEach(f=>delete S.c[f]);
+    /* palette */
+    for(let t=0;t<25;t++){const pl=pick1(PALETTE_LIBRARY);SLOTS.forEach(([k],i)=>{S.pal[k]=pl.c[i]||""});if(!compose().checks.some(c=>/look very alike/.test(c.msg)))break}
+    const slot=()=>"@"+pick1(["primary","secondary","third","accent","extra"]);
+    const preset=P=>{const ks=Object.keys(P).filter(k=>presetAvailable(P[k])&&(adult||!P[k].adultOnly));return ks.length?P[pick1(ks)]:null};
+    const nudge=(f,p)=>{if(Math.random()<p){const a=pool(f);if(a.length)S.c[f]=pick1(a)}};
+    /* face, eyes, makeup, body come from curated presets, then a few single fields vary */
+    [[FACE_PRESETS],[EYE_PRESETS],[MAKEUP_PRESETS],[BODY_PRESETS]].forEach(([P])=>{const p=preset(P);if(p)Object.assign(S.c,p.v)});
+    ["expression","browShape","noseShape","mouthShape","faceShape","impression","eyeShape","irisDetail","lashNatural","eyelinerStyle","eyeshadowStyle","blushStyle","lipFinish","lashStyle"].forEach(f=>nudge(f,.22));
+    if(Math.random()<.3)S.c.faceMark=pick1(CHAR.faceMark.map(x=>x[0]));
+    if(Math.random()<.3)nudge("faceAccents",1);
+    /* eye setup and colors follow the palette */
+    const cfgs=["matching","matching","matching","matching","heterochromatic","softly mismatched","gradient-tinted"].filter(v=>CHAR.eyeConfig.some(x=>x[0]===v));
+    S.c.eyeConfig=pick1(cfgs);const e1=slot();S.c.eyeOne=e1;
+    if(S.c.eyeConfig==="matching"){S.c.eyeTwo=e1}else{let e2=slot();for(let i=0;i<6&&e2===e1;i++)e2=slot();S.c.eyeTwo=e2}
+    /* hair: pick again until the studio's own checks find no conflict */
+    const setHair=()=>{
+    const sty=pool("hairStyle");const st=pick1(sty);S.c.hairStyle=st;
+    const grp=(CHAR.hairStyle.find(x=>x[0]===st)||[0,""])[1],short=/short/i.test(grp);
+    const lens=pool("hairLength",v=>{const r=rank(v);return r!=null&&(short?r<=3:r>=3&&r<=8)});
+    if(lens.length)S.c.hairLength=pick1(lens);
+    nudge("hairTexture",1);nudge("bangs",.8);
+    const lr=rank(S.c.hairLength),longHair=lr!=null&&lr>=4;
+    const mv=pool("hairMovement",(v,g)=>!/past|midriff|chest|waist/i.test(v)&&(longHair?/long|dynamic|natural/i.test(g):/short|dynamic|natural/i.test(g)));
+    if(mv.length&&Math.random()<.8)S.c.hairMovement=pick1(mv);
+    S.c.hairBase="@primary";
+    if(Math.random()<.3)S.c.hairUnderlayer="@secondary";
+    if(Math.random()<.2)S.c.hairInner="@third";
+    if(Math.random()<.35)S.c.hairHighlights="@accent";
+    if(["hairUnderlayer","hairInner","hairHighlights"].filter(f=>S.c[f]).length>=1&&Math.random()<.7)nudge("hairBlend",1);
+    };
+    for(let t=0;t<25;t++){["hairStyle","hairLength","hairTexture","bangs","hairMovement","hairBase","hairUnderlayer","hairInner","hairHighlights","hairBlend"].forEach(f=>delete S.c[f]);setHair();if(!compose().checks.some(c=>/^Hair /.test(c.msg)))break}
+    /* skin */
+    const nat=(f)=>pool(f,(v,g)=>!/stylized/i.test(g));
+    S.c.skinTone=pick1(nat("skinTone"));
+    if(Math.random()<.7){const u=nat("undertone");if(u.length)S.c.undertone=pick1(u)}
+    nudge("skinFinish",.8);
+    if(Math.random()<.4)nudge("markings",1);
+    nudge("posture",.6);
+    /* makeup and nails */
+    S.c.makeupColor=slot();nudge("nailStyle",.9);if(S.c.nailStyle)S.c.nailColor=Math.random()<.5?"@"+pick1(["primary","accent","third"]):slot();
+  });
+  toast("Randomized the character. Undo brings back the last one.");
+}
+function openRandomMenu(anchor){
+  const girl=Policy.girlAge&&Policy.girlAge();
+  openPop(anchor,{title:"Randomize character",current:null,noSearch:true,stack:true,sections:[{name:"",items:[
+    {v:"everyday",label:"Everyday",sub:"Face, eyes, hair, body, skin, makeup and palette. Skips the adult options."},
+    {v:"adult",label:"Include adult options",sub:"Also draws from the sultry and full-figure options.",dis:girl?"Not available for this age category":null}]}],
+    onPick:m=>randomizeCharacter(m)});
+}
+
 function applyOutfitPreset(p){
   mut(()=>{
     const o=cur(),def=!Object.keys(o.items).length||/^Outfit( \d+)?$/.test(o.name||"")||/ outfit$/.test(o.name||"")||/ mix$/.test(o.name||"")||OUTFIT_PRESETS.some(x=>x.name===o.name);
@@ -2603,13 +2682,8 @@ function stepOutfit(){
     h("button",{type:"button",class:"btn sm",onclick:()=>mut(()=>{S.outfits[S.cur]=newOutfit(o.name)}),text:"Clear outfit"})));
   f.append(h("div",{class:"btnrow"},h("button",{type:"button",class:"btn primary",id:"rndOutfit",onclick:randomizeOutfit,text:"Randomize outfit"}),
     h("span",{class:"muted small",text:"Builds a matching outfit. It follows the look, coverage and season below, so leave Look on “Any look” for more variety. Undo brings back the last one."})));
-  f.append(sub("Starting points","Load a finished outfit, then change anything. Colors follow your palette."));
-  const pg=h("div",{class:"opresets"});
   const byId=Object.fromEntries(OUTFIT_PRESETS.map(p=>[p.id,p]));
-  const oGroups=PRESET_GROUPS.outfit.concat([{label:"More",keys:OUTFIT_PRESETS.map(p=>p.id).filter(id=>!PRESET_GROUPS.outfit.some(g=>g.keys.includes(id)))}]);
-  oGroups.forEach(g=>{const ps=g.keys.map(k=>byId[k]).filter(Boolean);if(!ps.length)return;pg.append(h("div",{class:"ggh",text:g.label}));
-    ps.forEach(p=>pg.append(h("button",{type:"button",class:"opreset",onclick:()=>applyOutfitPreset(p)},h("b",{text:p.name}),h("span",{text:p.blurb}))))});
-  f.append(pg);
+  f.append(presetRow("opreset",byId,PRESET_GROUPS.outfit,(k,p)=>applyOutfitPreset(p),()=>mut(()=>{S.outfits[S.cur]=newOutfit(o.name)}),"Clear outfit","Loads a finished outfit, then change anything. Colors follow your palette.",{title:"Outfit starting points",noCheck:true}));
   /* filters */
   const lookSel=h("select",{"aria-label":"Look",onchange:e=>mut(()=>{cur().look=e.target.value})},h("option",{value:"",text:"Any look"}),LOOKS.map(([id,l])=>h("option",{value:id,selected:o.look===id?true:null,text:l})));
   const covSel=h("select",{"aria-label":"Coverage",onchange:e=>mut(()=>{cur().cover=e.target.value})},COVER.map(([v,l])=>h("option",{value:v,selected:o.cover===v?true:null,disabled:Policy.coverageAllowed(v)?null:true,text:l+(Policy.coverageAllowed(v)?"":" (unavailable)")})));
@@ -2824,7 +2898,7 @@ function init(){
   $("#themeBtn").onclick=()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
   $("#nameInput").addEventListener("input",e=>{typing="main";mut(()=>{S.name=e.target.value},"name");typing=""});
   $("#undoBtn").onclick=()=>undo();$("#redoBtn").onclick=()=>redo();
-  $("#startsBtn").onclick=openStarts;$("#savesBtn").onclick=openSaves;
+  $("#startsBtn").onclick=openStarts;$("#randBtn").onclick=e=>openRandomMenu(e.currentTarget);$("#savesBtn").onclick=openSaves;
   $$("dialog").forEach(d=>d.addEventListener("click",e=>{if(e.target===d)d.close()}));
   $$("[data-close]").forEach(b=>b.onclick=()=>b.closest("dialog").close());
   $("#saveNow").onclick=()=>{const all=readSaves(),ex=all.find(x=>x.name===S.name);const entry={id:ex?ex.id:"s"+Date.now(),name:S.name,ts:Date.now(),state:JSON.parse(JSON.stringify(S))};saveJSON(KEY_SAVES,[entry,...all.filter(x=>x.id!==entry.id)]);renderSaves();toast(ex?`Updated “${S.name}”.`:`Saved “${S.name}”.`)};
