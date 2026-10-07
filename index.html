@@ -255,6 +255,19 @@ button,.btn,.chip,.opt,.rail-btn,.pick,.seg button,.tabs button,.swb,.start,labe
 @media (hover:hover){.opreset:hover{border-color:var(--ink)}}
 .opreset:active{background:var(--panel2)}
 
+.suggbox{border:1px dashed var(--blue);border-radius:10px;padding:10px 12px;margin:6px 0 10px;background:var(--panel2)}
+.suggbox h4{margin:0 0 2px;font-family:var(--fh);font-size:.98rem}.suggbox p{margin:0 0 6px}
+.sgrow{display:grid;grid-template-columns:6.5rem minmax(0,1fr);gap:6px 10px;align-items:start;padding:4px 0}.sgrow>b{font-size:.84rem;padding-top:6px}
+.suggbox .chip{display:inline-flex;align-items:center;gap:6px}.suggbox .sw{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.25);display:inline-block}
+.palgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0 14px}
+.palcard{display:flex;flex-direction:column;gap:5px;text-align:left;border:1px solid var(--rule);background:var(--panel);border-radius:10px;padding:9px 10px}
+.palcard .strip{display:flex}.palcard .strip i{flex:1;height:24px;display:block}.palcard .strip i:first-child{border-radius:6px 0 0 6px}.palcard .strip i:last-child{border-radius:0 6px 6px 0}
+.palcard b{font-family:var(--fh);font-size:.9rem}.palcard span{color:var(--muted);font-size:.76rem;line-height:1.3}
+@media (hover:hover){.palcard:hover{border-color:var(--ink)}}.palcard:active{background:var(--panel2)}
+.palib{margin-bottom:6px}
+@media (max-width:980px){.sgrow{grid-template-columns:1fr}.sgrow>b{padding-top:0}}
+.palcard .strip i{width:auto;min-width:0}
+
 </style>
 </head>
 <body>
@@ -362,7 +375,7 @@ const AUTO_TRAITS = {"cat-girl":{"earStyle":"cat ears","tailStyle":"slender feli
 const SKIN_HEX = {"very fair":"#fbe6d8","fair":"#f5d5c0","porcelain":"#f8e4da","light beige":"#efd0b2","warm beige":"#e8c4a0","golden beige":"#e6c08f","light tan":"#d9a97a","tan":"#c99665","light olive":"#cfa97a","olive":"#b88f5e","medium olive":"#a67c4e","light brown":"#b07a50","warm light-brown":"#b57f54","golden brown":"#a56c3c","medium brown":"#8d5a38","warm brown":"#84502f","deep brown":"#69412b","dark brown":"#553323","deep ebony":"#3e271e","blue-black":"#2c2a3a","obsidian":"#231f2b","pearl white":"#f4f0ea","divine ivory":"#fbf1dc","champagne gold":"#ead9a8","rose quartz":"#f1c3cc","lavender":"#cdb7e3","jade green":"#86c9a7","seafoam green":"#a6dfc6","celestial blue":"#8fb7ee","cosmic violet":"#8d6fcf","aurora-shifting":"#b9a5e8","starlight silver":"#cdd3de","infernal crimson":"#b83a45","ivory":"#f4e6cc","bronze":"#b07f45","golden olive":"#c1a15a","soft pink":"#f3c3cd","ashen gray":"#a8a9ad","cerulean blue":"#4aa6dd","rosy fair":"#f4cdc3","peachy fair":"#f6d0b8","golden tan":"#d2a15f","caramel":"#c08a52","chestnut brown":"#8a5236","rich brown":"#6e4630"};
 const HAIR_LEN_RANK_EXTRA={};
 /* ===== Data patch: age category, species list, breast wording, extra body options ===== */
-const AGES=["girl","young woman","woman","mature woman","older woman"];
+const AGES=["young girl","girl","young woman","woman","mature woman","older woman"];
 const SPECIES_INFO={};
 (function(){
   const groups=[];const seen=new Map();
@@ -431,14 +444,32 @@ const SPECIES_INFO={};
   D.forEach(([v,t,f,s])=>{if(!OUTFIT.top.some(o=>o.v===v)){const o={v,t,f};if(s)o.s=s;OUTFIT.top.push(o)}});
 })();
 
+/* ===== Body presets, skin suggestions: extra options ===== */
+(function(){
+  const add=(f,vals,front,grp)=>{const have=new Set(CHAR[f].map(x=>x[0]));const n=vals.filter(v=>!have.has(v)).map(v=>[v,grp||(CHAR[f][0]?CHAR[f][0][1]:"")]);CHAR[f]=front?n.concat(CHAR[f]):CHAR[f].concat(n)};
+  add("bustSize",["huge breasts"]);
+  add("bustShape",["exaggerated rounded shape","full upper-heavy shape"]);
+  add("bustWeight",["exaggerated fullness"]);
+  add("waistShape",["extremely narrow waist","cinched tiny waist"]);
+  add("hipShape",["exaggerated wide hips","gently curving hips"]);
+  add("buttSize",["extremely large butt"]);
+  add("thighBuild",["extremely thick thighs"]);
+  add("bodySoftness",["exaggerated hourglass figure","delicate slim figure with a top-heavy bust","petite flat figure"]);
+  add("heightStature",["very short petite stature"]);
+  add("skinFinish",["faint scale-textured skin","faint ember glow beneath the skin","frost-kissed skin","dew-damp skin","soft downy skin","cool marble-like skin","faint luminous veins of light"],false,"Fantasy finish");
+})();
+
 /* ===== Body presets & starting points (curated values; validated against the option lists at build time) ===== */
 const BODY_PRESETS={
-  slender:{label:"Slender",v:{bustSize:"small breasts",heightStature:"slightly above-average height",shoulderShape:"narrow delicate shoulders",waistShape:"narrow waist",hipShape:"narrow hips",buttSize:"small butt",thighBuild:"slender thighs",legShape:"long elegant legs",bodySoftness:"slender soft build",posture:"graceful upright posture"}},
-  average:{label:"Average",v:{bustSize:"medium breasts",heightStature:"average height",shoulderShape:"balanced shoulders",waistShape:"softly tapered waist",hipShape:"balanced hips",buttSize:"medium butt",thighBuild:"gently tapered thighs",legShape:"smooth proportionate legs",bodySoftness:"smooth feminine build",posture:"relaxed posture"}},
-  athletic:{label:"Athletic",v:{bustSize:"small-to-medium breasts",heightStature:"slightly above-average height",shoulderShape:"slightly broad balanced shoulders",waistShape:"defined waist",hipShape:"balanced hips",buttSize:"toned butt",thighBuild:"toned thighs",legShape:"long shapely legs",bodySoftness:"smooth feminine build",posture:"gentle confident posture"}},
-  curvy:{label:"Curvy",v:{bustSize:"full breasts",bustShape:"soft rounded shape",bustWeight:"soft natural fullness",heightStature:"average height",shoulderShape:"soft rounded shoulders",waistShape:"soft hourglass waist",hipShape:"softly rounded hips",buttSize:"large butt",thighBuild:"smooth shapely thighs",legShape:"full shapely legs",bodySoftness:"balanced curving build",posture:"elegant posture"}},
-  thick:{label:"Thick",adultOnly:true,v:{bustSize:"full breasts",bustShape:"soft rounded shape",heightStature:"average height",shoulderShape:"soft rounded shoulders",waistShape:"softly curving waist",hipShape:"wide hips",buttSize:"large butt",thighBuild:"thick thighs",legShape:"full shapely legs",bodySoftness:"thick build",posture:"elegant posture"}},
-  full:{label:"Full figure",adultOnly:true,v:{bustSize:"large breasts",bustShape:"plush rounded shape",bustWeight:"heavy natural fullness",heightStature:"average height",shoulderShape:"soft rounded shoulders",waistShape:"pronounced hourglass waist",hipShape:"wide graceful hips",buttSize:"very large butt",thighBuild:"plush thighs",legShape:"soft full legs",bodySoftness:"plush soft build",posture:"elegant posture"}}
+  slender:{label:"Slender",v:{stomachShape:"flat stomach",bustSize:"small breasts",heightStature:"slightly above-average height",shoulderShape:"narrow delicate shoulders",waistShape:"narrow waist",hipShape:"narrow hips",buttSize:"small butt",thighBuild:"slender thighs",legShape:"long elegant legs",bodySoftness:"slender soft build",posture:"graceful upright posture"}},
+  average:{label:"Average",v:{stomachShape:"softly toned stomach",bustSize:"medium breasts",heightStature:"average height",shoulderShape:"balanced shoulders",waistShape:"softly tapered waist",hipShape:"balanced hips",buttSize:"medium butt",thighBuild:"gently tapered thighs",legShape:"smooth proportionate legs",bodySoftness:"smooth feminine build",posture:"relaxed posture"}},
+  athletic:{label:"Athletic",v:{stomachShape:"toned stomach with light definition",bustSize:"small-to-medium breasts",heightStature:"slightly above-average height",shoulderShape:"slightly broad balanced shoulders",waistShape:"defined waist",hipShape:"balanced hips",buttSize:"toned butt",thighBuild:"toned thighs",legShape:"long shapely legs",bodySoftness:"smooth feminine build",posture:"gentle confident posture"}},
+  curvy:{label:"Curvy",adultOnly:true,v:{stomachShape:"flat stomach with subtly cute soft curves",bustSize:"full breasts",bustShape:"soft rounded shape",bustWeight:"soft natural fullness",heightStature:"average height",shoulderShape:"soft rounded shoulders",waistShape:"soft hourglass waist",hipShape:"softly rounded hips",buttSize:"large butt",thighBuild:"smooth shapely thighs",legShape:"full shapely legs",bodySoftness:"balanced curving build",posture:"elegant posture"}},
+  thick:{label:"Thick",adultOnly:true,v:{stomachShape:"soft tummy",bustSize:"full breasts",bustShape:"soft rounded shape",heightStature:"average height",shoulderShape:"soft rounded shoulders",waistShape:"softly curving waist",hipShape:"wide hips",buttSize:"large butt",thighBuild:"thick thighs",legShape:"full shapely legs",bodySoftness:"thick build",posture:"elegant posture"}},
+  full:{label:"Full figure",adultOnly:true,v:{stomachShape:"soft tummy",bustSize:"large breasts",bustShape:"plush rounded shape",bustWeight:"heavy natural fullness",heightStature:"average height",shoulderShape:"soft rounded shoulders",waistShape:"pronounced hourglass waist",hipShape:"wide graceful hips",buttSize:"very large butt",thighBuild:"plush thighs",legShape:"soft full legs",bodySoftness:"plush soft build",posture:"elegant posture"}},
+  hourglassX:{label:"Exaggerated hourglass",adultOnly:true,v:{bustSize:"huge breasts",bustShape:"exaggerated rounded shape",bustWeight:"exaggerated fullness",heightStature:"average height",shoulderShape:"narrow delicate shoulders",waistShape:"extremely narrow waist",stomachShape:"flat stomach",hipShape:"exaggerated wide hips",buttSize:"extremely large butt",thighBuild:"extremely thick thighs",legShape:"soft full legs",bodySoftness:"exaggerated hourglass figure",posture:"elegant posture"}},
+  delicateTop:{label:"Delicate, top-heavy",adultOnly:true,v:{bustSize:"large breasts",bustShape:"soft rounded shape",bustWeight:"soft natural fullness",heightStature:"average height",shoulderShape:"narrow delicate shoulders",waistShape:"narrow waist",stomachShape:"flat stomach",hipShape:"gently curving hips",buttSize:"small round butt",thighBuild:"slender thighs",legShape:"long elegant legs",bodySoftness:"delicate slim figure with a top-heavy bust",posture:"graceful upright posture"}},
+  petiteFlat:{label:"Petite and flat",v:{bustSize:"flat chest",bustShape:"gently flat shape",bustWeight:"minimal weight",heightStature:"very short stature",shoulderShape:"petite shoulders",waistShape:"petite waist",stomachShape:"flat stomach",hipShape:"petite hips",buttSize:"small butt",thighBuild:"thin thighs",legShape:"thin legs",bodySoftness:"petite flat figure",posture:"light playful posture"}}
 };
 const MAKEUP_FIELDS=["makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents"];
 const MAKEUP_PRESETS={
@@ -517,37 +548,290 @@ const TEMPLATES=[
 
 /* ===== Outfit starting points. Colors follow the palette roles unless a slot or "-" (no color) is given. ===== */
 const OUTFIT_PRESETS=[
- {id:"cafe",name:"Cozy café day",blurb:"Oversized knit, high-waisted jeans, a scarf and a beanie.",look:"casual",season:"w",
-  items:{top:["oversized cotton sweater","auto"],bottom:["high-waisted jeans","-"],legwear:["ankle socks","@accent"],headwear:["beanie","@secondary"],neckAccessory:["silk scarf","@accent"],wristAccessory:["wristwatch","-"],hipAccessory:["crossbody bag","@third"]},
-  details:{detailTwo:"slightly oversized fit"}},
- {id:"preppy",name:"Smart preppy",blurb:"Sweater vest, pleated midi skirt, blazer and knee socks.",look:"preppy",
-  items:{top:["sweater vest over a collared shirt","auto"],bottom:["pleated midi skirt","auto"],legwear:["knee-high socks","@secondary"],outerwear:["tailored blazer","auto"],neckAccessory:["ribbon bow tie","@accent"],eyewear:["tortoiseshell glasses","-"],wristAccessory:["classic watch","-"],hipAccessory:["structured satchel","@third"]},
-  details:{detailOne:"contrast piping",detailTwo:"neatly tucked in"}},
+ {id:"cafe",name:"Cozy café day",blurb:"Oversized knit, high-waisted jeans, scarf, beanie and a crossbody bag.",look:"casual",season:"w",
+  items:{top:["oversized cotton sweater","auto"],bottom:["high-waisted jeans","-"],legwear:["cable-knit socks","@accent"],outerwear:["shearling-lined denim jacket","@third"],belt:["braided leather belt","-"],waistAccessory:["oversized sweater tied at the waist","@secondary"],neckAccessory:["puffy scarf","@accent"],wristAccessory:["wristwatch","-"],headwear:["beanie","@secondary"],eyewear:["clear-lens round glasses","-"],gloves:["cable-knit fingerless mitts","@secondary"],tagCharm:["enamel pin cluster","@accent"],hipAccessory:["crossbody bag","@third"],earAccessory:["simple stud earrings","-"],ringAccessory:["stacked silver rings","-"]},
+  details:{detailOne:"rolled cuffs",detailTwo:"slightly oversized fit",detailThree:"ribbed knit texture"}},
+ {id:"preppy",name:"Smart preppy",blurb:"Sweater vest, pleated midi skirt, blazer, knee socks and a satchel.",look:"preppy",
+  items:{top:["sweater vest over a collared shirt","auto"],bottom:["pleated midi skirt","auto"],legwear:["argyle knee socks","@secondary"],outerwear:["tailored blazer","auto"],belt:["thin leather belt","-"],waistAccessory:["silk scarf belted at the waist","@accent"],neckAccessory:["ribbon bow tie","@accent"],wristAccessory:["classic watch","-"],headwear:["bow headband","@accent"],eyewear:["tortoiseshell glasses","-"],gloves:["driving gloves","-"],tagCharm:["club crest brooch","@accent"],hipAccessory:["structured satchel","@third"],earAccessory:["pearl stud earrings","-"],ringAccessory:["signet ring","-"]},
+  details:{detailOne:"contrast piping",detailTwo:"neatly tucked in",detailThree:"tweed texture"}},
  {id:"picnic",name:"Garden picnic",blurb:"Linen blouse, floral midi skirt, straw hat and a wicker bag.",look:"cottage",season:"s",
-  items:{top:["puff-sleeve linen blouse","auto"],bottom:["floral midi skirt","auto"],headwear:["straw hat","-"],neckAccessory:["cameo necklace","-"],wristAccessory:["woven flower bracelet","@accent"],waistAccessory:["woven sash","@accent"],hipAccessory:["wicker basket bag","-"]},
-  details:{detailOne:"embroidered flowers",detailTwo:"flowy layered fabric"}},
- {id:"velvet",name:"Midnight velvet",blurb:"Lace blouse, layered skirt, velvet blazer, choker and veil.",look:"gothic",season:"w",
-  items:{top:["high-neck lace blouse","auto"],bottom:["layered midi skirt","auto"],legwear:["opaque tights","@third"],outerwear:["velvet blazer","auto"],headwear:["lace veil","@third"],neckAccessory:["velvet choker","@accent"],wristAccessory:["lace wrist cuffs","@third"],belt:["studded belt","@third"],hipAccessory:["mini coffin purse","@third"]},
-  details:{detailOne:"lace trim",detailThree:"velvet texture"}},
- {id:"punk",name:"Street punk",blurb:"Ripped tank, plaid skirt, leather jacket, studs and chains.",look:"edgy",
-  items:{top:["ripped graphic tank","auto"],bottom:["plaid mini skirt","auto"],legwear:["striped knee-high socks","@third"],outerwear:["leather jacket","@third"],neckAccessory:["spiked choker","@accent"],wristAccessory:["studded wristband","@accent"],belt:["studded belt","@accent"],gloves:["fingerless leather gloves","-"],hipAccessory:["chain wallet","-"]},
-  details:{detailOne:"safety pin accents",detailTwo:"deliberately torn edges"}},
- {id:"neon",name:"Neon city",blurb:"Holographic crop top, strapped cargos, windbreaker and visor.",look:"cyber",
-  items:{top:["holographic crop top","auto"],bottom:["cargo pants with straps","auto"],legwear:["striped leg warmers","@accent"],outerwear:["reflective windbreaker","auto"],headwear:["futuristic visor","@accent"],neckAccessory:["headphones around the neck","@accent"],wristAccessory:["smartwatch","@accent"],belt:["utility belt","@accent"],gloves:["fingerless tech gloves","@third"]},
-  details:{detailOne:"reflective piping",detailThree:"holographic finish"}},
- {id:"gown",name:"Black-tie evening",blurb:"A satin gown with opera gloves, pearls and a jeweled comb.",look:"glam",
-  items:{top:["satin evening gown","auto"],outerwear:["fur stole","@secondary"],gloves:["opera satin gloves","@third"],headwear:["jeweled hair comb","@accent"],neckAccessory:["pearl necklace","-"],hipAccessory:["mini clutch bag","@accent"]},
-  details:{detailTwo:"fitted evening silhouette",detailThree:"satin finish"}},
- {id:"beach",name:"Beach afternoon",blurb:"Crochet halter, sarong skirt, sheer cover-up and a wide hat.",look:"resort",season:"s",
-  items:{top:["crochet halter top","auto"],bottom:["wrap sarong skirt","auto"],outerwear:["sheer kimono cover-up","@accent"],headwear:["wide-brim sun hat","-"],neckAccessory:["shell necklace","-"],wristAccessory:["beaded bracelets","@accent"],eyewear:["oversized round sunglasses","-"],hipAccessory:["straw beach bag","-"]},
-  details:{detailThree:"crochet texture"}},
- {id:"gym",name:"Gym day",blurb:"Seamless top, bike shorts, track jacket and a headband.",look:"sporty",
-  items:{top:["seamless sports top","auto"],bottom:["high-waisted bike shorts","auto"],legwear:["crew socks","@accent"],outerwear:["zip-up track jacket","@third"],headwear:["sports headband","@accent"],wristAccessory:["fitness tracker","@accent"],hipAccessory:["belt bag","@third"]},
-  details:{detailTwo:"athletic fit"}}
+  items:{top:["puff-sleeve linen blouse","auto"],bottom:["floral midi skirt","auto"],legwear:["frilly ankle socks","@accent"],outerwear:["embroidered lace shawl","@third"],belt:["braided leather belt","-"],waistAccessory:["woven sash","@accent"],neckAccessory:["cameo necklace","-"],wristAccessory:["woven flower bracelet","@accent"],headwear:["straw hat","-"],eyewear:["wire-rim vintage glasses","-"],gloves:["lace gloves","@third"],tagCharm:["pressed-flower brooch","@accent"],hipAccessory:["wicker basket bag","-"],earAccessory:["cameo earrings","-"],ringAccessory:["flower ring","@accent"]},
+  details:{detailOne:"embroidered flowers",detailTwo:"flowy layered fabric",detailThree:"embroidered eyelet cotton"}},
+ {id:"velvet",name:"Midnight velvet",blurb:"Lace blouse, layered skirt, velvet blazer, choker, veil and a corset.",look:"gothic",season:"w",
+  items:{top:["high-neck lace blouse","auto"],bottom:["layered midi skirt","auto"],corset:["velvet corset","@third"],legwear:["opaque tights","@third"],outerwear:["velvet blazer","auto"],belt:["studded belt","@third"],waistAccessory:["layered chain waist","@accent"],neckAccessory:["velvet choker","@accent"],wristAccessory:["lace wrist cuffs","@third"],headwear:["lace veil","@third"],eyewear:["gothic lace-trim glasses","@third"],gloves:["long velvet gloves","@third"],tagCharm:["bat charm","@accent"],hipAccessory:["mini coffin purse","@third"],earAccessory:["cameo earrings","@accent"],ringAccessory:["skull ring","-"]},
+  details:{detailOne:"lace trim",detailTwo:"billowing sleeves",detailThree:"crushed velvet texture"}},
+ {id:"punk",name:"Street punk",blurb:"Ripped tank, plaid skirt, leather jacket, studs, chains and a waist cincher.",look:"edgy",
+  items:{top:["ripped graphic tank","auto"],bottom:["plaid mini skirt","auto"],corset:["leather waist cincher","@third"],legwear:["striped knee-high socks","@third"],outerwear:["leather jacket","@third"],belt:["studded belt","@accent"],waistAccessory:["bandana tied at the hip","@accent"],neckAccessory:["spiked choker","@accent"],wristAccessory:["studded wristband","@accent"],headwear:["bandana headband","@accent"],eyewear:["dark round sunglasses","-"],gloves:["fingerless leather gloves","-"],tagCharm:["chain-and-padlock charm","-"],hipAccessory:["chain wallet","-"],earAccessory:["chain-link ear cuffs","-"],ringAccessory:["stacked silver rings","-"]},
+  details:{detailOne:"safety pin accents",detailTwo:"deliberately torn edges",detailThree:"washed black look"}},
+ {id:"neon",name:"Neon city",blurb:"Holographic crop top, strapped cargos, windbreaker, visor and a metallic corset.",look:"cyber",
+  items:{top:["holographic crop top","auto"],bottom:["cargo pants with straps","auto"],corset:["metallic mesh corset","@accent"],legwear:["reflective knee-high socks","@accent"],outerwear:["reflective windbreaker","auto"],belt:["cyber strap belt","@accent"],waistAccessory:["belt pouch on a strap","@third"],neckAccessory:["headphones around the neck","@accent"],wristAccessory:["smartwatch","@accent"],headwear:["holographic claw clips","@accent"],eyewear:["futuristic visor glasses","@accent"],gloves:["fingerless tech gloves","@third"],tagCharm:["holographic sticker patch","@accent"],hipAccessory:["translucent holographic bag","@third"],earAccessory:["star-and-moon earrings","@accent"],ringAccessory:["chunky chain ring","@accent"]},
+  details:{detailOne:"reflective piping",detailTwo:"asymmetric zip closure",detailThree:"holographic finish"}},
+ {id:"gown",name:"Black-tie evening",blurb:"A satin gown with opera gloves, pearls, a jeweled comb and a beaded clutch.",look:"glam",
+  items:{top:["satin evening gown","auto"],legwear:["sheer black stockings with a back seam","-"],outerwear:["fur stole","@secondary"],belt:["snake-chain belt","@accent"],waistAccessory:["pearl waist chain","-"],neckAccessory:["pearl necklace","-"],wristAccessory:["gem tennis bracelet","-"],headwear:["jeweled hair comb","@accent"],eyewear:["rhinestone cat-eye glasses","-"],gloves:["opera satin gloves","@third"],tagCharm:["camellia brooch","@accent"],hipAccessory:["beaded evening bag","@accent"],earAccessory:["statement chandelier earrings","@accent"],ringAccessory:["statement cocktail ring","@accent"]},
+  details:{detailOne:"crystal buttons",detailTwo:"fitted evening silhouette",detailThree:"satin finish"}},
+ {id:"beach",name:"Beach afternoon",blurb:"Crochet halter, sarong skirt, sheer cover-up, sun hat and shell jewelry.",look:"resort",season:"s",
+  items:{top:["crochet halter top","auto"],bottom:["wrap sarong skirt","auto"],legwear:["beaded anklet","@accent"],outerwear:["sheer kimono cover-up","@accent"],belt:["beaded belt","@accent"],waistAccessory:["tassel waist tie","@accent"],neckAccessory:["shell necklace","-"],wristAccessory:["stacked beaded bracelets","@accent"],headwear:["wide-brim sun hat","-"],eyewear:["oversized round sunglasses","-"],gloves:["sheer arm sleeves","-"],tagCharm:["shell hair pin","-"],hipAccessory:["straw beach bag","-"],earAccessory:["shell earrings","-"],ringAccessory:["beaded ring","@accent"]},
+  details:{detailOne:"tassel ties",detailTwo:"breezy loose fit",detailThree:"crochet texture"}},
+ {id:"gym",name:"Gym day",blurb:"Seamless top, bike shorts, track jacket, headband and a gym bag.",look:"sporty",
+  items:{top:["seamless sports top","auto"],bottom:["high-waisted bike shorts","auto"],legwear:["knee-high athletic socks","@accent"],outerwear:["zip-up track jacket","@third"],belt:["elastic cinch belt","-"],waistAccessory:["bandana tied at the hip","@accent"],neckAccessory:["cord pendant necklace","-"],wristAccessory:["fitness tracker","@accent"],headwear:["sports headband","@accent"],eyewear:["sport sunglasses","-"],gloves:["fingerless training gloves","-"],tagCharm:["water-bottle clip charm","@accent"],hipAccessory:["small gym bag","@third"],earAccessory:["simple stud earrings","-"],ringAccessory:["thin rings","-"]},
+  details:{detailOne:"reflective piping",detailTwo:"athletic fit",detailThree:"matte finish"}}
 ];
 
-const YOUTH_RX=/school|sailor|uniform|lolita|\bloli\b|doll-like|babydoll|bloomer|youthful|kawaii|toy-box|candy-shop|varsity|campus|cheer|pinafore|plush-inspired|pigtail/i;
-const EXTREME_RX=/micro|barely-there|minimal-panel|minimal-coverage|string|thong|strategic|ultra-low|open-bust|underboob|side-boob|pasties|open-cup/i;
+
+/* ===== Palette library: five slots each (primary, secondary, third, accent, extra) ===== */
+const PALETTE_LIBRARY=[
+ {n:"Cotton candy",m:"soft",c:["baby pink","powder blue","lilac","milky white","pale yellow"]},
+ {n:"Peach tea",m:"soft",c:["soft peach","cream","dusty rose","sage green","gold"]},
+ {n:"Lavender haze",m:"soft",c:["dusty lavender","milky white","periwinkle","soft pink","silver"]},
+ {n:"Sea glass",m:"soft",c:["sea glass","ivory","powder blue","soft peach","rose gold"]},
+ {n:"Vanilla sky",m:"soft",c:["vanilla","sky blue","blush pink","mint green","champagne gold"]},
+ {n:"Creamsicle",m:"soft",c:["creamsicle orange","milky white","powder blue","soft peach","pale gold"]},
+ {n:"Strawberry milk",m:"soft",c:["soft pink","milky white","raspberry pink","rose red","vanilla"]},
+ {n:"Poppy",m:"bold",c:["scarlet red","white","black","gold","hot pink"]},
+ {n:"Arcade",m:"bold",c:["electric blue","hot pink","lemon yellow","black","white"]},
+ {n:"Tropical",m:"bold",c:["tangerine","turquoise","hot pink","lime green","sunflower yellow"]},
+ {n:"Cherry cola",m:"bold",c:["cherry red","black","cream","rose gold","burgundy"]},
+ {n:"Blueberry",m:"bold",c:["periwinkle","navy blue","milky white","lilac","lemon yellow"]},
+ {n:"Midnight garden",m:"dark",c:["midnight blue","deep teal","plum","silver","emerald green"]},
+ {n:"Blood moon",m:"dark",c:["black","oxblood","charcoal gray","silver","crimson red"]},
+ {n:"Nocturne",m:"dark",c:["ink blue","aubergine","platinum","amethyst purple","soft black"]},
+ {n:"Gothic rose",m:"dark",c:["black","burgundy","dusty rose","antique ivory","antique gold"]},
+ {n:"Forest floor",m:"natural",c:["forest green","moss","chocolate brown","cream","copper"]},
+ {n:"Desert dusk",m:"natural",c:["terracotta","sand","dusty rose","deep teal","mustard"]},
+ {n:"Meadow",m:"natural",c:["sage green","oatmeal","sunflower yellow","sky blue","pale yellow"]},
+ {n:"Autumn hearth",m:"natural",c:["burnt orange","mustard","chestnut brown","forest green","cream"]},
+ {n:"Coastal",m:"natural",c:["navy blue","white","sand","coral","sea glass"]},
+ {n:"Moonlit fae",m:"fantasy",c:["lilac","silver","midnight teal","pearl white","aurora pink"]},
+ {n:"Ember queen",m:"fantasy",c:["crimson red","gold","soft black","copper","burnt orange"]},
+ {n:"Ocean siren",m:"fantasy",c:["turquoise","deep teal","pearl white","iridescent aqua","rose gold"]},
+ {n:"Starlight",m:"fantasy",c:["cosmic violet","midnight blue","holographic silver","nebula magenta","starlight cyan"]},
+ {n:"Celestial",m:"fantasy",c:["pearl white","champagne gold","celestial blue","pale gold","blush pink"]},
+ {n:"Winter frost",m:"seasonal",c:["ice blue","white","silver","steel blue","plum"]},
+ {n:"Spring bloom",m:"seasonal",c:["blush pink","mint green","lavender","pale yellow","peach"]},
+ {n:"Summer citrus",m:"seasonal",c:["lemon yellow","tangerine","aqua blue","white","coral"]},
+ {n:"Autumn plum",m:"seasonal",c:["plum","burnt orange","olive","cream","gold"]}
+];
+const PALETTE_MOODS=[["all","All"],["soft","Soft"],["bold","Bold"],["dark","Dark"],["natural","Natural"],["fantasy","Fantasy"],["seasonal","Seasonal"]];
+
+/*######################################################################
+##  >>>>>>>>>>  SAFEGUARDS BEGIN  >>>>>>>>>>
+##  PART 1 is the rules table: the only thing a developer needs to edit.
+##  PART 2 is generic code that reads the table. The studio calls PART 2
+##  through one object named `Policy` and never reads the table itself.
+##  Search for "SAFEGUARDS BEGIN" / "SAFEGUARDS END" to find the two ends.
+######################################################################*/
+
+/* =====================================================================
+   PART 1. THE RULES TABLE
+   Each rule reads: "when <condition>, these selections are not allowed".
+   Patterns are regular expressions written as strings; matching ignores
+   upper/lower case. Edit, add or delete entries freely.
+   ===================================================================== */
+const RULES=[
+
+  /* RULE 1. When the age category is "girl" or "young girl" (or the species
+     text contains the word "girl"): */
+  {
+    when:{ageIn:[], subjectWord:""},
+
+    /* Body options that are not allowed. Per field:
+         deny      - wording that is refused (applies to premade and typed options)
+         typedOnly - extra wording refused only in text the user typed in
+         onlyPremade - if present, ONLY these premade values are allowed
+                       (typed text is still checked against `deny`/`typedOnly`)
+         except    - wording that is always allowed even if `deny` matches */
+    body:{
+      bustSize:    {deny:"\\b(medium|full|large|huge|big|massive|enormous|busty)\\b", except:"small-to-medium", typedOnly:"\\b(ample|generous|heavy|bombshell|cleavage)\\b"},
+      bustShape:   {onlyPremade:["gently flat shape"], typedOnly:"\\b(exaggerat|plush|heavy|full|upper-heavy|top-heavy|enormous|huge|massive|voluptuous|cleavage)"},
+      bustWeight:  {onlyPremade:["minimal weight","light delicate fullness"], typedOnly:"\\b(exaggerat|plush|heavy|full|enormous|huge|massive|voluptuous)"},
+      hipShape:    {deny:"(wide|curvy|full|pear|hourglass|voluptuous)"},
+      buttSize:    {deny:"(plump|large|big|huge|full|very|extremely)"},
+      thighBuild:  {deny:"(thick|plush|wide|full|huge)"},
+      legShape:    {deny:"(thick|plush|full)"},
+      bodySoftness:{deny:"(thick|curvy|plush|hourglass|top-heavy|exaggerat|voluptuous)"},
+      waistShape:  {deny:"(cinched|hourglass)"}
+    },
+
+    /* Outfit items that are not allowed: whole slots, words in the item name,
+       and tier letters (C casual, U cute, S sexy, L lewd). */
+    items:{
+      slots:["bra","panties"],
+      words:"micro|barely-there|minimal-panel|minimal-coverage|string|thong|strategic|ultra-low|open-bust|underboob|side-boob|pasties|open-cup|\\b(bra|bralette|panties|panty|thong|lingerie|underwear|briefs|g-string|garter belt)\\b",
+      tiers:"L",             // an item whose only tiers are listed here is refused
+      coverage:["L"]          // coverage filter levels that are refused
+    },
+
+    presets:"adultOnly",       // presets flagged adultOnly:true are refused
+    underwearSection:false,    // hide the Underwear section
+    tagsOff:true,              // switch the explicit and "sexy, lewd" tags off
+    heldNotice:true,           // choices already made are kept but held out of the prompt
+    banner:"Girl-labeled subject: explicit and lewd tags are off.",
+    text:{
+      concept:"This design is girl-labeled. The explicit tag, the “sexy, lewd” tag, underwear, lewd-tier clothing and adult body options (larger breasts, wide hips, thick thighs and so on) are switched off, along with the adult body and makeup presets.",
+      body:"Girl-labeled design: larger breast, hip, butt and thigh options are hidden and adult body presets are unavailable. You can still type your own body descriptions; wording for adult proportions is held out of the prompt.",
+      underwear:"Underwear isn’t available for girl-labeled subjects.",
+      checkbox:"Unavailable for girl-labeled subjects.",
+      preset:"Not available for girl-labeled subjects",
+      item:"That item isn’t available for girl-labeled subjects.",
+      info:"This subject is girl-labeled: explicit and “sexy, lewd” tags are off, and bra, panties and lewd-tier clothing are not offered.",
+      held:"{n} of your choices {is} held out of the prompt while the age category is girl or young girl. {returns} if you change the age category."
+    }
+  }
+];
+
+/* RULE 2. For ANY age: youth-coded content switches the explicit and
+   "sexy, lewd" tags off. Each entry is a signal; any one triggers the rule. */
+const YOUTH_SIGNALS={
+  outfitWords:"school|sailor|uniform|lolita|\\bloli\\b|doll-like|babydoll|bloomer|youthful|kawaii|toy-box|candy-shop|varsity|campus|cheer|pinafore|plush-inspired|pigtail",
+  impressionWords:"innocent|doll-like",
+  childLikeBody:{bustSize:"flat chest|petite chest", heightStature:"very short|petite stature|short compact"},
+  reasons:{
+    childLikeBody:"a flat chest with a very short stature reads as child-like",
+    impression:"the overall impression is innocent or doll-like",
+    outfit:"a youth-coded outfit item is chosen: ",
+    warnItem:"is a youth-coded item, so the explicit tag and the “sexy, lewd” tag are switched off.",
+    notice:"Unavailable because ",
+    banner:"Explicit and lewd tags are off because ",
+    bodyPresetToast:"This body reads as child-like, so explicit and lewd tags stay off.",
+    bodyCallout:"A flat chest with a very short stature reads as child-like, so the explicit and “sexy, lewd” tags stay off."
+  }
+};
+
+/* =====================================================================
+   PART 2. THE ENGINE (generic code; no rule wording lives below this line)
+   ===================================================================== */
+const Policy=(()=>{
+  const rx=(src)=>new RegExp(src,"i");
+  const active=()=>RULES.find(r=>{
+    const w=r.when||{};
+    const ageHit=(w.ageIn||[]).some(a=>S.c.age===a);
+    const wordHit=w.subjectWord&&new RegExp("(^|[\\s-])"+w.subjectWord+"($|[\\s-])").test((S.c.subjectType||"").toLowerCase());
+    return ageHit||wordHit;
+  })||null;
+  const ageIs=(list)=>(list||[]).some(a=>S.c.age===a);
+  const youthRx=rx(YOUTH_SIGNALS.outfitWords),impRx=rx(YOUTH_SIGNALS.impressionWords);
+  const childLike=()=>Object.entries(YOUTH_SIGNALS.childLikeBody).every(([f,p])=>rx(p).test(S.c[f]||""));
+  const impressionYouth=()=>impRx.test(S.c.impression||"");
+  function youthItems(){
+    const out=[];
+    S.outfits.forEach(o=>{
+      OUT_ITEM_FIELDS.forEach(f=>{if(o.items[f]&&youthRx.test(o.items[f].v))out.push(o.items[f].v)});
+      Object.values(o.details).forEach(v=>{if(v&&youthRx.test(v))out.push(v)});
+    });
+    return[...new Set(out)];
+  }
+  const youthFlagged=()=>childLike()||impressionYouth()||youthItems().length>0;
+  function youthReason(){
+    const R=YOUTH_SIGNALS.reasons,it=youthItems();
+    return childLike()?R.childLikeBody:impressionYouth()?R.impression:it.length?R.outfit+it.join(", "):"";
+  }
+  const tiers=(item,t)=>youthRx.test(item.v)?t.replace(/[SL]/g,""):t;
+
+  function bodyOk(f,v){
+    const r=active();if(!r||!r.body||!r.body[f])return true;
+    const b=r.body[f];v=String(v||"");
+    const premade=(CHAR[f]||[]).some(o=>o[0]===v);
+    if(b.except&&rx(b.except).test(v))return true;
+    if(premade){
+      if(b.onlyPremade)return b.onlyPremade.includes(v);
+      return !(b.deny&&rx(b.deny).test(v));
+    }
+    return !((b.deny&&rx(b.deny).test(v))||(b.typedOnly&&rx(b.typedOnly).test(v)));
+  }
+  function itemAllowed(field,v){
+    const r=active();if(!r||!r.items)return true;
+    const I=r.items;
+    if((I.slots||[]).includes(field))return false;
+    const o=findItem(field,v);
+    if(o&&I.tiers){const t=tiers(o,o.t||"CUSL");if(t.split("").every(c=>I.tiers.includes(c)))return false}
+    return !(I.words&&rx(I.words).test(v));
+  }
+  function held(){
+    const h={body:[],items:[],lewdCover:[]},r=active();
+    if(!r)return h;
+    Object.keys(r.body||{}).forEach(f=>{const v=S.c[f];if(v&&!bodyOk(f,v))h.body.push(f)});
+    S.outfits.forEach((o,i)=>{
+      OUT_ITEM_FIELDS.forEach(f=>{const it=o.items[f];if(it&&!itemAllowed(f,it.v))h.items.push([i,f])});
+      if(r.items&&(r.items.coverage||[]).includes(o.cover))h.lewdCover.push(i);
+    });
+    return h;
+  }
+  const flag=(k)=>{const r=active();return r?r[k]:undefined};
+  const txt=(k)=>{const r=active();return r&&r.text&&r.text[k]||""};
+
+  /* ================== PUBLIC INTERFACE: the only things the app calls ================== */
+  return{
+    restricted:()=>!!active(),
+    girlAge:()=>ageIs((RULES[0].when||{}).ageIn),
+    explicitAllowed:()=>!((active()&&active().tagsOff)||youthFlagged()),
+    optionAllowed:(field,v)=>bodyOk(field,v),
+    itemAllowed,
+    itemTextProblem:t=>{const r=active();return r&&r.items&&r.items.words&&rx(r.items.words).test(t)?txt("item"):null},
+    isYouthText:v=>youthRx.test(v),
+    coverageAllowed:code=>!(active()&&active().items&&(active().items.coverage||[]).includes(code)),
+    underwearAllowed:()=>!(active()&&active().underwearSection===false),
+    presetAllowed:p=>!(active()&&active().presets==="adultOnly"&&p.adultOnly),
+    presetNote:p=>(active()&&active().presets==="adultOnly"&&p.adultOnly)?txt("preset"):null,
+    tiers,
+    reason:()=>active()?txt("checkbox"):youthFlagged()?YOUTH_SIGNALS.reasons.notice+youthReason()+".":"",
+    banner:()=>active()?(active().banner||""):youthFlagged()?YOUTH_SIGNALS.reasons.banner+youthReason()+".":"",
+    callout(where){
+      if(active()&&txt(where))return txt(where);
+      if(where==="body"&&childLike())return YOUTH_SIGNALS.reasons.bodyCallout;
+      return"";
+    },
+    afterBodyPreset:()=>childLike()?YOUTH_SIGNALS.reasons.bodyPresetToast:"",
+    notices(){
+      const n=[],r=active();
+      if(r&&txt("info"))n.push({level:"info",msg:txt("info")});
+      const o0=cur();
+      OUT_ITEM_FIELDS.filter(f=>o0.items[f]&&youthRx.test(o0.items[f].v)).map(f=>o0.items[f].v)
+        .forEach(v=>n.push({level:"warn",msg:`“${v}” ${YOUTH_SIGNALS.reasons.warnItem}`}));
+      if(r&&r.heldNotice){
+        const h=held(),c=h.body.length+h.items.length;
+        if(c)n.push({level:"info",msg:txt("held").replace("{n}",c).replace("{is}",c===1?"is":"are").replace("{returns}",c===1?"It returns":"They return")});
+      }
+      return n;
+    },
+    enforce(){
+      const r=active();
+      if(((r&&r.tagsOff)||youthFlagged())&&(S.out.explicit||S.out.lewdtag)){S.out.explicit=false;S.out.lewdtag=false}
+      return[];
+    },
+    view(fn){
+      const h=held();
+      if(!h.body.length&&!h.items.length&&!h.lewdCover.length)return fn();
+      const c0=S.c,o0=S.outfits;
+      S.c={...c0};h.body.forEach(f=>{delete S.c[f]});
+      S.outfits=o0.map((o,i)=>{
+        const items={...o.items};h.items.forEach(([k,f])=>{if(k===i)delete items[f]});
+        return{...o,items,cover:h.lewdCover.includes(i)?"":o.cover};
+      });
+      try{return fn()}finally{S.c=c0;S.outfits=o0}
+    }
+  };
+})();
+/*######################################################################
+##  <<<<<<<<<<  SAFEGUARDS END  <<<<<<<<<<
+##  Nothing after this line defines a safety rule.
+######################################################################*/
+
+/* ---------- app plumbing that asks Policy ---------- */
+
+/* Outfit items carry tiers: C casual, U cute, S sexy, L lewd (default all four).
+   The base tiers are set here; Policy may remove some. */
+function itemTiers(field,o){return Policy.tiers(o,o.t||"CUSL")}
+
+/* Builds the prompt with Policy's view applied, then adds Policy's notices. */
+function compose(){
+  const r=Policy.view(composeRaw);
+  Policy.notices().forEach(n=>r.checks.push(n));
+  r.blocked=!Policy.explicitAllowed();
+  r.banner=Policy.banner();
+  return r;
+}
+
+
 const KIND_RULES={
   top:[["bodysuit",/bodysuit/],["corset",/corset|bustier|bodice/],["cardigan",/cardigan/],["vest",/sweater vest/],["sweater",/sweater|pullover|henley|turtleneck|knit top|sweatshirt|hoodie|crewneck/],["vest",/\bvest\b|waistcoat/],["halter",/halter/],["tube",/tube|bandeau|strapless/],["bralette",/bralette|harness|bikini|\bbra\b/],["camisole",/camisole|cami\b|slip/],["tank",/tank|racerback|\btee\b|polo/],["crop",/crop|micro|barely|minimal-panel/],["blouse",/blouse|shirt|button|tunic|peasant|smocked|wrap/],["top",/./]],
   bottom:[["micro",/micro skirt|micro shorts|ultra-short|ultra-high|booty|hot pants|string|bikini/],["miniskirt",/mini skirt|skort|skater|tennis|micro|idol skirt|sailor skirt|suspender|apron|bow-front skirt|heart-pocket|side-tie skirt|layered skirt|ruffle/],["shorts",/shorts|bloomers|culotte|pumpkin/],["pants",/pants|tights|trousers|leggings|jeans|joggers|slacks/],["midi",/midi|tea-length|knee-length|pencil|a-line|wrap skirt|straight skirt|box-pleat|wide-pleat|pleated|tailored skirt|denim skirt|button-front|overskirt/],["skirt",/skirt/],["bottom",/./]],
@@ -560,7 +844,7 @@ const KIND_RULES={
   belt:[["chain",/chain/],["harness",/harness|strap/],["sash",/sash|ribbon|tie|bow/],["belt",/./]],
   waistAccessory:[["chain",/chain/],["sash",/sash|ribbon|bow|tie|skirt|apron|drape/],["waist",/./]],
   hipAccessory:[["bag",/pouch|satchel|bag|purse|canteen|book|bottle|camera|phone|wallet/],["chain",/chain|charm|tassel|bell/],["hip",/./]],
-  bra:[["bra",/./]],panties:[["panty",/./]],corset:[["corset",/./]],wristAccessory:[["wrist",/./]],tagCharm:[["tag",/./]]
+  bra:[["bra",/./]],panties:[["panty",/./]],corset:[["corset",/./]],wristAccessory:[["wrist",/./]],tagCharm:[["tag",/./]],earAccessory:[["ear",/./]],ringAccessory:[["ring",/./]]
 };
 function kindOf(field,value){const rules=KIND_RULES[field];if(!rules)return"";const v=value.toLowerCase();for(const [k,rx] of rules)if(rx.test(v))return k;return""}
 /* ===== Mannequin sprite ===== */
@@ -986,33 +1270,96 @@ const Q_OUTFIT="missing clothing, mismatched clothing, clothing clipping, floati
 const Q_CHARACTER="worst quality, low quality, lowres, blurry, pixelated, noisy, jpeg artifacts, unfinished, poorly rendered, bad anatomy, bad proportions, deformed body, distorted limbs, extra limbs, missing limbs, duplicated body parts, fused body parts, malformed joints, broken pose, unnatural pose, awkward posture, bad hands, malformed hands, extra fingers, missing fingers, fused fingers, twisted fingers, bad feet, malformed feet, extra toes, missing toes, bad face, distorted face, asymmetrical face, misplaced facial features, bad eyes, asymmetrical eyes, crossed eyes, misaligned pupils, malformed eyes, bad mouth, malformed teeth, bad ears, bad hair, hair clipping, bad skin, inconsistent skin texture, floating body parts, clipping, intersecting anatomy, bad perspective, warped perspective, incorrect foreshortening, bad composition, awkward framing, cropped head, cropped hands, cropped feet, cut off limbs, duplicated character, extra character, unintended multiple subjects, bad lighting, inconsistent lighting, blown highlights, crushed shadows, muddy colors, color banding, bad shadows, floating shadows, inconsistent detail, mixed rendering quality, texture artifacts, generation artifacts, visual glitches, repeated patterns, double image, ghosting, watermark, signature, logo, text, subtitles, UI elements, random symbols, gore, body horror, uncanny face, lifeless expression, mannequin pose, unnatural expression";
 
 /* ---------- field catalogue ---------- */
+/* ===== v15: overall impression (appearance vibe), grouped ===== */
+CHAR.impression=[
+ ["a sweet appearance","Approachable"],["an approachable appearance","Approachable"],["a soft feminine appearance","Approachable"],["delicate features","Approachable"],["a cute girl-next-door look","Approachable"],["a warm girl-next-door charm","Approachable"],
+ ["an innocent-looking appearance","Innocent and doll-like"],["a wholesome, innocent look","Innocent and doll-like"],["doll-like beauty","Innocent and doll-like"],["porcelain doll-like beauty","Innocent and doll-like"],
+ ["an elegant, mature presence","Poised"],["a confident, polished presence","Poised"],["an alluring, sultry presence","Poised"]
+];
+/* ===== v14 option additions (freckle zones, eyes, hair, nails, ears and rings, bows) ===== */
+(function(){
+  const add=(f,vals,grp)=>{const have=new Set(CHAR[f].map(x=>x[0]));const n=vals.filter(v=>!have.has(v)).map(v=>[v,grp||(CHAR[f][0]?CHAR[f][0][1]:"")]);CHAR[f]=CHAR[f].concat(n)};
+  add("markings",[
+    "honey-gold freckles across the nose and cheeks",
+    "freckles across the nose and cheeks, continuing over the neck, shoulders and collarbones",
+    "dense honey-gold freckles across the nose and cheeks, continuing over the neck, shoulders and collarbones",
+    "freckled shoulders and upper arms",
+    "freckles across the back and shoulders",
+    "freckles from the face down the neck, shoulders, collarbones, arms, back and legs",
+    "full-body freckles across the face, neck, shoulders, chest, arms, stomach, back, hips, thighs and legs",
+    "dense natural freckles over the whole body, concentrated across the nose and cheeks"],"Freckles");
+  add("eyeShape",["large sparkling eyes","wide glossy eyes","large glossy eyes","cute eye shape"]);
+  add("irisDetail",["glossy irises with detailed texture and soft sparkles","sparkling irises with bright catchlights","glossy, highlight-rich eyes with detailed irises"]);
+  add("browShape",["soft eyebrows","soft, gently curved eyebrows"]);
+  add("faceShape",["soft round-cheeked face"]);
+  add("blushStyle",["rosy cheeks with a blush across the bridge of the nose"]);
+  add("hairStyle",["high half-up ponytail","half-up ponytail with soft waves and curled ends"]);
+  add("hairTexture",["extremely thick, silky and glossy","very thick, glossy and voluminous with soft waves"]);
+  add("bangs",["cute wispy bangs","cute wispy bangs with face-framing strands"]);
+  add("hairMovement",["flows in soft waves with curled ends","falls in long flowing waves with curled ends"]);
+  add("hairBlend",[
+    "a milky-white underlayer and creamsicle-orange inner hair, with pale-gold highlight strands",
+    "blue, white and orange gradient streaks through the hair",
+    "a milky-white underlayer, creamsicle-orange inner hair, pale-gold highlight strands and blue, white and orange gradient streaks"]);
+  add("skinFinish",["smooth, luminous skin","beautiful warm, luminous skin"]);
+  add("nailStyle",[
+    "short manicured fingernails",
+    "short manicured fingernails with heart nail art",
+    "short manicured fingernails with flower nail art",
+    "short manicured glossy fingernails with heart and flower nail art"]);
+  const o=(f,vals)=>{const have=new Set((OUTFIT[f]||[]).map(x=>x.v));OUTFIT[f]=(OUTFIT[f]||[]).concat(vals.filter(v=>!have.has(v)).map(v=>({v,t:"CUS"})))};
+  o("headwear",["oversized satin hair bows","satin hair bows with long ribbon tails","tricolor satin hair bows","small bow accents tied into a ponytail"]);
+  o("neckAccessory",["layered delicate necklaces","tiny gemstone pendant necklace"]);
+  o("wristAccessory",["slim bracelets","stacked slim bracelets"]);
+  o("earAccessory",["small pearl earrings","pearl stud earrings","tiny gemstone studs","small gold hoop earrings","delicate drop earrings","dangling crystal earrings","heart earrings","flower earrings","ear cuffs"]);
+  o("ringAccessory",["thin rings","stacked thin rings","delicate gold rings","gemstone ring","pearl ring","midi rings"]);
+})();
+/* ===== v15 outfit dataset expansion: [field, value, tiers, looks, season] ===== */
+(function(){
+  const rows=[["top", "boat-neck striped knit top", "CU", "casual,preppy", ""], ["top", "ribbed long-sleeve tee", "CUS", "casual", "w"], ["top", "square-neck cotton top", "CUS", "casual,cottage", "s"], ["top", "oversized graphic sweatshirt", "C", "casual", "w"], ["top", "wrap-front cardigan top", "CUS", "casual,preppy", "w"], ["top", "boxy button-down shirt", "CU", "casual,preppy", ""], ["top", "ruched mesh-sleeve top", "CUS", "casual,cyber", ""], ["top", "collared knit vest top", "CU", "preppy", ""], ["top", "blouse with a pussy-bow neckline", "CU", "preppy,glam", ""], ["top", "ruffled bib-front blouse", "CU", "cottage,sweet", ""], ["top", "milkmaid corset-laced top", "CUS", "cottage", ""], ["top", "lace-up peasant blouse", "CUS", "cottage", "s"], ["top", "bishop-sleeve embroidered top", "CU", "cottage", ""], ["top", "pastel ribbed crop cardigan", "CU", "sweet", ""], ["top", "ruffle-collar pastel blouse", "CU", "sweet", ""], ["top", "puff-sleeve bow-front top", "CU", "sweet", ""], ["top", "cloud-print soft knit sweater", "CU", "sweet", "w"], ["top", "balloon-sleeve cropped blouse", "CU", "sweet,cottage", ""], ["top", "velvet-trim lace camisole", "CUS", "gothic", ""], ["top", "off-shoulder gothic ruffle top", "CUS", "gothic", ""], ["top", "long-sleeve mesh top with a corset front", "CUS", "gothic,edgy", ""], ["top", "cross-strap harness top", "CUS", "gothic,edgy", ""], ["top", "distressed band-print crop tee", "CUS", "edgy", ""], ["top", "zip-front moto crop top", "CUS", "edgy", ""], ["top", "chain-strap tank top", "CUS", "edgy", ""], ["top", "asymmetric tech crop top", "CUS", "cyber", ""], ["top", "translucent PVC crop jacket top", "CUS", "cyber", ""], ["top", "neon mesh tank top", "CUS", "cyber", "s"], ["top", "one-shoulder metallic top", "CUS", "cyber,glam", ""], ["top", "draped satin cowl top", "CUS", "glam", ""], ["top", "one-shoulder sequin top", "CUS", "glam", ""], ["top", "feather-trim camisole", "CUS", "glam", ""], ["top", "beaded halter top", "CUS", "glam", ""], ["top", "wrap-front satin blouse", "CUS", "glam", ""], ["top", "gauze tunic with side ties", "CUS", "resort", "s"], ["top", "off-shoulder crochet top", "CUS", "resort", "s"], ["top", "knotted sarong halter top", "CUS", "resort", "s"], ["top", "one-piece swimsuit with a scoop back", "CUS", "resort", "s"], ["top", "ruched bandeau swim top", "CUS", "resort", "s"], ["top", "zip-front sports bra", "CUS", "sporty", ""], ["top", "cropped quarter-zip pullover", "CU", "sporty", "w"], ["top", "mesh-panel training tank", "CUS", "sporty", "s"], ["top", "dance wrap top", "CUS", "sporty", ""], ["top", "cropped rash guard", "CUS", "sporty,resort", "s"], ["top", "silk pajama shirt", "CUS", "casual,boudoir", ""], ["top", "open-back satin camisole", "CUS", "boudoir", ""], ["top", "lace-up teddy top", "US", "boudoir", ""], ["top", "midi dress with puff sleeves", "CU", "cottage,sweet", ""], ["top", "pinafore dress with a blouse underneath", "CU", "preppy,sweet", ""], ["top", "pleated wrap dress", "CUS", "preppy,casual", ""], ["top", "tiered cotton sundress", "CU", "cottage,resort", "s"], ["top", "corset-bodice midi dress", "CUS", "cottage,gothic", ""], ["top", "velvet slip dress", "CUS", "gothic,glam", "w"], ["top", "asymmetric tech mini dress", "CUS", "cyber", ""], ["top", "backless mermaid gown", "CUS", "glam", ""], ["top", "off-shoulder ballgown", "CUS", "glam", ""], ["top", "crochet beach dress", "CUS", "resort", "s"], ["top", "jersey sports dress", "CUS", "sporty", ""], ["bottom", "wide-leg jeans", "C", "casual", ""], ["bottom", "corduroy straight pants", "CU", "casual,preppy", "w"], ["bottom", "cotton paperbag shorts", "CUS", "casual", "s"], ["bottom", "pleated culottes", "CU", "casual,preppy", ""], ["bottom", "tartan kilt skirt", "CU", "preppy", "w"], ["bottom", "cropped wide-leg trousers", "CU", "preppy", ""], ["bottom", "cuffed chino shorts", "CU", "preppy", "s"], ["bottom", "gingham gathered skirt", "CU", "cottage,sweet", ""], ["bottom", "eyelet lace shorts", "CUS", "cottage", "s"], ["bottom", "tiered chiffon midi skirt", "CU", "cottage", ""], ["bottom", "pastel pleated skirt", "CU", "sweet", ""], ["bottom", "tulle-layered skirt", "CU", "sweet,glam", ""], ["bottom", "ruffled bloomer shorts", "CU", "sweet", ""], ["bottom", "asymmetric tiered black skirt", "CUS", "gothic", ""], ["bottom", "lace-hem midi skirt", "CU", "gothic", ""], ["bottom", "corset-waist skirt", "CUS", "gothic,edgy", ""], ["bottom", "studded leather pants", "CUS", "edgy", ""], ["bottom", "distressed plaid trousers", "CUS", "edgy", ""], ["bottom", "tripp pants with straps", "CU", "edgy,cyber", ""], ["bottom", "iridescent mini skirt", "CUS", "cyber", ""], ["bottom", "parachute cargo pants", "CU", "cyber", ""], ["bottom", "wet-look bike shorts", "CUS", "cyber", ""], ["bottom", "high-slit satin skirt", "CUS", "glam", ""], ["bottom", "beaded fringe skirt", "CUS", "glam", ""], ["bottom", "tailored satin wide-leg pants", "CUS", "glam", ""], ["bottom", "gauzy wide-leg beach pants", "CU", "resort", "s"], ["bottom", "crochet-trim shorts", "CUS", "resort", "s"], ["bottom", "sarong-style swim bottoms", "CUS", "resort", "s"], ["bottom", "printed board shorts", "CU", "resort", "s"], ["bottom", "pleated golf skort", "CU", "sporty", "s"], ["bottom", "flared yoga leggings", "CU", "sporty", ""], ["bottom", "cycling shorts", "CU", "sporty", "s"], ["bottom", "fleece-lined track pants", "C", "sporty", "w"], ["legwear", "argyle knee socks", "CU", "preppy", ""], ["legwear", "cream cable tights", "CU", "preppy,cottage", "w"], ["legwear", "lace-trim ankle socks", "CU", "sweet,cottage", ""], ["legwear", "pastel over-the-knee socks", "CU", "sweet", ""], ["legwear", "fishnet over opaque tights", "CUS", "gothic,edgy", ""], ["legwear", "laced boot socks", "CU", "gothic", ""], ["legwear", "mismatched striped socks", "CU", "edgy,casual", ""], ["legwear", "reflective knee-high socks", "CU", "cyber,sporty", ""], ["legwear", "glitter tights", "CUS", "cyber,glam", ""], ["legwear", "sheer black stockings with a back seam", "CUS", "glam", ""], ["legwear", "beaded anklet", "CUS", "resort", "s"], ["legwear", "toe-ring sandals socks", "CU", "resort", "s"], ["legwear", "compression calf sleeves", "CU", "sporty", ""], ["legwear", "footless fleece tights", "CU", "casual", "w"], ["outerwear", "oversized chunky cardigan", "C", "casual", "w"], ["outerwear", "shearling-lined denim jacket", "C", "casual", "w"], ["outerwear", "lightweight rain jacket", "C", "casual", ""], ["outerwear", "double-breasted peacoat", "CU", "preppy", "w"], ["outerwear", "cropped tweed jacket", "CU", "preppy,glam", ""], ["outerwear", "embroidered lace shawl", "CU", "cottage", ""], ["outerwear", "quilted cottage vest", "CU", "cottage", "w"], ["outerwear", "pastel teddy jacket", "CU", "sweet", "w"], ["outerwear", "pastel puffer vest", "CU", "sweet", "w"], ["outerwear", "velvet hooded cloak", "CU", "gothic", "w"], ["outerwear", "long lace duster", "CUS", "gothic", ""], ["outerwear", "studded denim jacket", "CU", "edgy", ""], ["outerwear", "plaid flannel shacket", "CU", "edgy,casual", "w"], ["outerwear", "iridescent bomber jacket", "CU", "cyber", ""], ["outerwear", "transparent raincoat with trim", "CU", "cyber", ""], ["outerwear", "satin opera coat", "CU", "glam", "w"], ["outerwear", "beaded evening wrap", "CU", "glam", ""], ["outerwear", "crochet beach cardigan", "CU", "resort", "s"], ["outerwear", "sarong-style wrap cover-up", "CU", "resort", "s"], ["outerwear", "lightweight track vest", "CU", "sporty", ""], ["outerwear", "thermal running jacket", "CU", "sporty", "w"], ["outerwear", "satin robe with lace trim", "CUS", "boudoir", ""], ["corset", "embroidered overbust corset", "CUS", "glam,gothic", ""], ["corset", "leather waist cincher", "CUS", "edgy", ""], ["corset", "brocade corset", "CUS", "gothic,cottage", ""], ["corset", "pastel ribbon-laced bodice", "CUS", "sweet,cottage", ""], ["corset", "metallic mesh corset", "CUS", "cyber", ""], ["corset", "wrap-around satin corset", "CUS", "glam", ""], ["belt", "braided leather belt", "CU", "casual,cottage", ""], ["belt", "double-buckle belt", "CU", "edgy", ""], ["belt", "obi-style wide belt", "CU", "glam,cottage", ""], ["belt", "ribbon corset belt", "CU", "sweet,cottage", ""], ["belt", "elastic cinch belt", "CU", "casual,sporty", ""], ["belt", "cyber strap belt", "CU", "cyber", ""], ["belt", "beaded belt", "CU", "resort", "s"], ["belt", "snake-chain belt", "CUS", "glam", ""], ["waistAccessory", "tassel waist tie", "CU", "resort,cottage", "s"], ["waistAccessory", "apron-style waist bow", "CU", "cottage,sweet", ""], ["waistAccessory", "pearl waist chain", "CUS", "glam", ""], ["waistAccessory", "belt pouch on a strap", "CU", "edgy,cyber", ""], ["waistAccessory", "oversized sweater tied at the waist", "C", "preppy,casual", ""], ["waistAccessory", "bell-trimmed waist ribbon", "CU", "sweet", ""], ["waistAccessory", "bandana tied at the hip", "CU", "edgy,sporty", ""], ["waistAccessory", "silk scarf belted at the waist", "CU", "glam,resort", ""], ["tagCharm", "enamel pin cluster", "CU", "casual,sweet", ""], ["tagCharm", "letter initial charm", "CU", "casual,preppy", ""], ["tagCharm", "camellia brooch", "CU", "glam,cottage", ""], ["tagCharm", "cat-paw pin", "CU", "sweet", ""], ["tagCharm", "chain-and-padlock charm", "CU", "edgy,gothic", ""], ["tagCharm", "holographic sticker patch", "CU", "cyber", ""], ["tagCharm", "club crest brooch", "CU", "preppy", ""], ["tagCharm", "pressed-flower brooch", "CU", "cottage", ""], ["tagCharm", "water-bottle clip charm", "CU", "sporty", ""], ["tagCharm", "shell hair pin", "CU", "resort", "s"], ["eyewear", "clear-lens round glasses", "CU", "casual,preppy", ""], ["eyewear", "oversized square glasses", "CU", "casual", ""], ["eyewear", "rimless glasses", "CU", "preppy", ""], ["eyewear", "pastel-frame glasses", "CU", "sweet", ""], ["eyewear", "gothic lace-trim glasses", "CU", "gothic", ""], ["eyewear", "shield sunglasses", "CU", "cyber,sporty", "s"], ["eyewear", "rhinestone cat-eye glasses", "CUS", "glam", ""], ["eyewear", "wire-rim vintage glasses", "CU", "cottage", ""], ["eyewear", "beaded glasses chain", "CU", "casual,cottage", ""], ["eyewear", "ski goggles on the forehead", "CU", "sporty", "w"], ["gloves", "cable-knit fingerless mitts", "CU", "casual,cottage", "w"], ["gloves", "pastel knit mittens", "CU", "sweet", "w"], ["gloves", "driving gloves", "CU", "preppy,glam", ""], ["gloves", "lace-cuff gloves", "CU", "gothic", ""], ["gloves", "studded leather gloves", "CU", "edgy", ""], ["gloves", "iridescent arm warmers", "CU", "cyber", ""], ["gloves", "short satin gloves with a bow", "CU", "glam,sweet", ""], ["gloves", "batting gloves", "C", "sporty", ""], ["gloves", "cut-out ruched gloves", "CUS", "cyber,edgy", ""], ["hipAccessory", "woven market tote", "CU", "cottage,resort", "s"], ["hipAccessory", "leather messenger bag", "CU", "preppy,casual", ""], ["hipAccessory", "pastel heart-shaped bag", "CU", "sweet", ""], ["hipAccessory", "velvet drawstring pouch", "CU", "gothic,cottage", ""], ["hipAccessory", "studded saddle bag", "CU", "edgy", ""], ["hipAccessory", "translucent holographic bag", "CU", "cyber", ""], ["hipAccessory", "beaded evening bag", "CU", "glam", ""], ["hipAccessory", "canvas beach bag", "CU", "resort", "s"], ["hipAccessory", "drawstring gym backpack", "CU", "sporty", ""], ["hipAccessory", "small book satchel", "CU", "preppy,cottage", ""], ["headwear", "ribbon-wrapped braid crown", "CU", "cottage", ""], ["headwear", "pastel hair clip set", "CU", "sweet", ""], ["headwear", "lace headpiece with a bow", "CU", "gothic", ""], ["headwear", "mini hat with netting", "CUS", "gothic,glam", ""], ["headwear", "bandana headband", "CU", "edgy,sporty", ""], ["headwear", "holographic claw clips", "CU", "cyber", ""], ["headwear", "pearl-pinned hair slide", "CU", "glam", ""], ["headwear", "shell-trimmed sun hat", "CU", "resort", "s"], ["headwear", "sweat-wicking headband", "CU", "sporty", ""], ["headwear", "knit earflap hat", "CU", "casual,sweet", "w"], ["neckAccessory", "beaded necklace set", "CU", "resort,cottage", "s"], ["neckAccessory", "bow-front choker", "CU", "sweet,gothic", ""], ["neckAccessory", "locket necklace", "CU", "cottage,preppy", ""], ["neckAccessory", "cord pendant necklace", "CU", "casual", ""], ["neckAccessory", "pearl-and-ribbon choker", "CU", "glam,sweet", ""], ["neckAccessory", "chunky chain necklace", "CU", "edgy,cyber", ""], ["neckAccessory", "puffy scarf", "C", "casual", "w"], ["neckAccessory", "crystal pendant necklace", "CU", "glam", ""], ["wristAccessory", "stacked beaded bracelets", "CU", "resort,casual", "s"], ["wristAccessory", "ribbon-tied wrist bows", "CU", "sweet", ""], ["wristAccessory", "gem tennis bracelet", "CU", "glam", ""], ["wristAccessory", "studded leather bracelet", "CU", "edgy", ""], ["wristAccessory", "charm bracelet", "CU", "cottage,sweet", ""], ["wristAccessory", "neon jelly bracelets", "CU", "cyber", ""], ["wristAccessory", "athletic wristband", "CU", "sporty", ""], ["earAccessory", "chunky hoop earrings", "CUS", "casual,edgy", ""], ["earAccessory", "bow earrings", "CUS", "sweet", ""], ["earAccessory", "pearl drop earrings", "CUS", "glam,preppy", ""], ["earAccessory", "chain-link ear cuffs", "CUS", "edgy,cyber", ""], ["earAccessory", "statement chandelier earrings", "CUS", "glam", ""], ["earAccessory", "shell earrings", "CUS", "resort", "s"], ["earAccessory", "cameo earrings", "CUS", "cottage,gothic", ""], ["earAccessory", "star-and-moon earrings", "CUS", "sweet,cyber", ""], ["earAccessory", "simple stud earrings", "CU", "casual,preppy,sporty", ""], ["ringAccessory", "signet ring", "CUS", "preppy,edgy", ""], ["ringAccessory", "stacked silver rings", "CUS", "edgy,casual", ""], ["ringAccessory", "statement cocktail ring", "CUS", "glam", ""], ["ringAccessory", "flower ring", "CUS", "cottage,sweet", ""], ["ringAccessory", "skull ring", "CUS", "gothic,edgy", ""], ["ringAccessory", "chunky chain ring", "CUS", "cyber", ""], ["ringAccessory", "beaded ring", "CUS", "resort", "s"], ["detailOne", "bow-trimmed hems", "CU", "sweet,cottage", ""], ["detailOne", "ric-rac trim", "CU", "cottage,preppy", ""], ["detailOne", "appliqué flowers", "CU", "cottage,sweet", ""], ["detailOne", "chain-link trim", "CUS", "edgy,cyber", ""], ["detailOne", "ruched side seams", "CUS", "glam", ""], ["detailOne", "crystal buttons", "CU", "glam", ""], ["detailOne", "ribbon-threaded eyelets", "CU", "cottage,sweet", ""], ["detailOne", "contrast bound edges", "CU", "preppy", ""], ["detailOne", "decorative zipper pulls", "CU", "edgy,cyber", ""], ["detailTwo", "cinched waist", "CUS", "glam,cottage", ""], ["detailTwo", "gathered shoulders", "CU", "cottage,sweet", ""], ["detailTwo", "dropped waistline", "CU", "casual,preppy", ""], ["detailTwo", "billowing sleeves", "CU", "cottage,gothic", ""], ["detailTwo", "cutaway shoulders", "CUS", "cyber,edgy", ""], ["detailTwo", "asymmetric zip closure", "CU", "cyber,edgy", ""], ["detailTwo", "wrap closure with a side tie", "CU", "resort,casual", ""], ["detailTwo", "longline cut", "CU", "casual,preppy", ""], ["detailThree", "linen weave texture", "CU", "cottage,resort", "s"], ["detailThree", "ribbed knit texture", "CU", "casual", "w"], ["detailThree", "crushed velvet texture", "CU", "gothic", "w"], ["detailThree", "brocade pattern", "CU", "gothic,glam", ""], ["detailThree", "pastel tie-dye", "CU", "sweet,casual", ""], ["detailThree", "cloud print", "CU", "sweet", ""], ["detailThree", "checkerboard pattern", "CU", "edgy,cyber", ""], ["detailThree", "iridescent finish", "CU", "cyber", ""], ["detailThree", "embroidered eyelet cotton", "CU", "cottage", "s"], ["detailThree", "tweed texture", "CU", "preppy", "w"], ["detailThree", "swimwear stretch fabric", "CU", "resort,sporty", "s"]];
+  rows.forEach(([f,v,t,l,se])=>{
+    OUTFIT[f]=OUTFIT[f]||[];
+    if(OUTFIT[f].some(x=>x.v===v))return;
+    const it={v,t};if(l)it.f=l;if(se)it.s=se;OUTFIT[f].push(it);
+  });
+})();
+/* ===== v20: fabric and finish repository (field detailThree, "Material and finish") =====
+   Row: [field, value, tiers, looks, season, category]. Tiers: C casual, U cute, S sexy, L lewd.
+   The category is shown as a section heading in the picker. */
+(function(){
+  const rows=[["detailThree", "sheer chiffon", "US", "glam,cottage,boudoir", "", "Sheer and transparent"], ["detailThree", "gauzy voile", "CU", "resort,cottage", "s", "Sheer and transparent"], ["detailThree", "translucent tulle layering", "CUS", "sweet,glam", "", "Sheer and transparent"], ["detailThree", "sheer organza", "US", "glam,gothic", "", "Sheer and transparent"], ["detailThree", "see-through organza", "L", "glam,boudoir", "", "Sheer and transparent"], ["detailThree", "see-through mesh overlay", "L", "cyber,gothic", "", "Sheer and transparent"], ["detailThree", "fully transparent fabric", "L", "boudoir", "", "Sheer and transparent"], ["detailThree", "sheer over opaque layering", "CUS", "glam,gothic,cyber", "", "Sheer and transparent"], ["detailThree", "frosted translucent plastic", "US", "cyber", "", "Sheer and transparent"], ["detailThree", "wet-look fabric", "US", "cyber,edgy", "", "Wet looks"], ["detailThree", "wet clinging fabric", "US", "resort", "s", "Wet looks"], ["detailThree", "water-soaked see-through fabric", "L", "resort", "s", "Wet looks"], ["detailThree", "rain-dampened cotton", "CU", "casual", "", "Wet looks"], ["detailThree", "dew-beaded sheen", "CU", "cottage,resort", "", "Wet looks"], ["detailThree", "fishnet weave", "US", "edgy,gothic", "", "Net and mesh"], ["detailThree", "wide open net weave", "US", "edgy,cyber", "", "Net and mesh"], ["detailThree", "diamond net pattern", "US", "edgy,gothic", "", "Net and mesh"], ["detailThree", "fine power mesh", "CUS", "sporty,cyber", "", "Net and mesh"], ["detailThree", "perforated mesh", "CUS", "sporty", "", "Net and mesh"], ["detailThree", "laser-cut perforations", "CUS", "cyber,sporty", "", "Net and mesh"], ["detailThree", "open crochet net", "CUS", "resort", "s", "Net and mesh"], ["detailThree", "mesh and lace mix", "US", "gothic,boudoir", "", "Net and mesh"], ["detailThree", "netted overlay", "CUS", "gothic,glam", "", "Net and mesh"], ["detailThree", "ripped and shredded fabric", "US", "edgy", "", "Ripped and distressed"], ["detailThree", "torn and frayed fabric", "US", "edgy", "", "Ripped and distressed"], ["detailThree", "slashed fabric", "US", "edgy,gothic", "", "Ripped and distressed"], ["detailThree", "laddered knit", "US", "edgy,gothic", "", "Ripped and distressed"], ["detailThree", "worn-in distressed denim", "CU", "casual,edgy", "", "Ripped and distressed"], ["detailThree", "burnt-edge fabric", "CU", "gothic,edgy", "", "Ripped and distressed"], ["detailThree", "acid wash", "CU", "edgy", "", "Ripped and distressed"], ["detailThree", "bleach-splatter wash", "CU", "edgy,casual", "", "Ripped and distressed"], ["detailThree", "faded vintage wash", "CU", "casual", "", "Ripped and distressed"], ["detailThree", "stonewashed look", "CU", "casual", "", "Ripped and distressed"], ["detailThree", "sun-bleached fabric", "CU", "resort", "s", "Ripped and distressed"], ["detailThree", "latex-like gloss", "LS", "cyber,edgy,boudoir", "", "Gloss and metallic"], ["detailThree", "polished patent finish", "CUS", "edgy,glam", "", "Gloss and metallic"], ["detailThree", "PVC shine", "US", "cyber", "", "Gloss and metallic"], ["detailThree", "iridescent PVC", "US", "cyber", "", "Gloss and metallic"], ["detailThree", "liquid metal finish", "US", "cyber,glam", "", "Gloss and metallic"], ["detailThree", "chrome mirror finish", "US", "cyber", "", "Gloss and metallic"], ["detailThree", "oil-slick sheen", "CU", "cyber", "", "Gloss and metallic"], ["detailThree", "pearlescent satin", "CUS", "glam,sweet", "", "Gloss and metallic"], ["detailThree", "holographic foil", "CUS", "cyber", "", "Gloss and metallic"], ["detailThree", "foil-printed fabric", "CU", "cyber", "", "Gloss and metallic"], ["detailThree", "supple leather", "CU", "edgy", "", "Leather"], ["detailThree", "buttery soft leather", "CUS", "edgy", "", "Leather"], ["detailThree", "matte vegan leather", "CU", "edgy,casual", "", "Leather"], ["detailThree", "suede texture", "CU", "casual,cottage", "w", "Leather"], ["detailThree", "crinkled leather", "CU", "edgy", "", "Leather"], ["detailThree", "nylon ripstop", "CU", "sporty", "", "Technical and athletic"], ["detailThree", "neoprene", "CU", "sporty,cyber", "", "Technical and athletic"], ["detailThree", "scuba knit", "CU", "sporty", "", "Technical and athletic"], ["detailThree", "technical softshell", "C", "sporty", "w", "Technical and athletic"], ["detailThree", "reflective nylon", "CU", "cyber,sporty", "", "Technical and athletic"], ["detailThree", "moisture-wicking jersey", "C", "sporty", "", "Technical and athletic"], ["detailThree", "stretch spandex", "CUS", "sporty", "", "Technical and athletic"], ["detailThree", "fuzzy mohair texture", "CU", "casual,sweet", "w", "Soft and fuzzy"], ["detailThree", "plush faux-fur texture", "CU", "sweet,gothic", "w", "Soft and fuzzy"], ["detailThree", "soft fleece texture", "C", "casual,sporty", "w", "Soft and fuzzy"], ["detailThree", "teddy sherpa", "CU", "sweet,casual", "w", "Soft and fuzzy"], ["detailThree", "marabou feather texture", "CUS", "glam", "", "Soft and fuzzy"], ["detailThree", "chenille texture", "CU", "casual", "w", "Soft and fuzzy"], ["detailThree", "angora fluff", "CU", "sweet", "w", "Soft and fuzzy"], ["detailThree", "velour finish", "CU", "casual,sporty", "", "Soft and fuzzy"], ["detailThree", "terry cloth texture", "CU", "resort,casual", "s", "Soft and fuzzy"], ["detailThree", "brushed flannel", "C", "casual,edgy", "w", "Soft and fuzzy"], ["detailThree", "chunky knit texture", "CU", "casual", "w", "Knit"], ["detailThree", "waffle knit texture", "CU", "casual", "", "Knit"], ["detailThree", "pointelle knit", "CU", "cottage", "", "Knit"], ["detailThree", "open-stitch knit", "CUS", "casual,resort", "s", "Knit"], ["detailThree", "bouclé texture", "CU", "preppy,glam", "w", "Knit"], ["detailThree", "fine merino knit", "CU", "preppy", "w", "Knit"], ["detailThree", "loose gauze weave", "CU", "resort,cottage", "s", "Woven"], ["detailThree", "hemp weave", "CU", "cottage", "", "Woven"], ["detailThree", "canvas weave", "C", "casual", "", "Woven"], ["detailThree", "denim chambray", "CU", "casual", "", "Woven"], ["detailThree", "crisp poplin", "CU", "preppy", "", "Woven"], ["detailThree", "seersucker texture", "CU", "preppy,resort", "s", "Woven"], ["detailThree", "twill weave", "C", "preppy", "", "Woven"], ["detailThree", "herringbone weave", "CU", "preppy", "w", "Woven"], ["detailThree", "corduroy ribbing", "CU", "casual,preppy", "w", "Woven"], ["detailThree", "jacquard weave", "CU", "gothic,glam", "", "Woven"], ["detailThree", "damask pattern", "CU", "gothic,glam", "", "Woven"], ["detailThree", "crinkled chiffon", "CU", "cottage", "", "Woven"], ["detailThree", "pleated chiffon", "CU", "glam,cottage", "", "Woven"], ["detailThree", "raw silk texture", "CU", "glam", "", "Woven"], ["detailThree", "hammered satin", "CUS", "glam", "", "Silk and satin"], ["detailThree", "charmeuse drape", "CUS", "glam,boudoir", "", "Silk and satin"], ["detailThree", "taffeta rustle", "CU", "glam,sweet", "", "Silk and satin"], ["detailThree", "silk habotai", "CU", "glam,cottage", "", "Silk and satin"], ["detailThree", "duchess satin", "CU", "glam", "", "Silk and satin"], ["detailThree", "crushed satin", "CUS", "glam,boudoir", "", "Silk and satin"], ["detailThree", "glitter-dusted fabric", "CUS", "glam,cyber,sweet", "", "Sparkle and shimmer"], ["detailThree", "sequin-and-bead embroidery", "CUS", "glam", "", "Sparkle and shimmer"], ["detailThree", "rhinestone-studded fabric", "US", "glam", "", "Sparkle and shimmer"], ["detailThree", "lurex thread shimmer", "CUS", "glam", "", "Sparkle and shimmer"], ["detailThree", "crystal mesh", "US", "glam", "", "Sparkle and shimmer"], ["detailThree", "stardust glitter tulle", "CU", "sweet,glam", "", "Sparkle and shimmer"], ["detailThree", "zebra print", "US", "edgy", "", "Prints and dyes"], ["detailThree", "snakeskin print", "US", "edgy", "", "Prints and dyes"], ["detailThree", "camouflage print", "CU", "edgy,sporty", "", "Prints and dyes"], ["detailThree", "paisley print", "CU", "cottage", "", "Prints and dyes"], ["detailThree", "toile print", "CU", "cottage", "", "Prints and dyes"], ["detailThree", "watercolor floral print", "CU", "cottage", "", "Prints and dyes"], ["detailThree", "cherry print", "CU", "sweet", "", "Prints and dyes"], ["detailThree", "butterfly print", "CU", "sweet,cottage", "", "Prints and dyes"], ["detailThree", "tartan check", "CU", "preppy,edgy", "w", "Prints and dyes"], ["detailThree", "pinstripe pattern", "CU", "preppy", "", "Prints and dyes"], ["detailThree", "windowpane check", "CU", "preppy", "", "Prints and dyes"], ["detailThree", "animal spots", "US", "edgy", "", "Prints and dyes"], ["detailThree", "graffiti print", "CU", "edgy", "", "Prints and dyes"], ["detailThree", "circuit-board print", "CU", "cyber", "", "Prints and dyes"], ["detailThree", "pixel print", "CU", "cyber", "", "Prints and dyes"], ["detailThree", "galaxy print", "CU", "cyber,sweet", "", "Prints and dyes"], ["detailThree", "tie-dye swirls", "CU", "casual,sweet", "", "Prints and dyes"], ["detailThree", "ombré dye", "CU", "casual,sweet", "", "Prints and dyes"], ["detailThree", "marble print", "CU", "glam", "", "Prints and dyes"]];
+  rows.forEach(([f,v,t,l,se,g])=>{
+    OUTFIT[f]=OUTFIT[f]||[];
+    if(OUTFIT[f].some(x=>x.v===v))return;
+    const it={v,t,g};if(l)it.f=l;if(se)it.s=se;OUTFIT[f].push(it);
+  });
+})();
 const OUT_GROUPS=[
  {id:"garments",label:"Garments",fields:["top","bottom","corset","outerwear","legwear"]},
- {id:"accessories",label:"Accessories",fields:["belt","waistAccessory","neckAccessory","wristAccessory","headwear","eyewear","gloves","tagCharm","hipAccessory"]},
+ {id:"accessories",label:"Accessories",fields:["belt","waistAccessory","neckAccessory","wristAccessory","headwear","eyewear","gloves","tagCharm","hipAccessory","earAccessory","ringAccessory"]},
  {id:"underwear",label:"Underwear",fields:["bra","panties"]},
  {id:"details",label:"Details",fields:["detailOne","detailTwo","detailThree"]}
 ];
 KIND_RULES.top.unshift(["dress",/dress|gown/]);
-const OUT_LABEL={top:"Top",bottom:"Bottom",corset:"Corset or bodice layer",outerwear:"Outerwear",legwear:"Legwear",belt:"Belt",waistAccessory:"Waist piece",neckAccessory:"Neck",wristAccessory:"Wrist",headwear:"Headwear",eyewear:"Eyewear",gloves:"Gloves",tagCharm:"Pin or charm",hipAccessory:"Bag or hip piece",bra:"Bra",panties:"Panties",detailOne:"Trim and embellishment",detailTwo:"Cut and fit",detailThree:"Material and finish"};
-const ROLE_AUTO={top:"primary",bottom:"secondary",corset:"accent",outerwear:"third",legwear:"secondary",bra:"third",panties:"third",belt:"accent",waistAccessory:"accent",neckAccessory:"accent",wristAccessory:"accent",headwear:"accent",eyewear:"accent",gloves:"third",tagCharm:"accent",hipAccessory:"third"};
+const OUT_LABEL={top:"Top",bottom:"Bottom",corset:"Corset or bodice layer",outerwear:"Outerwear",legwear:"Legwear",belt:"Belt",waistAccessory:"Waist piece",neckAccessory:"Neck",wristAccessory:"Wrist",headwear:"Headwear",eyewear:"Eyewear",gloves:"Gloves",tagCharm:"Pin or charm",earAccessory:"Earrings",ringAccessory:"Rings",hipAccessory:"Bag or hip piece",bra:"Bra",panties:"Panties",detailOne:"Trim and embellishment",detailTwo:"Cut and fit",detailThree:"Material and finish"};
+const ROLE_AUTO={top:"primary",bottom:"secondary",corset:"accent",outerwear:"third",legwear:"secondary",bra:"third",panties:"third",belt:"accent",waistAccessory:"accent",neckAccessory:"accent",wristAccessory:"accent",headwear:"accent",eyewear:"accent",gloves:"third",tagCharm:"accent",hipAccessory:"third",earAccessory:"accent",ringAccessory:"accent"};
 const OUT_ITEM_FIELDS=OUT_GROUPS.flatMap(g=>g.id==="details"?[]:g.fields);
 const COLOR_FIELDS=["eyeOne","eyeTwo","hairBase","hairUnderlayer","hairInner","hairHighlights","makeupColor","fantasyAccentColor"];
 const TRAIT_FIELDS=["earStyle","hornStyle","tailStyle","wingStyle","fangClawStyle","auraStyle"];
 const COLOR_RX=new RegExp("\\b("+EVERYDAY.map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).sort((a,b)=>b.length-a.length).join("|")+")\\b","i");
-const UNDERWEAR_RX=/\b(bra|bralette|panties|panty|thong|lingerie|underwear|briefs|g-string|garter belt)\b/i;
 
 /* ---------- parsing helpers ---------- */
 const FABRIC_CLASSES=[["glossy",/satin|silk|vinyl|latex|patent|glossy|metallic|holographic|sequin|leather|high-shine|pvc/],["sheer",/sheer|chiffon|organza|mesh|netted|transparent|tulle|fishnet|gauze/],["lace",/lace|crochet|eyelet|broderie/],["knit",/knit|ribbed|wool|fleece|thermal/],["denim",/denim/],["plush",/velvet|velour|plush|suede|corduroy|fur/],["matte",/cotton|linen|twill|gabardine|crepe|jersey|tweed|canvas|brocade/]];
 function parseOpt(field,value){
   const v=String(value||"").toLowerCase();let cls="";
   for(const [k,rx] of FABRIC_CLASSES)if(rx.test(v)){cls=k;break}
-  return{kind:kindOf(field,value),cls,youth:YOUTH_RX.test(value),extreme:EXTREME_RX.test(value)};
+  return{kind:kindOf(field,value),cls,youth:Policy.isYouthText(value)};
 }
-const PLURAL_RX=/\b(headphones|jeans|trousers|pants|shorts|tights|leggings|stockings|socks|gloves|glasses|sunglasses|bangles|bracelets|cuffs|straps|boots|shoes|warmers|bloomers|joggers|slacks|spectacles|goggles|earrings|ears|horns|wings|antennae|fangs|claws|talons)\b/i;
+const PLURAL_RX=/\b(headphones|jeans|trousers|pants|shorts|tights|leggings|stockings|socks|gloves|glasses|sunglasses|bangles|bracelets|cuffs|straps|boots|shoes|warmers|bloomers|joggers|slacks|spectacles|goggles|earrings|ears|necklaces|rings|bows|studs|horns|wings|antennae|fangs|claws|talons)\b/i;
 function withArticle(p){
   p=String(p||"").trim();if(!p)return"";
   if(/^(a|an|the|no|one|some|two|multiple|both)\s/i.test(p))return p;
-  const head=p.split(/\s(?:with|around|over|under|tied|worn|in|of|on|at|from|and)\s/i)[0];
+  const head=p.replace(/,\s+and\s/g,", ").split(/\s(?:with|around|over|under|tied|worn|in|of|on|at|from|and)\s/i)[0];
   if(PLURAL_RX.test(head)||(/s$/i.test(head)&&!/(ss|us|is)$/i.test(head))||/(teeth|antennae)$/i.test(head))return p;
   return (/^[aeiou]/i.test(p)&&!/^(uni|use|usu|u-|eu)/i.test(p)?"an ":"a ")+p;
 }
@@ -1064,7 +1411,7 @@ const cur=()=>S.outfits[S.cur];
 function rc(v){if(!v)return"";if(v[0]==="@"&&v.includes("+"))return joinNatural(v.split("+").map(x=>x[0]==="@"?(S.pal[x.slice(1)]||""):x).filter(Boolean));if(v[0]==="@")return S.pal[v.slice(1)]||"";return v}
 const g=id=>{const v=S.c[id];return v==null||v==="none"?"":rc(String(v))};
 const has=id=>!!g(id);
-const AGE_NOUN={"girl":["girl",""],"young woman":["woman","young"],"woman":["woman",""],"mature woman":["woman","mature"],"older woman":["woman","older"]};
+const AGE_NOUN={"young girl":["girl","young"],"girl":["girl",""],"young woman":["woman","young"],"woman":["woman",""],"mature woman":["woman","mature"],"older woman":["woman","older"]};
 const ageKey=()=>S.c.age||"woman";
 function subjectNoun(){
   const sp=(S.c.subjectType||"").trim(),[noun,adj]=AGE_NOUN[ageKey()]||["woman",""],pre=adj?adj+" ":"";
@@ -1072,11 +1419,10 @@ function subjectNoun(){
   const type=(SPECIES_INFO[sp]||{type:"word"}).type;
   if(type==="hyphen")return pre+sp+"-"+noun;
   if(type==="word")return pre+sp+" "+noun;
-  return ageKey()==="girl"?sp+" girl":pre+sp;
+  return Policy.girlAge()?pre+sp+" girl":pre+sp;
 }
 const subjectKey=()=>{const sp=(S.c.subjectType||"").trim();return sp?(((SPECIES_INFO[sp]||{}).legacy||[sp])[0]).toLowerCase():"woman"};
 const subjectPhrase=()=>`the ${subjectNoun()}`;
-const girlL=()=>ageKey()==="girl"&&!!S.c.age||/(^|[\s-])girl($|[\s-])/.test((S.c.subjectType||"").toLowerCase());
 function traitValue(id){const v=S.c[id];if(v==="none")return"";if(v==null||v==="")return(AUTO_TRAITS[subjectKey()]||{})[id]||"";return v}
 function autoTrait(id){return(AUTO_TRAITS[subjectKey()]||{})[id]||""}
 function animalLevel(){const lv=S.c.animalForm||"";return /^light/i.test(lv)?"light":/^moderate/i.test(lv)?"moderate":/^full/i.test(lv)?"full":""}
@@ -1087,34 +1433,19 @@ function activeBodyForm(){
   return{...(BODY_FORMS[v]||{s:`Special body form: ${v}.`}),key:v};
 }
 function optionList(field){
-  const base=(CHAR[field]||[]).map(([v,gr])=>({v,g:gr||""}));
-  const mine=(CUSTOM[field]||[]).filter(v=>!base.some(o=>o.v===v)).map(v=>({v,g:"My options"}));
+  const base=(CHAR[field]||[]).filter(([v])=>Policy.optionAllowed(field,v)).map(([v,gr])=>({v,g:gr||""}));
+  const mine=(CUSTOM[field]||[]).filter(v=>!base.some(o=>o.v===v)&&Policy.optionAllowed(field,v)).map(v=>({v,g:"My options"}));
   return base.concat(mine);
 }
-function itemTiers(field,o){let t=o.t||"CUSL";if(YOUTH_RX.test(o.v))t=t.replace(/[SL]/g,"");return t}
 function findItem(field,v){return(OUTFIT[field]||[]).find(o=>o.v===v)||null}
 function customOutfit(field){return(CUSTOM["o:"+field]||[])}
-function itemAllowed(field,v){
-  if(!girlL())return true;
-  if(field==="bra"||field==="panties")return false;
-  const o=findItem(field,v);
-  if(o)return /[CUS]/.test(itemTiers(field,o))&&!EXTREME_RX.test(v)&&!UNDERWEAR_RX.test(v);
-  return !UNDERWEAR_RX.test(v)&&!EXTREME_RX.test(v);
-}
 function paletteLinks(){const used={};const scan=v=>{if(typeof v==="string"&&v[0]==="@")v.split("+").forEach(x=>{if(x[0]==="@")used[x.slice(1)]=(used[x.slice(1)]||0)+1})};Object.values(S.c).forEach(scan);S.outfits.forEach(o=>Object.values(o.items).forEach(it=>scan(it.c)));return used}
 
 /* enforce: rules that must always hold, whatever the user clicked */
 function enforce(){
-  const notes=[];
-  if(girlL()){
-    if(S.out.explicit||S.out.lewdtag){S.out.explicit=false;S.out.lewdtag=false}
-    S.outfits.forEach(o=>{OUT_ITEM_FIELDS.forEach(f=>{const it=o.items[f];if(it&&!itemAllowed(f,it.v)){delete o.items[f];notes.push(`${OUT_LABEL[f]} “${it.v}” was removed: not available for girl-labeled subjects.`)}});if(o.cover==="L")o.cover=""});
-  }
-  if(youthFlagged()){if(S.out.explicit||S.out.lewdtag){S.out.explicit=false;S.out.lewdtag=false}}
+  const notes=Policy.enforce();
   if(notes.length)hooks.toast(notes[0]+(notes.length>1?` (+${notes.length-1} more)`:""));
 }
-function youthFlagged(){return S.outfits.some(o=>OUT_ITEM_FIELDS.some(f=>o.items[f]&&YOUTH_RX.test(o.items[f].v))||Object.values(o.details).some(v=>v&&YOUTH_RX.test(v)))}
-function currentYouth(){const o=cur();return OUT_ITEM_FIELDS.filter(f=>o.items[f]&&YOUTH_RX.test(o.items[f].v)).map(f=>o.items[f].v)}
 
 /* ---------- sentence builders (character) ---------- */
 let CK=null,LAST={drop:{},noLegs:false}; // per-compose context: {compact,notes,checks}
@@ -1133,7 +1464,7 @@ function paletteSentence(who){
 function identitySentence(){
   if(!S.c.subjectType&&!S.c.age)return"";const s=cap(subjectPhrase());
   if(CK.compact)return paletteSentence()?"":`${s}.`;
-  if(!S.c.subjectType)return ageKey()==="girl"?`${s} is cute, adorable, beautiful, and attractive.`:`${s} is elegant, beautiful, and attractive.`;
+  if(!S.c.subjectType)return Policy.girlAge()?`${s} is cute, adorable, beautiful, and attractive.`:`${s} is elegant, beautiful, and attractive.`;
   return `${s} has a distinctive, cohesive appearance that reflects her character type.`;
 }
 function speciesSentence(){
@@ -1179,10 +1510,11 @@ function eyesSentence(){
 }
 function faceSentence(){
   const f=["browShape","noseShape","mouthShape","faceMark"].map(g).map(withArticle).filter(Boolean),out=[];
-  if(CK.compact){return [g("faceShape"),g("expression"),...f].filter(Boolean).join(", ")+(g("faceShape")||g("expression")||f.length?".":"")}
+  if(CK.compact){return [g("faceShape"),g("expression"),g("impression"),...f].filter(Boolean).join(", ")+(g("faceShape")||g("expression")||g("impression")||f.length?".":"")}
   if(f.length)out.push(`Her face features ${joinNatural(f)}.`);
   if(g("faceShape"))out.push(`She has ${withArticle(g("faceShape"))}.`);
   if(g("expression"))out.push(`She has ${withArticle(g("expression"))}.`);
+  if(g("impression"))out.push(`Her overall impression is ${g("impression")}.`);
   return out.join(" ");
 }
 /* hair rules */
@@ -1332,7 +1664,6 @@ function outfitLayers(){
   const d=OUT_GROUPS[3].fields.map(f=>o.details[f]).filter(Boolean);
   if(d.length)L.details=CK.compact?d.join(", "):`The outfit has ${joinNatural(d)}.`;
   /* youth guard */
-  currentYouth().forEach(v=>note("warn",`“${v}” is a youth-coded item, so the explicit tag and the “sexy, lewd” tag are switched off.`));
   return L;
 }
 
@@ -1344,7 +1675,7 @@ function weigh(text,w,fmt){
 }
 
 /* ---------- compose ---------- */
-function compose(){
+function composeRaw(){
   CK={compact:!!S.out.compact,auto:!!S.out.auto,checks:[]};
   const O=outfitLayers();
   const raw={
@@ -1362,11 +1693,11 @@ function compose(){
     return{id,label:def[1],text:raw[id]||"",on,w,inMode:inMode.has(id),out:weigh(raw[id]||"",w,S.out.wfmt)};
   });
   let body=layers.filter(l=>l.on&&l.inMode&&l.text).map(l=>l.out).join(CK.compact?", ":" ").replace(/\s+/g," ").trim();
-  const blocked=girlL()||youthFlagged();
+  const blocked=!Policy.explicitAllowed();
   if(S.out.explicit&&!blocked)body+=(CK.compact?", ":"\n\n")+"NSFW, Explicit";
   const prompt=[S.out.sheet&&S.out.mode!=="outfit"?CHARACTER_SHEET_PREFIX:"",body].filter(Boolean).join("\n\n");
   runChecks(layers,prompt);
-  return{layers,prompt,checks:CK.checks,blocked,girl:girlL(),youth:youthFlagged()};
+  return{layers,prompt,checks:CK.checks,blocked};
 }
 
 /* ---------- extra design checks ---------- */
@@ -1395,7 +1726,6 @@ function runChecks(layers,prompt){
   if(toks>500)note("warn",`The prompt is about ${toks} tokens, which may be cut off. Turn on compact tags or switch off a layer.`,{label:"Compact tags",fn:()=>mut(()=>{S.out.compact=true})});
   else if(toks>420)note("info",`The prompt is about ${toks} tokens, close to NovelAI’s 512 limit. Compact tags make it shorter if you need room.`,{label:"Compact tags",fn:()=>mut(()=>{S.out.compact=true})});
   if(S.out.mode!=="outfit"&&!S.c.subjectType&&!S.c.age)note("info","No age category or species chosen. The prompt will say “the woman”.");
-  if(girlL())note("info","This subject is girl-labeled: explicit and “sexy, lewd” tags are off, and bra, panties and lewd-tier clothing are not offered.");
   if(!lp.length)note("info","Nothing to write yet. Pick a subject, or choose a starting point.");
 }
 const LABELS={};
@@ -1481,6 +1811,70 @@ const Preview=(()=>{
   return{build,render,swatches,hairClass};
 })();
 
+/* ===== Skin suggestions by species. Each family lists values that already exist in the pickers. ===== */
+const SKIN_FAMILIES={
+ feline:{tone:["golden beige","light tan","caramel"],under:["golden","warm"],finish:["soft luminous skin","sun-warmed skin"],marks:["soft freckles across the cheeks","a few beauty marks"]},
+ canine:{tone:["warm beige","light tan","golden beige"],under:["warm","peach"],finish:["fresh skin glow","natural skin texture"],marks:["light freckles across the nose","soft freckles across the cheeks"]},
+ fox:{tone:["fair","light beige","porcelain"],under:["warm","peach"],finish:["soft luminous skin","fresh skin glow"],marks:["light freckles across the nose","kintsugi-style golden cracks across the cheeks"]},
+ gentle:{tone:["fair","light beige","warm beige"],under:["rosy","peach"],finish:["fresh skin glow","soft matte skin"],marks:["soft freckles across the cheeks","light freckles across the nose"]},
+ sturdy:{tone:["warm beige","light tan","tan"],under:["warm","golden"],finish:["natural skin texture","sun-warmed skin"],marks:["freckles scattered across the shoulders","a few faint freckles along the arms"]},
+ night:{tone:["porcelain","very fair","pearl white"],under:["cool","pearl"],finish:["velvety skin finish","moonlit skin glow"],marks:["small beauty mark near the lips","a small mole on the cheek"]},
+ winged:{tone:["fair","light beige","porcelain"],under:["neutral","cool"],finish:["soft downy skin","satin-smooth skin"],marks:["feathers across the collarbones","feathers over the shoulders"]},
+ scaled:{tone:["warm beige","golden tan","bronze"],under:["amber","golden"],finish:["faint scale-textured skin","natural skin texture"],marks:["scales across the cheeks","scales along the neck","scales down the arms"]},
+ serpent:{tone:["light olive","golden olive","olive"],under:["olive","golden"],finish:["faint scale-textured skin","satin-smooth skin"],marks:["scales along the neck","scales down the arms"]},
+ demon:{tone:["rosy fair","soft pink","ashen gray","infernal crimson"],under:["reddish","ember-like","rosy"],finish:["faint ember glow beneath the skin","velvety skin finish"],marks:["demonic markings down the arms","ember lines over the shoulders","demonic markings along the neck"]},
+ angel:{tone:["pearl white","divine ivory","champagne gold"],under:["divine gold","pearl"],finish:["soft opalescent sheen","starlight skin shimmer"],marks:["angelic filigree across the collarbones","gold leaf flecks across the collarbones","celestial sigils over the shoulders"]},
+ elf:{tone:["porcelain","fair","pearl white"],under:["cool","neutral"],finish:["moonlit skin glow","satin-smooth skin"],marks:["freckles scattered across the shoulders","small beauty mark near the lips"]},
+ darkelf:{tone:["ashen gray","lavender","deep brown"],under:["cool","violet"],finish:["moonlit skin glow","velvety skin finish"],marks:["fine linework patterns over the shoulders","moon sigils across the collarbones"]},
+ fae:{tone:["lavender","rose quartz","pearl white"],under:["iridescent","pearl"],finish:["crystalline skin shimmer","soft opalescent sheen"],marks:["butterflies over the shoulders","petals scattered over the body","glitter across the cheeks"]},
+ plant:{tone:["warm beige","golden tan","jade green"],under:["golden","warm"],finish:["dew-damp skin","fresh skin glow"],marks:["vines down the arms","flowers along the neck","petals across the cheeks"]},
+ spirit:{tone:["pearl white","very fair","ashen gray"],under:["cool","silvery"],finish:["moonlit skin glow","cool marble-like skin"],marks:["frost patterns across the cheeks","snowflakes across the cheeks"]},
+ frost:{tone:["pearl white","very fair"],under:["cool","silvery"],finish:["frost-kissed skin","subtle skin sheen"],marks:["frost patterns across the cheeks","snowflakes scattered over the body","frost patterns over the shoulders"]},
+ aquatic:{tone:["fair","pearl white","seafoam green"],under:["iridescent","pearl"],finish:["pearl-like skin sheen","dew-damp skin"],marks:["mermaid scales across the cheeks","mermaid scales along the neck","pearls across the collarbones"]},
+ shark:{tone:["ashen gray","cerulean blue","fair"],under:["cool","silvery"],finish:["satin-smooth skin","subtle skin sheen"],marks:["wave patterns down the arms","wave patterns along the neck"]},
+ flame:{tone:["golden tan","caramel","infernal crimson"],under:["ember-like","amber"],finish:["faint ember glow beneath the skin","sun-warmed skin"],marks:["ember lines down the arms","embers across the cheeks","embers scattered over the body"]},
+ storm:{tone:["lavender","celestial blue","pearl white"],under:["cool","iridescent"],finish:["gentle reflective highlights","subtle skin sheen"],marks:["lightning-shaped marks down the arms","clouds over the shoulders"]},
+ genie:{tone:["golden tan","bronze","caramel"],under:["golden","divine gold"],finish:["soft luminous skin","sun-warmed skin"],marks:["gold leaf flecks over the shoulders","celestial sigils down the arms"]},
+ cosmic:{tone:["cosmic violet","starlight silver","aurora-shifting"],under:["cosmic","starlight","aurora"],finish:["starlight skin shimmer","faint luminous veins of light"],marks:["constellations across the collarbones","galaxy speckles across the cheeks","stars scattered over the body"]},
+ insect:{tone:["fair","soft pink","champagne gold"],under:["golden","peach"],finish:["soft downy skin","soft luminous skin"],marks:["butterflies across the cheeks","sunbursts across the cheeks"]},
+ slime:{tone:["seafoam green","jade green","cerulean blue"],under:["iridescent","pearl"],finish:["dew-damp skin","gentle reflective highlights"],marks:["opal flecks across the cheeks"]},
+ orc:{tone:["light olive","medium olive","jade green"],under:["olive","cool olive"],finish:["natural skin texture","soft matte skin"],marks:["tribal markings across the cheeks","tribal markings down the arms"]},
+ oni:{tone:["infernal crimson","cerulean blue","warm beige"],under:["reddish","warm"],finish:["natural skin texture","soft matte skin"],marks:["tribal markings across the cheeks","demonic markings over the shoulders"]},
+ stone:{tone:["ashen gray","fair"],under:["cool","neutral"],finish:["soft matte skin","cool marble-like skin"],marks:["fine linework patterns down the arms","crystals along the neck"]},
+ spider:{tone:["porcelain","ashen gray","very fair"],under:["cool","violet"],finish:["velvety skin finish","soft matte skin"],marks:["fine linework patterns over the shoulders","fine linework patterns down the arms"]},
+ generic:{tone:["fair","pearl white","warm beige"],under:["neutral","warm"],finish:["soft luminous skin","satin-smooth skin"],marks:["freckles scattered across the shoulders"]}
+};
+const SPECIES_FAMILY={
+ cat:"feline",nekomata:"feline",lion:"feline",tiger:"feline",leopard:"feline",
+ dog:"canine",wolf:"canine",jackal:"canine",raccoon:"canine",ferret:"canine",otter:"canine","red panda":"canine",
+ fox:"fox",kitsune:"fox",
+ bunny:"gentle",deer:"gentle",sheep:"gentle",alpaca:"gentle",goat:"gentle",mouse:"gentle",squirrel:"gentle",monkey:"gentle",panda:"gentle",faun:"gentle",unicorn:"gentle",pegasus:"gentle",
+ cow:"sturdy",horse:"sturdy",pig:"sturdy",bear:"sturdy",centaur:"sturdy",
+ bat:"night",owl:"night",vampire:"night",
+ harpy:"winged",tengu:"winged",
+ lizard:"scaled",dragon:"scaled",snake:"serpent",
+ demon:"demon",succubus:"demon",imp:"demon","fallen angel":"demon",tiefling:"demon",
+ angel:"angel",archangel:"angel",cherub:"angel",valkyrie:"angel",goddess:"angel",celestial:"angel",
+ elf:"elf","half-elf":"elf","dark elf":"darkelf",fae:"fae",sylph:"fae",dryad:"plant",
+ ghost:"spirit","yuki-onna":"frost",
+ mermaid:"aquatic",siren:"aquatic",naiad:"aquatic",axolotl:"aquatic",shark:"shark",
+ "fire spirit":"flame",phoenix:"flame","storm spirit":"storm",genie:"genie",cosmic:"cosmic",
+ moth:"insect",butterfly:"insect",bee:"insect",slime:"slime",orc:"orc",oni:"oni",gargoyle:"stone",arachne:"spider"
+};
+const SPECIES_SKIN_TWEAK={
+ tiger:{marks:["tiger stripes across the cheeks","tiger stripes down the arms","tiger stripes over the shoulders"]},
+ leopard:{marks:["leopard spots across the cheeks","leopard spots down the arms","leopard spots over the shoulders"]},
+ phoenix:{tone:["golden tan","warm beige","caramel"]},
+ butterfly:{marks:["butterflies across the cheeks","butterflies over the shoulders","butterflies across the collarbones"]},
+ moth:{marks:["feathers around the eyes","butterflies over the shoulders"]},
+ dryad:{tone:["warm beige","golden tan","light olive"]}
+};
+function skinSuggestions(species){
+  if(!species)return null;
+  const fam=SKIN_FAMILIES[SPECIES_FAMILY[species]]||SKIN_FAMILIES.generic;
+  return{...fam,...(SPECIES_SKIN_TWEAK[species]||{})};
+}
+
 /* ===== Character Studio UI ===== */
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 function h(tag,attrs,...kids){
@@ -1493,7 +1887,7 @@ function h(tag,attrs,...kids){
   kids.flat().forEach(c=>{if(c==null||c===false)return;e.append(c.nodeType?c:document.createTextNode(c))});
   return e;
 }
-Object.assign(LABELS,{lashNatural:"Eyelashes",faceMark:"Beauty mark",hairBlend:"Color blending",stomachShape:"Stomach",nailStyle:"Nails",nailColor:"Nail colors",age:"Age category",subjectType:"Species or creature",faceShape:"Face shape",expression:"Expression",browShape:"Brows",noseShape:"Nose",mouthShape:"Mouth",eyeConfig:"Eye setup",eyeShape:"Eye shape",pupilStyle:"Pupils",irisDetail:"Iris detail",eyeOne:"Right eye color",eyeTwo:"Left eye color",hairStyle:"Style",hairLength:"Length",hairTexture:"Texture",bangs:"Bangs",hairMovement:"Movement",hairBase:"Base color",hairUnderlayer:"Underlayer color",hairInner:"Inner sections",hairHighlights:"Highlights",bustSize:"Breast size",bustShape:"Breast shape",bustWeight:"Breast weight",buttSize:"Butt",heightStature:"Height",shoulderShape:"Shoulders",waistShape:"Waist",hipShape:"Hips",thighBuild:"Thighs",legShape:"Legs",bodySoftness:"Build",posture:"Posture",skinTone:"Skin tone",undertone:"Undertone",skinFinish:"Finish",markings:"Markings",makeupStyle:"Overall style",eyelinerStyle:"Eyeliner",eyeshadowStyle:"Eyeshadow",lashStyle:"Lashes",blushStyle:"Blush",lipFinish:"Lips",faceAccents:"Face accents",makeupColor:"Makeup color",fantasyAccentColor:"Creature accent color",earStyle:"Ears",hornStyle:"Horns",tailStyle:"Tail",wingStyle:"Wings",fangClawStyle:"Fangs and claws",auraStyle:"Aura",animalForm:"Transformation",animalPattern:"Fur pattern",bodyForm:"Lower body",...OUT_LABEL});
+Object.assign(LABELS,{lashNatural:"Eyelashes",faceMark:"Beauty mark",impression:"Overall impression",hairBlend:"Color blending",stomachShape:"Stomach",nailStyle:"Nails",nailColor:"Nail colors",age:"Age category",subjectType:"Species or creature",faceShape:"Face shape",expression:"Expression",browShape:"Brows",noseShape:"Nose",mouthShape:"Mouth",eyeConfig:"Eye setup",eyeShape:"Eye shape",pupilStyle:"Pupils",irisDetail:"Iris detail",eyeOne:"Right eye color",eyeTwo:"Left eye color",hairStyle:"Style",hairLength:"Length",hairTexture:"Texture",bangs:"Bangs",hairMovement:"Movement",hairBase:"Base color",hairUnderlayer:"Underlayer color",hairInner:"Inner sections",hairHighlights:"Highlights",bustSize:"Breast size",bustShape:"Breast shape",bustWeight:"Breast weight",buttSize:"Butt",heightStature:"Height",shoulderShape:"Shoulders",waistShape:"Waist",hipShape:"Hips",thighBuild:"Thighs",legShape:"Legs",bodySoftness:"Build",posture:"Posture",skinTone:"Skin tone",undertone:"Undertone",skinFinish:"Finish",markings:"Markings",makeupStyle:"Overall style",eyelinerStyle:"Eyeliner",eyeshadowStyle:"Eyeshadow",lashStyle:"Lashes",blushStyle:"Blush",lipFinish:"Lips",faceAccents:"Face accents",makeupColor:"Makeup color",fantasyAccentColor:"Creature accent color",earStyle:"Ears",hornStyle:"Horns",tailStyle:"Tail",wingStyle:"Wings",fangClawStyle:"Fangs and claws",auraStyle:"Aura",animalForm:"Transformation",animalPattern:"Fur pattern",bodyForm:"Lower body",...OUT_LABEL});
 const STEPS=[
  {id:"concept",label:"Concept",blurb:"Who she is and what she is. Everything else builds on this."},
  {id:"palette",label:"Palette",blurb:"Five colors the whole design shares. Hair, eyes and clothes can follow them."},
@@ -1507,7 +1901,7 @@ const STEPS=[
 const STEP_FIELDS={
  concept:["age","subjectType",...TRAIT_FIELDS,"animalForm","bodyForm","fantasyAccentColor"],
  palette:SLOTS.map(s=>"pal:"+s[0]),
- face:["faceShape","expression","browShape","noseShape","mouthShape","faceMark","eyeConfig","eyeShape","pupilStyle","irisDetail","lashNatural","eyeOne","eyeTwo"],
+ face:["faceShape","expression","browShape","noseShape","mouthShape","faceMark","impression","eyeConfig","eyeShape","pupilStyle","irisDetail","lashNatural","eyeOne","eyeTwo"],
  hair:["hairStyle","hairLength","hairTexture","bangs","hairMovement","hairBase","hairUnderlayer","hairInner","hairHighlights","hairBlend"],
  body:["bustSize","bustShape","bustWeight","heightStature","shoulderShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture","skinTone","undertone","skinFinish","markings"],
  makeup:["makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents","makeupColor","nailStyle","nailColor"],
@@ -1668,7 +2062,7 @@ function stepConcept(){
   const f=document.createDocumentFragment();
   f.append(fieldRow("age",{forceChips:true,hint:`Reads as “${subjectNoun()}”`}));
   f.append(fieldRow("subjectType",{forcePick:true,placeholder:"None (human)",hint:"Optional. Combined with the age category, e.g. leopard + woman."}));
-  if(girlL())f.append(h("p",{class:"callout"},"This design is girl-labeled. The explicit tag, the “sexy, lewd” tag, underwear and lewd-tier clothing are switched off, along with the Thick, Full figure and Sexy presets."));
+  if(Policy.callout("concept"))f.append(h("p",{class:"callout"},Policy.callout("concept")));
   f.append(sub("Creature features","Leave a feature on Auto and it follows the subject. Choose None to remove it."));
   TRAIT_FIELDS.forEach(id=>f.append(fieldRow(id,{auto:"Auto",none:true,forcePick:true})));
   f.append(colorRow("fantasyAccentColor","Tints the creature features, such as “with violet accents”."));
@@ -1695,51 +2089,99 @@ function stepPalette(){
     h("button",{type:"button",class:"btn",onclick:()=>mut(()=>{S.c.hairBase="@primary";S.c.hairUnderlayer="@secondary";S.c.hairInner="@third";S.c.hairHighlights="@accent"}),text:"Hair follows palette"}),
     h("button",{type:"button",class:"btn",onclick:()=>mut(()=>{S.c.eyeOne="@accent";delete S.c.eyeTwo;S.c.eyeConfig="matching"}),text:"Eyes follow accent"}),
     h("button",{type:"button",class:"btn",onclick:()=>mut(()=>{const l=cur();OUT_ITEM_FIELDS.forEach(k=>{if(l.items[k])l.items[k].c="auto"})}),text:"Reset outfit colors to auto"})));
+  f.append(paletteLibrary());
   f.append(harmonyBox());
   return f;
 }
 /* palette harmony: suggestions only, nothing changes until you press Apply */
-const SCHEMES=[["analogous","Analogous"],["complementary","Complementary"],["triadic","Triadic"],["split","Split complementary"],["mono","Monochrome"]];
-let harmony={scheme:"analogous",from:"primary"};
+const SCHEMES=[["analogous","Analogous"],["complementary","Complementary"],["triadic","Triadic"],["split","Split complementary"],["tetradic","Tetradic"],["mono","Monochrome"],["accent","Neutrals with one accent"]];
+const MOODS=[["any","Any mood"],["soft","Soft pastels"],["light","Light and airy"],["muted","Muted and earthy"],["vivid","Vivid"],["deep","Deep and moody"]];
+let harmony={scheme:"analogous",from:"primary",mood:"any",seed:0},palMood="all";
 function hsl(hex){const[r,g,b]=rgbOf(hex).map(v=>v/255),mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let hh=0,s=0;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);hh=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;hh*=60}return{h:hh,s,l}}
+const HAIR_EYE_ONLY=/blonde|auburn|ginger|hazel|^jet black|walnut brown|^(dark|medium|light|golden|warm|ash|rose|mushroom|honey|caramel) brown$|toffee|chestnut|copper red|blue-gray|gray-green|dark amber|^(blue|green|red|brown|gray|pink|purple|yellow|aqua|crimson|light blue|dark green|bright green|black|deep blue|amber)$|^glowing|^(light|ash|steel) gray$/;
+const PAL_POOL=Object.keys(COLORS).filter(c=>!HAIR_EYE_ONLY.test(c));
 function nearestColors(target,exclude,n){
-  const pool=EVERYDAY.filter(c=>!exclude.includes(c));
-  const sc=pool.map(c=>{const x=hsl(COLORS[c]);let dh=Math.abs(x.h-target.h);dh=Math.min(dh,360-dh)/180;const d=(dh*(target.s<.12?.2:1.6))**2+(x.s-target.s)**2*.8+(x.l-target.l)**2*1.4;return{c,d}}).sort((a,b)=>a.d-b.d);
+  const sc=PAL_POOL.filter(c=>!exclude.includes(c)).map(c=>{const x=hsl(COLORS[c]);let dh=Math.abs(x.h-target.h);dh=Math.min(dh,360-dh)/180;const d=(dh*(target.s<.12?.2:1.6))**2+(x.s-target.s)**2*.8+(x.l-target.l)**2*1.4+(EVERYDAY_SET.has(c)?0:.004);return{c,d}}).sort((a,b)=>a.d-b.d);
   return sc.slice(0,n).map(x=>x.c);
 }
+function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function moodAdjust(t,m){
+  const c=(v,a,b)=>Math.max(a,Math.min(b,v));
+  if(m==="soft")return{h:t.h,s:c(t.s*.65,.18,.5),l:Math.max(t.l,.78)};
+  if(m==="light")return{h:t.h,s:c(t.s,.05,.4),l:Math.max(t.l,.86)};
+  if(m==="muted")return{h:t.h,s:Math.min(t.s,.3),l:c(t.l,.3,.72)};
+  if(m==="vivid")return{h:t.h,s:Math.max(t.s,.78),l:c(t.l,.42,.62)};
+  if(m==="deep")return{h:t.h,s:Math.min(t.s,.62),l:Math.min(t.l,.3)};
+  return t;
+}
+function harmonyBaseName(){
+  const k=harmony.from;
+  return k==="hair"?g("hairBase"):k==="eye"?(g("eyeOne")||g("eyeTwo")).replace(/\s*eye$/i,""):(S.pal[k]||"");
+}
 function suggestSets(){
-  const base=S.pal[harmony.from]||S.pal.primary||S.pal.secondary;if(!base||!COLORS[base])return[];
-  const b=hsl(COLORS[base]),offs={analogous:[30,-30,60],complementary:[180,150,210],triadic:[120,240,180],split:[150,210,180],mono:[0,0,0]}[harmony.scheme];
-  const sets=[];
-  const tones=[[0,0],[.14,-.1],[-.16,.06]];
+  const base=harmonyBaseName()||S.pal.primary||S.pal.secondary;if(!base||!COLORS[base])return[];
+  const b=hsl(COLORS[base]),R=rng(harmony.seed*7919+13);
+  const offs={analogous:[30,-30,60],complementary:[180,150,210],triadic:[120,240,180],split:[150,210,180],tetradic:[90,180,270],mono:[0,0,0],accent:[0,0,180]}[harmony.scheme];
+  const tones=[[0,0],[.14,-.1],[-.16,.06],[.08,.14],[-.08,-.14],[.2,.04]];
+  const sets=[],seen=new Set();
   tones.forEach(([dl,ds],i)=>{
+    const jit=(harmony.seed>0||i>=3)?(R()*50-25):0;
     const used=[base],out=[];
     offs.forEach((o,k)=>{
-      const t={h:(b.h+o+360)%360,s:Math.max(.05,Math.min(.9,b.s+ds+(k===2?.1:0))),l:Math.max(.12,Math.min(.9,b.l+dl+(harmony.scheme==="mono"?(k-1)*.18:0)))};
-      const c=nearestColors(t,used,1)[0];if(c){used.push(c);out.push(c)}
+      let t;
+      if(harmony.scheme==="accent")t=[{h:b.h,s:.07,l:.9},{h:b.h,s:.06,l:.22},{h:b.h+180+jit,s:.7,l:.55+dl/2}][k];
+      else t={h:(b.h+o+jit+720)%360,s:Math.max(.05,Math.min(.92,b.s+ds+(k===2?.1:0))),l:Math.max(.12,Math.min(.92,b.l+dl+(harmony.scheme==="mono"?(k-1)*.18:0)))};
+      t=moodAdjust(t,harmony.mood);
+      const c=nearestColors({h:(t.h+360)%360,s:t.s,l:t.l},used,1)[0];if(c){used.push(c);out.push(c)}
     });
-    const neutral=b.l>.5?"charcoal gray":"cream";if(!used.includes(neutral))out.push(neutral);
-    sets.push(out.slice(0,4));
+    const extraT=moodAdjust({h:b.h+(harmony.scheme==="mono"?0:15),s:.1,l:b.l>.5?.18:.92},harmony.mood==="vivid"?"any":harmony.mood);
+    const neutral=nearestColors(extraT,used,1)[0]||(b.l>.5?"charcoal gray":"cream");if(!used.includes(neutral))out.push(neutral);
+    const key=out.join("|");if(!seen.has(key)){seen.add(key);sets.push(out.slice(0,4))}
   });
   return sets;
 }
+function applyPaletteSet(set,fromKey){
+  mut(()=>{
+    if(SLOTS.some(s=>s[0]===fromKey)){const slots=SLOTS.map(s=>s[0]).filter(s=>s!==fromKey);set.forEach((c,i)=>{if(slots[i])S.pal[slots[i]]=c})}
+    else{const base=harmonyBaseName();const all=[base,...set];SLOTS.forEach(([k],i)=>{if(all[i])S.pal[k]=all[i]})}
+  },"palsug");
+}
 function harmonyBox(){
-  const sel=h("select",{"aria-label":"Harmony scheme",onchange:e=>{harmony.scheme=e.target.value;renderMain()}},SCHEMES.map(([v,l])=>h("option",{value:v,selected:harmony.scheme===v?true:null,text:l})));
-  const from=h("select",{"aria-label":"Base slot",onchange:e=>{harmony.from=e.target.value;renderMain()}},SLOTS.map(([k,l])=>h("option",{value:k,selected:harmony.from===k?true:null,text:"from "+l.toLowerCase()})));
-  const box=h("div",{class:"harmony"},h("div",{class:"sub"},h("h3",{text:"Palette suggestions"}),h("p",{text:"Suggests colors that work with the one you choose. Nothing changes until you press Apply."})),h("div",{class:"btnrow"},sel,from));
+  const mk=(label,opts,val,fn)=>h("select",{"aria-label":label,onchange:e=>{fn(e.target.value);renderMain()}},opts.map(([v,l])=>h("option",{value:v,selected:val===v?true:null,text:l})));
+  const fromOpts=[...SLOTS.filter(([k])=>S.pal[k]).map(([k,l])=>[k,"from "+l.toLowerCase()+": "+S.pal[k]])];
+  if(g("hairBase"))fromOpts.push(["hair","from hair color: "+g("hairBase")]);
+  if(g("eyeOne")||g("eyeTwo"))fromOpts.push(["eye","from eye color: "+(g("eyeOne")||g("eyeTwo"))]);
+  if(!fromOpts.length)SLOTS.forEach(([k,l])=>fromOpts.push([k,"from "+l.toLowerCase()]));
+  if(!fromOpts.some(o=>o[0]===harmony.from))harmony.from=fromOpts[0][0];
+  const box=h("div",{class:"harmony"},h("div",{class:"sub"},h("h3",{text:"Palette suggestions"}),h("p",{text:"Suggests colors that work with the one you choose. Nothing changes until you press Apply."})),
+    h("div",{class:"btnrow"},mk("Harmony scheme",SCHEMES,harmony.scheme,v=>harmony.scheme=v),mk("Mood",MOODS,harmony.mood,v=>harmony.mood=v),mk("Base color",fromOpts,harmony.from,v=>harmony.from=v),
+      h("button",{type:"button",class:"btn sm",onclick:()=>{harmony.seed++;renderMain()},text:"Show different ones"})));
   const sets=suggestSets();
   if(!sets.length)box.append(h("p",{class:"muted",text:"Choose a base color above to see suggestions."}));
+  const baseHex=hexFor(harmonyBaseName()||S.pal.primary||"")||"#ccc";
   sets.forEach(set=>{
     box.append(h("div",{class:"sugg"},
-      h("div",{class:"strip"},h("i",{style:`background:${hexFor(S.pal[harmony.from]||S.pal.primary)}`,title:S.pal[harmony.from]||S.pal.primary}),...set.map(c=>h("i",{style:`background:${COLORS[c]}`,title:c}))),
+      h("div",{class:"strip"},h("i",{style:`background:${baseHex}`,title:harmonyBaseName()||S.pal.primary}),...set.map(c=>h("i",{style:`background:${COLORS[c]}`,title:c}))),
       h("span",{class:"names",text:set.join(", ")}),
-      h("button",{type:"button",class:"btn sm",onclick:()=>mut(()=>{const slots=["primary","secondary","third","accent","extra"].filter(s=>s!==harmony.from);set.forEach((c,i)=>{S.pal[slots[i]]=c})}),text:"Apply"})));
+      h("button",{type:"button",class:"btn sm",onclick:()=>applyPaletteSet(set,harmony.from),text:"Apply"})));
   });
   return box;
 }
+function paletteLibrary(){
+  const box=h("div",{class:"palib"},h("div",{class:"sub"},h("h3",{text:"Palette library"}),h("p",{text:"Finished five-color palettes. Tap one to fill every slot. Undo brings back yours."})));
+  const bar=h("div",{class:"chips"});
+  PALETTE_MOODS.forEach(([v,l])=>bar.append(h("button",{type:"button",class:"chip"+(palMood===v?" on":""),"aria-pressed":palMood===v?"true":"false",onclick:()=>{palMood=v;renderMain()},text:l})));
+  bar.append(h("button",{type:"button",class:"chip more",onclick:()=>{const pool=PALETTE_LIBRARY.filter(p=>palMood==="all"||p.m===palMood);applyLibrary(pool[Math.floor(Math.random()*pool.length)])},text:"Surprise me"}));
+  box.append(bar);
+  const grid=h("div",{class:"palgrid"});
+  PALETTE_LIBRARY.filter(p=>palMood==="all"||p.m===palMood).forEach(p=>grid.append(h("button",{type:"button",class:"palcard",onclick:()=>applyLibrary(p),"aria-label":`${p.n}: ${p.c.join(", ")}`},
+    h("div",{class:"strip"},...p.c.map(c=>h("i",{style:`background:${COLORS[c]}`,title:c}))),h("b",{text:p.n}),h("span",{text:p.c.slice(0,3).join(", ")}))));
+  box.append(grid);return box;
+}
+function applyLibrary(p){mut(()=>{SLOTS.forEach(([k],i)=>{S.pal[k]=p.c[i]||""})},"palib");toast(`Palette set to “${p.n}”.`)}
 function stepFace(){
   const f=document.createDocumentFragment();
-  f.append(sub("Face"));["faceShape","expression","browShape","noseShape","mouthShape","faceMark"].forEach(id=>f.append(fieldRow(id)));
+  f.append(sub("Face"));["faceShape","expression","browShape","noseShape","mouthShape","faceMark","impression"].forEach(id=>f.append(fieldRow(id)));
   f.append(sub("Eyes"));
   ["eyeShape","pupilStyle","irisDetail","lashNatural","eyeConfig"].forEach(id=>f.append(fieldRow(id)));
   f.append(colorRow("eyeOne"));f.append(colorRow("eyeTwo","Only needed for two-color eye setups."));
@@ -1754,20 +2196,37 @@ function stepHair(){
   f.append(fieldRow("hairBlend",{forcePick:true,hint:"How the colors meet. Leave empty for the automatic base-to-highlight blend."}));
   return f;
 }
-function presetAvailable(p){return !(p.adultOnly&&girlL())}
+const presetAvailable=p=>Policy.presetAllowed(p);
+function skinSuggestBox(){
+  const sp=(S.c.subjectType||"").trim(),s=sp&&skinSuggestions(sp);if(!s)return null;
+  const rows=[["tone","skinTone","Skin tone"],["under","undertone","Undertone"],["finish","skinFinish","Finish"],["marks","markings","Markings"]];
+  const box=h("div",{class:"suggbox"},h("h4",{text:`Suggested for ${sp}`}),h("p",{class:"muted small",text:"These follow the species. Tap one to use it, tap again to clear. You can still pick anything below."}));
+  rows.forEach(([k,f,l])=>{
+    if(!s[k]||!s[k].length)return;
+    const wrap=h("div",{class:"chips"});
+    s[k].forEach(v=>{const on=S.c[f]===v;const hx=f==="skinTone"?(SKIN_HEX[v]||hexFor(v)):null;
+      wrap.append(h("button",{type:"button",class:"chip"+(on?" on":""),"aria-pressed":on?"true":"false",onclick:()=>setC(f,on?"":v)},hx?h("i",{class:"sw",style:`background:${hx}`}):null,v))});
+    box.append(h("div",{class:"sgrow"},h("b",{text:l}),wrap));
+  });
+  box.append(h("div",{class:"btnrow"},h("button",{type:"button",class:"btn sm",onclick:()=>mut(()=>{rows.forEach(([k,f])=>{if(s[k]&&s[k][0])S.c[f]=s[k][0]})}),text:"Use the first of each"})));
+  return box;
+}
 function stepBody(){
   const f=document.createDocumentFragment();
   f.append(sub("Presets","A preset sets every proportion at once. You can still change any of them after."));
   const bar=h("div",{class:"chips"});
   Object.entries(BODY_PRESETS).forEach(([k,p])=>{
     const ok=presetAvailable(p);
-    bar.append(h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:ok?null:"Not available for girl-labeled subjects",onclick:()=>mut(()=>{Object.assign(S.c,p.v)},"preset"),text:p.label}));
+    bar.append(h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:Policy.presetNote(p),onclick:()=>{mut(()=>{STEP_FIELDS.body.slice(0,13).forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},"preset");if(Policy.afterBodyPreset())toast(Policy.afterBodyPreset())},text:p.label}));
   });
   bar.append(h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{STEP_FIELDS.body.slice(0,13).forEach(i=>delete S.c[i])}),text:"Clear body"}));
   f.append(bar);
+  if(Policy.callout("body"))f.append(h("p",{class:"callout"},Policy.callout("body")));
   f.append(sub("Bust"));["bustSize","bustShape","bustWeight"].forEach(id=>f.append(fieldRow(id)));
   f.append(sub("Proportions"));["heightStature","shoulderShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture"].forEach(id=>f.append(fieldRow(id,{forcePick:id==="buttSize"})));
-  f.append(sub("Skin"));["skinTone","undertone","skinFinish","markings"].forEach(id=>f.append(fieldRow(id,{forcePick:true})));
+  f.append(sub("Skin"));
+  const sb=skinSuggestBox();if(sb)f.append(sb);
+  ["skinTone","undertone","skinFinish","markings"].forEach(id=>f.append(fieldRow(id,{forcePick:true})));
   return f;
 }
 function nailColorRow(){
@@ -1783,7 +2242,7 @@ function stepMakeup(){
   const f=document.createDocumentFragment();
   f.append(sub("Presets","A preset sets the whole look. Change any part afterward."));
   const bar=h("div",{class:"chips"});
-  Object.entries(MAKEUP_PRESETS).forEach(([k,p])=>{const ok=presetAvailable(p);bar.append(h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:ok?null:"Not available for girl-labeled subjects",onclick:()=>mut(()=>{MAKEUP_FIELDS.forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},"mpreset"),text:p.label}))});
+  Object.entries(MAKEUP_PRESETS).forEach(([k,p])=>{const ok=presetAvailable(p);bar.append(h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:Policy.presetNote(p),onclick:()=>mut(()=>{MAKEUP_FIELDS.forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},"mpreset"),text:p.label}))});
   bar.append(h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{MAKEUP_FIELDS.forEach(i=>delete S.c[i])}),text:"Clear makeup"}));
   f.append(bar);f.append(sub("Details"));
   ["makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents"].forEach(id=>f.append(fieldRow(id)));
@@ -1799,7 +2258,7 @@ function outfitItems(field){
   const o=cur(),res=[];
   (OUTFIT[field]||[]).forEach(it=>{
     const t=itemTiers(field,it);
-    if(girlL()&&!itemAllowed(field,it.v))return;
+    if(!Policy.itemAllowed(field,it.v))return;
     if(o.cover&&!t.includes(o.cover))return;
     if(o.season&&it.s&&it.s!==o.season)return;
     const fam=it.f?it.f.split(","):[];
@@ -1813,14 +2272,14 @@ function outfitPicker(field,anchor){
   const lookLabel=id=>(LOOKS.find(l=>l[0]===id)||[0,id])[1];
   const secs=[];
   const sub1=it=>({v:it.v,sub:it.fam.length?lookLabel(it.fam[0]):"Any look"});
-  if(cs.length)secs.push({name:"My items",items:cs.filter(v=>itemAllowed(field,v)).map(v=>({v,sub:"Yours"}))});
+  if(cs.length)secs.push({name:"My items",items:cs.filter(v=>Policy.itemAllowed(field,v)).map(v=>({v,sub:"Yours"}))});
   if(o.look){secs.push({name:`Fits ${lookLabel(o.look)}`,items:all.filter(i=>i.match).map(sub1)});secs.push({name:"Other looks",items:all.filter(i=>!i.match).map(sub1)})}
   else{const by=new Map();all.forEach(it=>{const k=it.fam.length?lookLabel(it.fam[0]):"Any look";if(!by.has(k)){by.set(k,[]);secs.push({name:k,items:by.get(k)})}by.get(k).push({v:it.v,sub:it.fam.length>1?"also "+it.fam.slice(1).map(lookLabel).join(", "):""})})}
   const cur_=o.items[field];
   openPop(anchor,{title:OUT_LABEL[field],current:cur_&&cur_.v,sections:secs.filter(s=>s.items.length),
     top:cur_?[{label:"Remove",fn:()=>mut(()=>{delete cur().items[field]})}]:[],
     onPick:v=>mut(()=>{cur().items[field]={v,c:(cur().items[field]||{}).c||"auto"}},"item"+field),
-    custom:{placeholder:"Type your own "+OUT_LABEL[field].toLowerCase(),save:true,check:t=>girlL()&&(UNDERWEAR_RX.test(t)||EXTREME_RX.test(t))?"That item isn’t available for girl-labeled subjects.":null,
+    custom:{placeholder:"Type your own "+OUT_LABEL[field].toLowerCase(),save:true,check:t=>Policy.itemTextProblem(t),
       use:(t,s)=>{if(s)addCustom("o:"+field,t);mut(()=>{cur().items[field]={v:t,c:(cur().items[field]||{}).c||"auto"}},"item"+field)}}});
 }
 function itemColorButton(field,it){
@@ -1841,13 +2300,19 @@ function outfitRow(field){
   if(set)wrap.append(h("button",{type:"button",class:"clear","aria-label":"Remove "+OUT_LABEL[field],onclick:()=>mut(()=>{delete cur().items[field]}),text:"×"}));
   const ctl=h("div",{class:"outctl"},wrap,set?itemColorButton(field,it):null);
   let hint="";
-  if(set&&YOUTH_RX.test(it.v))hint="Youth-coded item";
+  if(set&&Policy.isYouthText(it.v))hint="Youth-coded item";
   return row("o:"+field,OUT_LABEL[field],ctl,hint);
 }
 function detailRow(field){
   const o=cur(),v=o.details[field]||"";
-  const items=(OUTFIT[field]||[]).filter(i=>!o.cover||itemTiers(field,i).includes(o.cover)).map(i=>({v:i.v})).concat((customOutfit(field)).map(v=>({v})));
-  const b=h("button",{type:"button",class:"pick"+(v?" has":""),"aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>openPop(e.currentTarget,{title:OUT_LABEL[field],current:v,sections:[{name:"",items}],top:v?[{label:"Clear",fn:()=>mut(()=>{delete cur().details[field]})}]:[],onPick:x=>mut(()=>{cur().details[field]=x},"d"+field),
+  const src=(OUTFIT[field]||[]).filter(i=>(!o.cover||itemTiers(field,i).includes(o.cover))&&Policy.itemAllowed(field,i.v));
+  const custom=(customOutfit(field)).map(v=>({v}));
+  /* group by category when the field has categories (Material and finish) */
+  const cats=[...new Set(src.filter(i=>i.g).map(i=>i.g))];
+  const plain=src.filter(i=>!i.g).map(i=>({v:i.v}));
+  const sections=cats.length?[{name:"Patterns and finishes",items:plain.concat(custom)}].concat(cats.map(c=>({name:c,items:src.filter(i=>i.g===c).map(i=>({v:i.v}))}))).filter(sc=>sc.items.length)
+    :[{name:"",items:plain.concat(custom)}];
+  const b=h("button",{type:"button",class:"pick"+(v?" has":""),"aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>openPop(e.currentTarget,{title:OUT_LABEL[field],current:v,sections,top:v?[{label:"Clear",fn:()=>mut(()=>{delete cur().details[field]})}]:[],onPick:x=>mut(()=>{cur().details[field]=x},"d"+field),
     custom:{placeholder:"Type your own",save:true,use:(t,s)=>{if(s)addCustom("o:"+field,t);mut(()=>{cur().details[field]=t},"d"+field)}}})},h("span",{text:v||"Choose…"}),h("i",{class:"caret","aria-hidden":"true"}));
   const w=h("div",{class:"pickwrap"},b);if(v)w.append(h("button",{type:"button",class:"clear","aria-label":"Clear",onclick:()=>mut(()=>{delete cur().details[field]}),text:"×"}));
   return row("d:"+field,OUT_LABEL[field],w,"",v?"set":"");
@@ -1871,7 +2336,7 @@ function randomizeOutfit(){
   const wings=!!traitValue("wingStyle"),hat=!!(traitValue("earStyle")||traitValue("hornStyle"));
   const pool=(field,pred)=>{
     const ok=(OUTFIT[field]||[]).filter(it=>{
-      if(YOUTH_RX.test(it.v)||!itemAllowed(field,it.v))return false;
+      if(Policy.isYouthText(it.v)||!Policy.itemAllowed(field,it.v))return false;
       const t=itemTiers(field,it);
       if(cov?!t.includes(cov):!/[CUS]/.test(t))return false;
       if(sea&&it.s&&it.s!==sea)return false;
@@ -1894,15 +2359,22 @@ function randomizeOutfit(){
     const b=pickItem("bottom",it=>!noLegs||!/pants|shorts|jeans|trousers|leggings/.test(it.v));if(b)items.bottom=b;
   }
   const roll=(f,p,pred)=>{if(Math.random()<p){const x=pickItem(f,pred);if(x)items[f]=x}};
-  if(!noLegs)roll("legwear",sea==="w"?.7:sea==="s"?.3:.5);
-  if(!wings)roll("outerwear",sea==="w"?.85:sea==="s"?.2:.5);
-  roll("headwear",.4,it=>!hat||kindOf("headwear",it.v)!=="beret");
-  roll("neckAccessory",.5);roll("wristAccessory",.4);roll("belt",useDress?0:.25);roll("waistAccessory",.12);
-  roll("hipAccessory",.35);roll("eyewear",.12);roll("tagCharm",.12);
-  roll("gloves",.1);
+  const W=sea==="w",Sm=sea==="s";
+  const corsetLooks=["gothic","edgy","glam","cyber","cottage"];
+  if(!noLegs)roll("legwear",W?.75:Sm?.35:.55);
+  if(!wings)roll("outerwear",W?.9:Sm?.25:.55);
+  if(!useDress||corsetLooks.includes(look))roll("corset",corsetLooks.includes(look)?(useDress?.1:.3):.05);
+  roll("belt",useDress?.15:.4);roll("waistAccessory",.3);
+  roll("neckAccessory",.65);roll("wristAccessory",.5);
+  roll("headwear",.55,it=>!hat||kindOf("headwear",it.v)!=="beret");
+  roll("eyewear",.2);roll("gloves",W?.3:Sm?.04:.15);
+  roll("tagCharm",.25);roll("hipAccessory",.45);
+  roll("earAccessory",.65);roll("ringAccessory",.4);
+  /* underwear is rolled too; it stays out of the prompt unless worn uncovered */
+  roll("bra",.6);roll("panties",.6);
   if(items.gloves&&kindOf("gloves",items.gloves.v)==="long")delete items.wristAccessory;
   const details={};
-  [["detailOne",.55],["detailTwo",.4],["detailThree",.3]].forEach(([f,p])=>{if(Math.random()<p){const a=(OUTFIT[f]||[]).filter(it=>!YOUTH_RX.test(it.v)&&(cov?itemTiers(f,it).includes(cov):/[CUS]/.test(itemTiers(f,it))));if(a.length)details[f]=pick1(a).v}});
+  [["detailOne",.6],["detailTwo",.5],["detailThree",.45]].forEach(([f,p])=>{if(Math.random()<p){const a=pool(f);if(a.length)details[f]=pick1(a).v}});
   mut(()=>{const c=cur();c.items=items;c.details=details;c.showUnder=false;if(/^Outfit( \d+)?$|^.+ mix$/.test(c.name||""))c.name=(LOOKS.find(l=>l[0]===look)||[0,"Outfit"])[1].split(/ & |, /)[0]+" mix"});
   toast(`Randomized: ${(LOOKS.find(l=>l[0]===look)||[0,look])[1]}. Colors follow your palette.`);
 }
@@ -1926,7 +2398,7 @@ function stepOutfit(){
   f.append(pg);
   /* filters */
   const lookSel=h("select",{"aria-label":"Look",onchange:e=>mut(()=>{cur().look=e.target.value})},h("option",{value:"",text:"Any look"}),LOOKS.map(([id,l])=>h("option",{value:id,selected:o.look===id?true:null,text:l})));
-  const covSel=h("select",{"aria-label":"Coverage",onchange:e=>mut(()=>{cur().cover=e.target.value})},COVER.map(([v,l])=>h("option",{value:v,selected:o.cover===v?true:null,disabled:(v==="L"&&girlL())?true:null,text:l+((v==="L"&&girlL())?" (unavailable)":"")})));
+  const covSel=h("select",{"aria-label":"Coverage",onchange:e=>mut(()=>{cur().cover=e.target.value})},COVER.map(([v,l])=>h("option",{value:v,selected:o.cover===v?true:null,disabled:Policy.coverageAllowed(v)?null:true,text:l+(Policy.coverageAllowed(v)?"":" (unavailable)")})));
   const seaSel=h("select",{"aria-label":"Season",onchange:e=>mut(()=>{cur().season=e.target.value})},[["","Any season"],["s","Warm weather"],["w","Cold weather"]].map(([v,l])=>h("option",{value:v,selected:o.season===v?true:null,text:l})));
   f.append(h("div",{class:"filters"},h("label",{},"Look",lookSel),h("label",{},"Coverage",covSel),h("label",{},"Season",seaSel)));
   f.append(h("p",{class:"muted small",text:"Filters only shape what the pickers offer. Items you already chose stay."}));
@@ -1934,8 +2406,8 @@ function stepOutfit(){
   f.append(sub("Accessories"));OUT_GROUPS[1].fields.forEach(id=>f.append(outfitRow(id)));
   f.append(sub("Details","Short phrases about trim, cut and material."));OUT_GROUPS[3].fields.forEach(id=>f.append(detailRow(id)));
   /* underwear */
-  const det=h("details",{class:"under"+(girlL()?" off":""),open:(o.items.bra||o.items.panties)?true:null},h("summary",{text:"Underwear"}));
-  if(girlL())det.append(h("p",{class:"callout"},"Underwear isn’t available for girl-labeled subjects."));
+  const det=h("details",{class:"under"+(Policy.underwearAllowed()?"":" off"),open:(o.items.bra||o.items.panties)?true:null},h("summary",{text:"Underwear"}));
+  if(Policy.callout("underwear"))det.append(h("p",{class:"callout"},Policy.callout("underwear")));
   else{
     det.append(h("p",{class:"muted small",text:"Underwear under covering clothes is left out of the prompt by default, so the generator isn’t told to draw things that shouldn’t show. Turn on “Show anyway” for lingerie looks."}));
     OUT_GROUPS[2].fields.forEach(id=>det.append(outfitRow(id)));
@@ -1964,9 +2436,9 @@ function stepFinish(){
   const wf=h("select",{"aria-label":"Weight format",onchange:e=>mut(()=>{S.out.wfmt=e.target.value})},[["numeric","NovelAI numeric (1.3::text::)"],["braces","Braces { } and [ ]"]].map(([v,l])=>h("option",{value:v,selected:S.out.wfmt===v?true:null,text:l})));
   f.append(h("div",{class:"row"},h("div",{class:"lab"},h("label",{text:"Weight format"}),h("small",{class:"hint",text:"Set each layer’s weight in the Layers tab."})),h("div",{class:"ctl"},wf)));
   f.append(sub("Tags"));
-  const blocked=girlL(),yf=youthFlagged();
-  const reason=blocked?"Unavailable for girl-labeled subjects.":yf?"Unavailable while a youth-coded outfit item is chosen: "+currentYouthAll().join(", ")+".":"";
-  f.append(h("div",{class:"checks"},check("Add “sexy, lewd” to the quality tags","lewdtag",{disabled:blocked||yf,reason}),check("Append “NSFW, Explicit” to the prompt","explicit",{disabled:blocked||yf,reason})));
+  const blocked=!Policy.explicitAllowed();
+  const reason=Policy.reason();
+  f.append(h("div",{class:"checks"},check("Add “sexy, lewd” to the quality tags","lewdtag",{disabled:blocked,reason}),check("Append “NSFW, Explicit” to the prompt","explicit",{disabled:blocked,reason})));
   f.append(sub("Your own words"));
   f.append(textRow("Must include","must","e.g. a silver locket, ink-stained fingers"));
   f.append(textRow("Notes","notes","Anything appended as written, e.g. a pose or setting"));
@@ -1975,7 +2447,6 @@ function stepFinish(){
   f.append(h("div",{class:"btnrow"},h("button",{type:"button",class:"btn",onclick:()=>{if(confirm("Clear everything and start a blank design? You can undo this."))replaceState(blankState())},text:"Start blank"}),h("button",{type:"button",class:"btn",onclick:()=>openStarts(),text:"Starting points"}),h("button",{type:"button",class:"btn",onclick:()=>openSaves(),text:"Save or load"})));
   return f;
 }
-function currentYouthAll(){const r=[];S.outfits.forEach(o=>OUT_ITEM_FIELDS.forEach(f=>{if(o.items[f]&&YOUTH_RX.test(o.items[f].v))r.push(o.items[f].v)}));return[...new Set(r)]}
 const RENDER={concept:stepConcept,palette:stepPalette,face:stepFace,hair:stepHair,body:stepBody,makeup:stepMakeup,outfit:stepOutfit,finish:stepFinish};
 
 /* ---------- main + rail ---------- */
@@ -2016,7 +2487,7 @@ function renderPrompt(){
   $$("#modeSeg button").forEach(b=>{const on=b.dataset.mode===S.out.mode;b.setAttribute("aria-pressed",on?"true":"false");b.classList.toggle("on",on)});
   const warn=C.checks.filter(c=>c.level==="warn").length;const b=$("#checksBadge");b.textContent=warn?String(warn):"";b.hidden=!warn;
   $("#barCheck").textContent=warn?`${warn} check${warn>1?"s":""}`:"No issues";
-  const gd=$("#guard");gd.hidden=!(C.girl||C.youth);gd.textContent=C.girl?"Girl-labeled subject: explicit and lewd tags are off.":C.youth?"Youth-coded outfit item chosen: explicit and lewd tags are off.":"";
+  const gd=$("#guard");gd.hidden=!C.banner;gd.textContent=C.banner;
 }
 function renderLayers(){
   const box=$("#layerList");box.textContent="";
@@ -2045,7 +2516,7 @@ function negText(){
   return parts.filter(Boolean).join(", ");
 }
 function qualityText(){
-  const blocked=girlL()||youthFlagged();
+  const blocked=!Policy.explicitAllowed();
   return["1.3::masterpiece::","best quality","amazing quality","very aesthetic","year 2026","highly detailed",S.out.framing,"expert shading","detailed shadows","ambient occlusion","clarity","sharp focus",S.out.lewdtag&&!blocked?"sexy, lewd":""].filter(Boolean).join(", ");
 }
 function renderNeg(){
