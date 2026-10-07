@@ -268,6 +268,7 @@ button,.btn,.chip,.opt,.rail-btn,.pick,.seg button,.tabs button,.swb,.start,labe
 @media (max-width:980px){.sgrow{grid-template-columns:1fr}.sgrow>b{padding-top:0}}
 .palcard .strip i{width:auto;min-width:0}
 
+.pgroups{display:flex;flex-direction:column;gap:8px;margin:4px 0 6px}.pgl{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin:0 0 4px}.ggh{grid-column:1/-1;font-family:var(--fh);font-weight:700;font-size:.82rem;color:var(--muted);margin:8px 0 -2px}
 </style>
 </head>
 <body>
@@ -461,6 +462,7 @@ const SPECIES_INFO={};
 
 /* ===== Body presets & starting points (curated values; validated against the option lists at build time) ===== */
 const BODY_PRESETS={
+  petiteFlat:{label:"Petite and flat",v:{bustSize:"flat chest",bustShape:"gently flat shape",bustWeight:"minimal weight",heightStature:"very short stature",shoulderShape:"petite shoulders",waistShape:"petite waist",stomachShape:"flat stomach",hipShape:"petite hips",buttSize:"small butt",thighBuild:"thin thighs",legShape:"thin legs",bodySoftness:"petite flat figure",posture:"light playful posture"}},
   slender:{label:"Slender",v:{stomachShape:"flat stomach",bustSize:"small breasts",heightStature:"slightly above-average height",shoulderShape:"narrow delicate shoulders",waistShape:"narrow waist",hipShape:"narrow hips",buttSize:"small butt",thighBuild:"slender thighs",legShape:"long elegant legs",bodySoftness:"slender soft build",posture:"graceful upright posture"}},
   average:{label:"Average",v:{stomachShape:"softly toned stomach",bustSize:"medium breasts",heightStature:"average height",shoulderShape:"balanced shoulders",waistShape:"softly tapered waist",hipShape:"balanced hips",buttSize:"medium butt",thighBuild:"gently tapered thighs",legShape:"smooth proportionate legs",bodySoftness:"smooth feminine build",posture:"relaxed posture"}},
   athletic:{label:"Athletic",v:{stomachShape:"toned stomach with light definition",bustSize:"small-to-medium breasts",heightStature:"slightly above-average height",shoulderShape:"slightly broad balanced shoulders",waistShape:"defined waist",hipShape:"balanced hips",buttSize:"toned butt",thighBuild:"toned thighs",legShape:"long shapely legs",bodySoftness:"smooth feminine build",posture:"gentle confident posture"}},
@@ -469,7 +471,42 @@ const BODY_PRESETS={
   full:{label:"Full figure",adultOnly:true,v:{stomachShape:"soft tummy",bustSize:"large breasts",bustShape:"plush rounded shape",bustWeight:"heavy natural fullness",heightStature:"average height",shoulderShape:"soft rounded shoulders",waistShape:"pronounced hourglass waist",hipShape:"wide graceful hips",buttSize:"very large butt",thighBuild:"plush thighs",legShape:"soft full legs",bodySoftness:"plush soft build",posture:"elegant posture"}},
   hourglassX:{label:"Exaggerated hourglass",adultOnly:true,v:{bustSize:"huge breasts",bustShape:"exaggerated rounded shape",bustWeight:"exaggerated fullness",heightStature:"average height",shoulderShape:"narrow delicate shoulders",waistShape:"extremely narrow waist",stomachShape:"flat stomach",hipShape:"exaggerated wide hips",buttSize:"extremely large butt",thighBuild:"extremely thick thighs",legShape:"soft full legs",bodySoftness:"exaggerated hourglass figure",posture:"elegant posture"}},
   delicateTop:{label:"Delicate, top-heavy",adultOnly:true,v:{bustSize:"large breasts",bustShape:"soft rounded shape",bustWeight:"soft natural fullness",heightStature:"average height",shoulderShape:"narrow delicate shoulders",waistShape:"narrow waist",stomachShape:"flat stomach",hipShape:"gently curving hips",buttSize:"small round butt",thighBuild:"slender thighs",legShape:"long elegant legs",bodySoftness:"delicate slim figure with a top-heavy bust",posture:"graceful upright posture"}},
-  petiteFlat:{label:"Petite and flat",v:{bustSize:"flat chest",bustShape:"gently flat shape",bustWeight:"minimal weight",heightStature:"very short stature",shoulderShape:"petite shoulders",waistShape:"petite waist",stomachShape:"flat stomach",hipShape:"petite hips",buttSize:"small butt",thighBuild:"thin thighs",legShape:"thin legs",bodySoftness:"petite flat figure",posture:"light playful posture"}}
+  bombshell:{label:"Bombshell",adultOnly:true,v:{bustSize:"enormous breasts",bustShape:"gravity-defying round shape",bustWeight:"extreme heavy fullness",heightStature:"average height",shoulderShape:"narrow delicate shoulders",waistShape:"extremely cinched waist",stomachShape:"flat stomach",hipShape:"extremely wide, curvy hips",buttSize:"very large, plump butt",thighBuild:"extremely thick, plush thighs",legShape:"thick, plush legs",bodySoftness:"extremely curvy, exaggerated hourglass figure",posture:"arched-back posture"}}
+};
+const FACE_FIELDS=["faceShape","expression","browShape","noseShape","mouthShape","impression"];
+const FACE_PRESETS={
+  soft:{label:"Soft and sweet",v:{faceShape:"soft round-cheeked face",expression:"gentle smile",browShape:"soft eyebrows",noseShape:"delicate button nose",mouthShape:"small delicate lips",impression:"a sweet appearance"}},
+  bright:{label:"Bright and cheerful",v:{faceShape:"heart-shaped face",expression:"bright cheerful expression",browShape:"gentle curved brows",noseShape:"gentle upturned nose",mouthShape:"heart-shaped lips",impression:"an approachable appearance"}},
+  playful:{label:"Playful",v:{faceShape:"refined face",expression:"playful smile",browShape:"slightly raised brows",noseShape:"snub nose",mouthShape:"slightly pouty lips",impression:"delicate features"}},
+  dreamy:{label:"Dreamy",v:{faceShape:"soft oval face",expression:"dreamy expression",browShape:"soft, gently curved eyebrows",noseShape:"petite nose",mouthShape:"softly parted lips",impression:"a soft feminine appearance"}},
+  elegant:{label:"Elegant",adultOnly:true,v:{faceShape:"long oval face",expression:"elegant composed expression",browShape:"softly arched brows",noseShape:"refined straight nose",mouthShape:"soft full lips",impression:"an elegant, mature presence"}},
+  cool:{label:"Cool and sharp",v:{faceShape:"diamond-shaped face",expression:"cool aloof expression",browShape:"defined brows",noseShape:"defined narrow nose",mouthShape:"defined cupid's-bow lips",impression:"a confident, polished presence"}},
+  fierce:{label:"Strong and determined",v:{faceShape:"soft square face",expression:"determined expression",browShape:"thick brows",noseShape:"slender nose",mouthShape:"thin lips",impression:"a confident, polished presence"}},
+  adorable:{label:"Adorable",v:{faceShape:"soft round-cheeked face",expression:"bubbly open-mouthed grin",browShape:"short soft brows",noseShape:"delicate button nose",mouthShape:"small delicate lips",impression:"an adorable, bubbly charm"}},
+  dollface:{label:"Doll-like",v:{faceShape:"doll-like face",expression:"soft neutral expression",browShape:"delicate brows",noseShape:"petite nose",mouthShape:"petite lips",impression:"doll-like beauty"}},
+  shy:{label:"Shy and blushing",v:{faceShape:"petite face",expression:"blushing shy smile",browShape:"soft eyebrows",noseShape:"small nose",mouthShape:"rounded lips",impression:"a sweet appearance"}},
+  seductive:{label:"Seductive",adultOnly:true,v:{faceShape:"high-cheekboned face",expression:"smirk",browShape:"high arched brows",noseShape:"refined straight nose",mouthShape:"softly parted lips",impression:"an alluring, sultry presence"}},
+  lustful:{label:"Lustful",adultOnly:true,v:{faceShape:"high-cheekboned face",expression:"lustful expression",browShape:"high arched brows",noseShape:"slender nose",mouthShape:"sensual full lips",impression:"a lewd, irresistible allure"}},
+  fatale:{label:"Femme fatale",adultOnly:true,v:{faceShape:"elegant angular face",expression:"smoldering sultry expression",browShape:"defined brows",noseShape:"defined narrow nose",mouthShape:"plump pouting lips",impression:"a femme fatale presence"}},
+  sultry:{label:"Sultry",adultOnly:true,v:{faceShape:"high-cheekboned face",expression:"smirk",browShape:"high arched brows",noseShape:"slender nose",mouthShape:"plush lips",impression:"an alluring, sultry presence"}}
+};
+const EYE_FIELDS=["eyeShape","pupilStyle","irisDetail","lashNatural"];
+const EYE_PRESETS={
+  doe:{label:"Soft doe",v:{eyeShape:"large doe-like eyes",pupilStyle:"round pupils",irisDetail:"clear iris detail",lashNatural:"long, delicate eyelashes"}},
+  almond:{label:"Almond",v:{eyeShape:"large almond-shaped eyes",pupilStyle:"round pupils",irisDetail:"bright, intricately detailed irises",lashNatural:"long eyelashes"}},
+  upturned:{label:"Upturned",v:{eyeShape:"large upturned eyes",pupilStyle:"round pupils",irisDetail:"gradient iris coloring",lashNatural:"long, delicate eyelashes"}},
+  sleepy:{label:"Sleepy",v:{eyeShape:"large sleepy eyes",pupilStyle:"round pupils",irisDetail:"soft starburst pattern",lashNatural:"fluttery eyelashes"}},
+  catlike:{label:"Catlike",v:{eyeShape:"large catlike eyes",pupilStyle:"soft oval pupils",irisDetail:"golden flecks near the pupil",lashNatural:"long eyelashes"}},
+  sharp:{label:"Sharp",v:{eyeShape:"sharp eyes",pupilStyle:"round pupils",irisDetail:"defined limbal ring",lashNatural:"thick dark eyelashes"}},
+  sparkling:{label:"Sparkling",v:{eyeShape:"large sparkling eyes",pupilStyle:"round pupils",irisDetail:"sparkling irises with bright catchlights",lashNatural:"long, delicate eyelashes"}},
+  glossy:{label:"Glossy",v:{eyeShape:"large glossy eyes",pupilStyle:"round pupils",irisDetail:"glossy irises with detailed texture and soft sparkles",lashNatural:"fluttery eyelashes"}},
+  adorable:{label:"Big and adorable",v:{eyeShape:"very large sparkling eyes",pupilStyle:"round pupils",irisDetail:"sparkling irises with bright catchlights",lashNatural:"fluttery eyelashes"}},
+  dolleyes:{label:"Doll-like",v:{eyeShape:"very large doll-like eyes",pupilStyle:"round pupils",irisDetail:"glossy irises with detailed texture and soft sparkles",lashNatural:"long, delicate eyelashes"}},
+  starry:{label:"Starry-eyed",v:{eyeShape:"very large glossy eyes",pupilStyle:"star pupils",irisDetail:"star-speckled iris pattern",lashNatural:"fluttery eyelashes"}},
+  bedroom:{label:"Bedroom eyes",adultOnly:true,v:{eyeShape:"hooded eyes",pupilStyle:"round pupils",irisDetail:"glossy, highlight-rich eyes with detailed irises",lashNatural:"thick dark eyelashes"}},
+  heavylid:{label:"Heavy-lidded",adultOnly:true,v:{eyeShape:"heavy-lidded sultry eyes",pupilStyle:"round pupils",irisDetail:"metallic iris ring",lashNatural:"thick dark eyelashes"}},
+  hypnotic:{label:"Hypnotic",adultOnly:true,v:{eyeShape:"smoldering eyes",pupilStyle:"heart pupils",irisDetail:"glowing inner iris",lashNatural:"thick dark eyelashes"}},
+  celestial:{label:"Celestial",v:{eyeShape:"luminous eyes",pupilStyle:"round pupils",irisDetail:"star-speckled iris pattern",lashNatural:"long, delicate eyelashes"}}
 };
 const MAKEUP_FIELDS=["makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents"];
 const MAKEUP_PRESETS={
@@ -479,38 +516,27 @@ const MAKEUP_PRESETS={
   glam:{label:"Glam",v:{makeupStyle:"classic glam makeup",eyelinerStyle:"classic winged eyeliner",eyeshadowStyle:"shimmer eyeshadow",lashStyle:"long defined lashes",blushStyle:"high cheek blush",lipFinish:"soft satin lips",faceAccents:"luminous highlighting"}},
   editorial:{label:"Editorial",v:{makeupStyle:"editorial makeup",eyelinerStyle:"graphic eyeliner",eyeshadowStyle:"graphic eyeshadow",lipFinish:"matte lips"}},
   dark:{label:"Dark",v:{makeupStyle:"vampy dark makeup",eyelinerStyle:"sharp winged eyeliner",eyeshadowStyle:"smoky eyeshadow",lashStyle:"spiky lashes",lipFinish:"matte lips"}},
+  sweet:{label:"Sweet pastel",v:{makeupStyle:"sweet pastel makeup",eyelinerStyle:"soft eyeliner",eyeshadowStyle:"soft blended eyeshadow",lashStyle:"fine delicate lashes",blushStyle:"heavy rosy cheek blush",lipFinish:"strawberry-milk gloss",faceAccents:"tiny heart stickers on the cheek"}},
+  dollmk:{label:"Doll-like",v:{makeupStyle:"doll-like makeup",eyelinerStyle:"puppy-eye eyeliner",eyeshadowStyle:"soft under-eye shimmer",lashStyle:"doll-like lashes",blushStyle:"doll-like blush",lipFinish:"cherry-tinted gloss",faceAccents:"glitter dots under the eyes"}},
+  lewdglam:{label:"Lewd glam",adultOnly:true,v:{makeupStyle:"smoky evening makeup",eyelinerStyle:"double-wing eyeliner",eyeshadowStyle:"metallic eyeshadow",lashStyle:"dramatic lashes",blushStyle:"under-eye blush",lipFinish:"high-shine lips",faceAccents:"luminous highlighting"}},
+  afterglow:{label:"Afterglow",adultOnly:true,v:{makeupStyle:"afterglow smudged makeup",eyelinerStyle:"smudged eyeliner",eyeshadowStyle:"smoky eyeshadow",lashStyle:"bedroom lashes",blushStyle:"flushed cheeks and chest",lipFinish:"smudged red lipstick",faceAccents:"lipstick kiss marks on the cheek"}},
+  fatalemk:{label:"Femme fatale",adultOnly:true,v:{makeupStyle:"femme fatale makeup",eyelinerStyle:"cat-eye eyeliner",eyeshadowStyle:"smoky eyeshadow",lashStyle:"seductive dramatic lashes",blushStyle:"flushed from cheeks to collarbones",lipFinish:"wet glossy lips",faceAccents:"luminous highlighting"}},
   sexy:{label:"Sexy",adultOnly:true,v:{makeupStyle:"smoky evening makeup",eyelinerStyle:"cat-eye eyeliner",eyeshadowStyle:"smoky eyeshadow",lashStyle:"dramatic lashes",blushStyle:"diffused blush",lipFinish:"high-shine lips",faceAccents:"subtle highlighting"}}
 };
 const TEMPLATES=[
- {id:"bluelong",name:"Creamsicle long hair",blurb:"Powder blue, milky white and creamsicle orange. Odd-eyed, with very long straight hair and an hourglass figure.",
-  pal:{primary:"powder blue",secondary:"milky white",third:"creamsicle orange",accent:"pale gold",extra:"soft peach"},
-  c:{age:"young woman",faceShape:"refined face",eyeConfig:"heterochromatic",eyeOne:"sky blue",eyeTwo:"honey orange",
-    hairStyle:"long straight hair",hairMovement:"falls smoothly past the waist",hairBase:"deep powder blue",hairUnderlayer:"@secondary",hairInner:"@third",hairHighlights:"@accent",
-    hairBlend:"blended gradient streaks between the colors",
-    skinTone:"warm light-brown",undertone:"golden",markings:"light freckles dusting the shoulders, chest, stomach, hips, and thighs",
-    bustSize:"very large breasts",bustShape:"full, naturally rounded shape",shoulderShape:"narrow delicate shoulders",waistShape:"tiny waist",stomachShape:"soft stomach",hipShape:"rounded hips",buttSize:"full, round butt",thighBuild:"thick, soft thighs",legShape:"shapely legs",bodySoftness:"extremely top-heavy hourglass figure"},
-  outfit:{look:"",items:{}}},
- {id:"redgold",name:"Powder-red heterochrome",blurb:"Powder red, milky white, soft black and pale gold. Odd-eyed, freckled, with a long high ponytail.",
-  pal:{primary:"powder red",secondary:"milky white",third:"soft black",accent:"pale gold",extra:"warm honey gold"},
-  c:{age:"young woman",faceShape:"refined face",browShape:"thin, delicate eyebrows",noseShape:"small nose",mouthShape:"soft lips",faceMark:"a subtle beauty mark",eyeConfig:"heterochromatic",irisDetail:"bright, intricately detailed irises",lashNatural:"long eyelashes",
-    hairStyle:"high ponytail",hairLength:"exceptionally long",hairTexture:"thick, silky, voluminous",bangs:"wispy bangs with long sidelocks and loose face-framing strands",hairMovement:"cascades far behind her",hairBase:"@primary",hairUnderlayer:"@secondary",hairInner:"@third",hairHighlights:"@accent",
-    skinTone:"warm light-brown",undertone:"golden",skinFinish:"smooth, highly detailed skin texture",markings:"dense freckles across the nose and cheeks, continuing over the shoulders and body, including the chest and breasts",
-    bustSize:"large breasts",bustShape:"full, naturally rounded shape",bustWeight:"soft natural fullness",shoulderShape:"narrow delicate shoulders",waistShape:"thin waist",stomachShape:"flat stomach with subtly cute soft curves",hipShape:"wide, curvy hips",buttSize:"large, rounded butt",thighBuild:"thick, shapely thighs",legShape:"long legs",bodySoftness:"slim, feminine figure with soft, pronounced curves",
-    nailStyle:"carefully manicured fingernails",
-    eyeOne:"@primary",eyeTwo:"@extra",nailColor:"@primary+@secondary+@third+@accent",
-    hairBlend:"individual strands that transition between the colors in subtle gradients, giving it a naturally multicolored appearance"},
-  outfit:{look:"",items:{neckAccessory:["simple gemstone necklace","@extra"],wristAccessory:["simple gemstone bracelet","@extra"]}},
+ {id:"bluelong",name:"Narina",blurb:"Powder blue, milky white and creamsicle orange. Odd-eyed, with very long straight hair and an hourglass figure. Every field is filled in.",
+  pal:{"primary":"powder blue","secondary":"milky white","third":"creamsicle orange","accent":"pale gold","extra":"soft peach"},
+  c:{"age": "young woman", "faceShape": "refined face", "eyeConfig": "heterochromatic", "eyeOne": "sky blue", "eyeTwo": "honey orange", "hairStyle": "long straight hair", "hairMovement": "falls smoothly past the waist", "hairBase": "deep powder blue", "hairUnderlayer": "@secondary", "hairInner": "@third", "hairHighlights": "@accent", "hairBlend": "blended gradient streaks between the colors", "skinTone": "warm light-brown", "undertone": "golden", "markings": "light freckles dusting the shoulders, chest, stomach, hips, and thighs", "bustSize": "very large breasts", "bustShape": "full, naturally rounded shape", "shoulderShape": "narrow delicate shoulders", "waistShape": "tiny waist", "stomachShape": "soft stomach", "hipShape": "rounded hips", "buttSize": "full, round butt", "thighBuild": "thick, soft thighs", "legShape": "shapely legs", "bodySoftness": "extremely top-heavy hourglass figure", "expression": "serene expression", "browShape": "softly arched brows", "noseShape": "refined straight nose", "mouthShape": "soft full lips", "faceMark": "a small beauty mark beneath one eye", "impression": "a confident, polished presence", "eyeShape": "large upturned eyes", "pupilStyle": "round pupils", "irisDetail": "gradient iris coloring", "lashNatural": "long, delicate eyelashes", "hairLength": "hip-length", "hairTexture": "sleek", "bangs": "long side bangs", "heightStature": "tall graceful stature", "posture": "elegant posture", "bustWeight": "heavy natural fullness", "skinFinish": "soft luminous skin", "makeupStyle": "luminous makeup", "eyelinerStyle": "thin winged eyeliner", "eyeshadowStyle": "gradient eyeshadow", "lashStyle": "soft fluttery lashes", "blushStyle": "diffused blush", "lipFinish": "glossy lips", "faceAccents": "soft pearl shimmer", "makeupColor": "@third", "nailStyle": "long almond fingernails", "nailColor": "@primary+@secondary+@third+@accent"},
+  outfit:{look:"glam",items:{"top": ["heart-neckline top", "@secondary"], "bottom": ["tiered tulle skirt", "@primary"], "corset": ["wrap-around satin corset", "@third"], "outerwear": ["sheer kimono cover-up", "@secondary"], "legwear": ["sheer stockings", "-"], "belt": ["satin ribbon belt", "@third"], "waistAccessory": ["pearl waist chain", "-"], "neckAccessory": ["layered delicate necklaces", "@accent"], "wristAccessory": ["stacked slim bracelets", "@accent"], "headwear": ["jeweled hair comb", "@accent"], "eyewear": ["cat-eye sunglasses", "@primary"], "gloves": ["lace-cuff gloves", "@secondary"], "tagCharm": ["pearl pin", "-"], "hipAccessory": ["mini clutch bag", "@third"], "earAccessory": ["dangling crystal earrings", "-"], "ringAccessory": ["gemstone ring", "@primary"], "bra": ["satin bralette", "@third"], "panties": ["lace-trim panties", "@third"]},details:{"detailOne": "scalloped lace edges", "detailTwo": "draped neckline", "detailThree": "glossy satin finish"}}},
+ {id:"redgold",name:"Maryland",blurb:"Powder red, milky white, soft black and pale gold. Odd-eyed, freckled, with a long high ponytail. Every field is filled in.",
+  pal:{"primary": "powder red", "secondary": "milky white", "third": "soft black", "accent": "pale gold", "extra": "warm honey gold"},
+  c:{"age": "young woman", "faceShape": "refined face", "browShape": "thin, delicate eyebrows", "noseShape": "small nose", "mouthShape": "soft lips", "faceMark": "a subtle beauty mark", "eyeConfig": "heterochromatic", "pupilStyle": "round pupils", "irisDetail": "bright, intricately detailed irises", "lashNatural": "long eyelashes", "hairStyle": "high ponytail", "hairLength": "exceptionally long", "hairTexture": "thick, silky, voluminous", "bangs": "wispy bangs with long sidelocks and loose face-framing strands", "hairMovement": "cascades far behind her", "hairBase": "@primary", "hairUnderlayer": "@secondary", "hairInner": "@third", "hairHighlights": "@accent", "skinTone": "warm light-brown", "undertone": "golden", "skinFinish": "smooth, highly detailed skin texture", "markings": "dense freckles across the nose and cheeks, continuing over the shoulders and body, including the chest and breasts", "bustSize": "large breasts", "bustShape": "full, naturally rounded shape", "bustWeight": "soft natural fullness", "shoulderShape": "narrow delicate shoulders", "waistShape": "thin waist", "stomachShape": "flat stomach with subtly cute soft curves", "hipShape": "wide, curvy hips", "buttSize": "large, rounded butt", "thighBuild": "thick, shapely thighs", "legShape": "long legs", "bodySoftness": "slim, feminine figure with soft, pronounced curves", "nailStyle": "carefully manicured fingernails", "expression": "playful smile", "impression": "an alluring, sultry presence", "eyeShape": "large almond-shaped eyes", "eyeOne": "@primary", "eyeTwo": "@extra", "hairBlend": "individual strands that transition between the colors in subtle gradients, giving it a naturally multicolored appearance", "heightStature": "average height", "posture": "graceful upright posture", "makeupStyle": "soft glam makeup", "eyelinerStyle": "thin winged eyeliner", "eyeshadowStyle": "shimmer eyeshadow", "lashStyle": "long defined lashes", "blushStyle": "soft sun-kissed blush", "lipFinish": "glass-like gloss", "faceAccents": "soft cheekbone highlight", "makeupColor": "@accent", "nailColor": "@primary+@secondary+@third+@accent"},
+  outfit:{look:"glam",items:{"top": ["lace-trim camisole", "@secondary"], "bottom": ["pleated mini skirt", "@third"], "corset": ["ribbon-laced corset", "@primary"], "outerwear": ["cropped blazer", "@primary"], "legwear": ["thigh-high socks", "@third"], "belt": ["thin leather belt", "@accent"], "waistAccessory": ["ribbon bow tied at the waist", "@primary"], "neckAccessory": ["simple gemstone necklace", "@extra"], "wristAccessory": ["simple gemstone bracelet", "@extra"], "headwear": ["small bow accents tied into a ponytail", "@primary"], "eyewear": ["round wire-frame glasses", "@accent"], "gloves": ["short satin gloves with a bow", "@secondary"], "tagCharm": ["small heart charm", "@accent"], "hipAccessory": ["mini top-handle bag", "@primary"], "earAccessory": ["small gold hoop earrings", "-"], "ringAccessory": ["delicate gold rings", "-"], "bra": ["lace bralette", "@secondary"], "panties": ["lace-trim panties", "@secondary"]},details:{"detailOne": "velvet ribbon trim", "detailTwo": "cinched waist", "detailThree": "satin finish"}},
   out:{must:"a minimal pale-gold jewelry theme, and an exceptionally cute, beautiful, sexy and attractive look with particular emphasis on highly detailed skin, hair and eyes"}},
- {id:"bluecream",name:"Powder-blue heterochrome",blurb:"Powder blue, white and creamsicle orange. Odd-eyed, freckled, with a long high ponytail.",
-  pal:{primary:"powder blue",secondary:"milky white",third:"creamsicle orange",accent:"pale gold",extra:"soft peach"},
-  c:{age:"young woman",faceShape:"refined face",browShape:"thin, delicate eyebrows",noseShape:"small nose",mouthShape:"soft lips",faceMark:"a subtle beauty mark",eyeConfig:"heterochromatic",irisDetail:"bright, intricately detailed irises",lashNatural:"long eyelashes",
-    hairStyle:"high ponytail",hairLength:"exceptionally long",hairTexture:"thick, silky, voluminous",bangs:"wispy bangs with long sidelocks and loose face-framing strands",hairMovement:"cascades far behind her",hairBase:"@primary",hairUnderlayer:"@secondary",hairInner:"@third",hairHighlights:"@accent",
-    skinTone:"warm light-brown",undertone:"golden",skinFinish:"smooth, highly detailed skin texture",markings:"dense freckles across the nose and cheeks, continuing over the shoulders and body, including the chest and breasts",
-    bustSize:"large breasts",bustShape:"full, naturally rounded shape",bustWeight:"soft natural fullness",shoulderShape:"narrow delicate shoulders",waistShape:"thin waist",stomachShape:"flat stomach with subtly cute soft curves",hipShape:"wide, curvy hips",buttSize:"large, rounded butt",thighBuild:"thick, shapely thighs",legShape:"long legs",bodySoftness:"slim, feminine figure with soft, pronounced curves",
-    nailStyle:"carefully manicured fingernails",
-    eyeOne:"sky blue",eyeTwo:"honey orange",nailColor:"@primary+@secondary+@third",
-    hairBase:"deep powder blue",hairBlend:"soft peach transitions between the layers, with individual strands blending in subtle gradients"},
-  outfit:{look:"",items:{neckAccessory:["simple gemstone necklace","honey orange"],wristAccessory:["simple gemstone bracelet","honey orange"]}},
+ {id:"bluecream",name:"Chickpea",blurb:"Powder blue, white and creamsicle orange. Odd-eyed, freckled, with a long high ponytail. Every field is filled in.",
+  pal:{"primary": "powder blue", "secondary": "milky white", "third": "creamsicle orange", "accent": "pale gold", "extra": "soft peach"},
+  c:{"age": "young woman", "faceShape": "refined face", "browShape": "thin, delicate eyebrows", "noseShape": "small nose", "mouthShape": "soft lips", "faceMark": "a subtle beauty mark", "eyeConfig": "heterochromatic", "pupilStyle": "round pupils", "irisDetail": "bright, intricately detailed irises", "lashNatural": "long eyelashes", "hairStyle": "high ponytail", "hairLength": "exceptionally long", "hairTexture": "thick, silky, voluminous", "bangs": "wispy bangs with long sidelocks and loose face-framing strands", "hairMovement": "cascades far behind her", "hairBase": "deep powder blue", "hairUnderlayer": "@secondary", "hairInner": "@third", "hairHighlights": "@accent", "skinTone": "warm light-brown", "undertone": "golden", "skinFinish": "smooth, highly detailed skin texture", "markings": "dense freckles across the nose and cheeks, continuing over the shoulders and body, including the chest and breasts", "bustSize": "large breasts", "bustShape": "full, naturally rounded shape", "bustWeight": "soft natural fullness", "shoulderShape": "narrow delicate shoulders", "waistShape": "thin waist", "stomachShape": "flat stomach with subtly cute soft curves", "hipShape": "wide, curvy hips", "buttSize": "large, rounded butt", "thighBuild": "thick, shapely thighs", "legShape": "long legs", "bodySoftness": "slim, feminine figure with soft, pronounced curves", "nailStyle": "carefully manicured fingernails", "expression": "gentle smile", "impression": "a soft feminine appearance", "eyeShape": "large doe-like eyes", "eyeOne": "sky blue", "eyeTwo": "honey orange", "hairBlend": "soft peach transitions between the layers, with individual strands blending in subtle gradients", "heightStature": "below-average height", "posture": "gentle confident posture", "makeupStyle": "dewy makeup", "eyelinerStyle": "soft eyeliner", "eyeshadowStyle": "soft blended eyeshadow", "lashStyle": "wispy lashes", "blushStyle": "soft cheek blush", "lipFinish": "glossy lips", "faceAccents": "luminous highlighting", "makeupColor": "@third", "nailColor": "@primary+@secondary+@third"},
+  outfit:{look:"sweet",items:{"top": ["puff-sleeve blouse", "@secondary"], "bottom": ["pleated tennis skirt", "@primary"], "corset": ["pastel ribbon-laced bodice", "@third"], "outerwear": ["cropped cardigan", "@secondary"], "legwear": ["thigh-high socks with bows", "@secondary"], "belt": ["woven ribbon belt", "@third"], "waistAccessory": ["satin ribbon tied at the waist", "@accent"], "neckAccessory": ["simple gemstone necklace", "honey orange"], "wristAccessory": ["simple gemstone bracelet", "honey orange"], "headwear": ["satin hair bows with long ribbon tails", "@third"], "eyewear": ["pastel-frame glasses", "@primary"], "gloves": ["lace-cuff gloves", "@secondary"], "tagCharm": ["star charm", "@accent"], "hipAccessory": ["pastel heart-shaped bag", "@primary"], "earAccessory": ["small gold hoop earrings", "-"], "ringAccessory": ["thin rings", "@accent"], "bra": ["bow-trim bralette", "@primary"], "panties": ["bow-trim cotton panties", "@primary"]},details:{"detailOne": "scalloped lace edge", "detailTwo": "gathered sleeves", "detailThree": "pastel gingham"}},
   out:{must:"a minimal pale-gold jewelry theme, and an exceptionally cute, beautiful, sexy and attractive look with particular emphasis on highly detailed skin, hair and eyes"}},
  {id:"academic",name:"Quiet academic",blurb:"Navy, cream and burgundy. Cardigan, pleated skirt, a low bun.",
   pal:{primary:"navy blue",secondary:"cream",third:"burgundy",accent:"gold",extra:""},
@@ -543,7 +569,17 @@ const TEMPLATES=[
  {id:"punk",name:"Late-night punk",blurb:"Black, red and silver. Leather, plaid and studs.",
   pal:{primary:"black",secondary:"red",third:"silver",accent:"white",extra:""},
   c:{age:"woman",faceShape:"refined face",expression:"playful smile",eyeShape:"hooded eyes",eyeConfig:"matching",eyeOne:"gray",hairStyle:"shag cut",hairLength:"shoulder-length",hairBase:"black",hairHighlights:"@secondary",bangs:"curtain bangs",skinTone:"fair",makeupStyle:"festival makeup",eyelinerStyle:"smudged eyeliner",_body:"athletic"},
-  outfit:{look:"edgy",items:{top:["ripped graphic tank","@primary"],bottom:["plaid mini skirt","@secondary"],legwear:["striped knee-high socks","@primary"],outerwear:["leather jacket","@primary"],belt:["studded belt","@third"],neckAccessory:["chain necklace","-"],wristAccessory:["studded wristband","-"]}}}
+  outfit:{look:"edgy",items:{top:["ripped graphic tank","@primary"],bottom:["plaid mini skirt","@secondary"],legwear:["striped knee-high socks","@primary"],outerwear:["leather jacket","@primary"],belt:["studded belt","@third"],neckAccessory:["chain necklace","-"],wristAccessory:["studded wristband","-"]}}},
+ {id:"maxcute",name:"Maximum cute",blurb:"Baby pink, milky white, lilac and baby blue. Every field set to its cutest option: twin buns, sparkling doll eyes, bows and heart socks.",
+  pal:{"primary": "baby pink", "secondary": "milky white", "third": "lilac", "accent": "baby blue", "extra": "soft peach"},
+  c:{"age": "young woman", "faceShape": "doll-like face", "expression": "bubbly open-mouthed grin", "browShape": "short soft brows", "noseShape": "delicate button nose", "mouthShape": "small delicate lips", "faceMark": "a small beauty mark on the cheek", "impression": "doll-like beauty", "eyeConfig": "gradient-tinted", "eyeShape": "very large doll-like eyes", "pupilStyle": "heart pupils", "irisDetail": "glossy irises with detailed texture and soft sparkles", "lashNatural": "long, delicate eyelashes", "eyeOne": "baby blue", "eyeTwo": "lilac", "hairStyle": "twin buns with ribbons", "hairLength": "waist-length", "hairTexture": "fluffy", "bangs": "cute wispy bangs with face-framing strands", "hairMovement": "moves lightly with each step", "hairBase": "@primary", "hairUnderlayer": "@secondary", "hairInner": "@third", "hairHighlights": "@accent", "hairBlend": "soft blended transitions between the layers", "bustSize": "small breasts", "bustShape": "perky rounded shape", "bustWeight": "light delicate fullness", "heightStature": "petite stature", "shoulderShape": "petite shoulders", "waistShape": "petite waist", "stomachShape": "flat stomach", "hipShape": "gently curving hips", "buttSize": "small round butt", "thighBuild": "softly rounded thighs", "legShape": "delicate petite legs", "bodySoftness": "delicate soft build", "posture": "light playful posture", "skinTone": "porcelain", "undertone": "rosy", "skinFinish": "dewy skin", "markings": "soft freckles across the cheeks", "makeupStyle": "sweet pastel makeup", "eyelinerStyle": "puppy-eye eyeliner", "eyeshadowStyle": "soft blended eyeshadow", "lashStyle": "doll-like lashes", "blushStyle": "heart-shaped blush", "lipFinish": "strawberry-milk gloss", "faceAccents": "star stickers beside the eyes", "makeupColor": "@primary", "nailStyle": "short manicured glossy fingernails with heart and flower nail art", "nailColor": "@primary+@secondary+@third+@accent"},
+  outfit:{look:"sweet",items:{"top": ["ruffled pastel blouse", "@secondary"], "bottom": ["rainbow tulle skirt", "@primary"], "corset": ["pastel ribbon-laced bodice", "@accent"], "outerwear": ["pastel bow-trimmed cape", "@third"], "legwear": ["heart-print thigh-high socks", "@secondary"], "belt": ["woven ribbon belt", "@accent"], "waistAccessory": ["oversized bow at the waist", "@primary"], "neckAccessory": ["bell ribbon choker", "@accent"], "wristAccessory": ["heart charm bracelets", "@primary"], "headwear": ["giant satin hair bow", "@primary"], "eyewear": ["heart-shaped sunglasses", "@accent"], "gloves": ["short satin gloves with a bow", "@secondary"], "tagCharm": ["heart badge cluster", "@accent"], "hipAccessory": ["bunny-shaped bag", "@third"], "earAccessory": ["heart earrings", "@accent"], "ringAccessory": ["flower ring", "@primary"], "bra": ["bow-trim bralette", "@secondary"], "panties": ["bow-trim cotton panties", "@secondary"]},details:{"detailOne": "bow clusters", "detailTwo": "puffy balloon sleeves", "detailThree": "rainbow gradient"}},
+  out:{"must": "an adorable, sparkling cute look with particular emphasis on glossy eyes, soft pastel colors and plenty of bows"}},
+ {id:"maxlewd",name:"Maximum lewd",blurb:"Crimson, black, burgundy and gold. Adult only. Every field set to its most sultry option, with the explicit and lewd tags switched on.",
+  pal:{"primary": "crimson red", "secondary": "black", "third": "burgundy", "accent": "gold", "extra": "rose gold"},
+  c:{"age": "young woman", "faceShape": "high-cheekboned face", "expression": "lustful expression", "browShape": "high arched brows", "noseShape": "slender nose", "mouthShape": "sensual full lips", "faceMark": "a small beauty mark near the lips", "impression": "a lewd, irresistible allure", "eyeConfig": "matching", "eyeShape": "half-lidded bedroom eyes", "pupilStyle": "heart pupils", "irisDetail": "metallic iris ring", "lashNatural": "thick dark eyelashes", "eyeOne": "ruby red", "eyeTwo": "ruby red", "hairStyle": "long wavy hair", "hairLength": "hip-length", "hairTexture": "extremely thick, silky and glossy", "bangs": "center-parted front pieces", "hairMovement": "spills forward over the shoulders", "hairBase": "@secondary", "hairUnderlayer": "@third", "hairInner": "@primary", "hairHighlights": "@accent", "hairBlend": "a seamless ombre between the colors", "bustSize": "enormous breasts", "bustShape": "gravity-defying round shape", "bustWeight": "extreme heavy fullness", "heightStature": "average height", "shoulderShape": "narrow delicate shoulders", "waistShape": "extremely cinched waist", "stomachShape": "flat stomach", "hipShape": "extremely wide, curvy hips", "buttSize": "very large, plump butt", "thighBuild": "extremely thick, plush thighs", "legShape": "thick, plush legs", "bodySoftness": "extremely curvy, exaggerated hourglass figure", "posture": "arched-back posture", "skinTone": "golden tan", "undertone": "warm", "skinFinish": "glistening oiled skin", "markings": "tan lines across the chest and hips", "makeupStyle": "femme fatale makeup", "eyelinerStyle": "cat-eye eyeliner", "eyeshadowStyle": "smoky eyeshadow", "lashStyle": "seductive dramatic lashes", "blushStyle": "flushed cheeks and chest", "lipFinish": "wet glossy lips", "faceAccents": "lipstick kiss marks on the cheek", "makeupColor": "@primary", "nailStyle": "long coffin fingernails", "nailColor": "@primary+@secondary+@accent"},
+  outfit:{look:"boudoir",showUnder:true,items:{"top": ["open-front mesh bodysuit", "@secondary"], "bottom": ["sheer mesh mini skirt", "@secondary"], "corset": ["latex underbust corset", "@primary"], "outerwear": ["transparent chiffon robe", "@third"], "legwear": ["garter-strap stockings with lace tops", "@secondary"], "belt": ["chain body harness", "@accent"], "waistAccessory": ["lace-up waist harness", "@secondary"], "neckAccessory": ["collar with a hanging chain", "@accent"], "wristAccessory": ["metal cuffs joined by a chain", "@accent"], "headwear": ["latex bunny-ear headband", "@secondary"], "eyewear": ["cat-eye sunglasses", "@secondary"], "gloves": ["elbow-length wet-look gloves", "@secondary"], "tagCharm": ["safety pin charm", "-"], "hipAccessory": ["hip chains with charms", "@accent"], "earAccessory": ["dangling crystal earrings", "-"], "ringAccessory": ["statement cocktail ring", "@accent"], "bra": ["sheer lace plunge bra", "@primary"], "panties": ["sheer mesh thong", "@primary"]},details:{"detailOne": "keyhole openings", "detailTwo": "plunging to the navel", "detailThree": "oiled latex sheen"}},
+  out:{"explicit": true, "lewdtag": true, "must": "a bold, confident look with particular emphasis on highly detailed skin, exaggerated curves and expressive eyes"}}
 ];
 
 /* ===== Outfit starting points. Colors follow the palette roles unless a slot or "-" (no color) is given. ===== */
@@ -574,7 +610,19 @@ const OUTFIT_PRESETS=[
   details:{detailOne:"tassel ties",detailTwo:"breezy loose fit",detailThree:"crochet texture"}},
  {id:"gym",name:"Gym day",blurb:"Seamless top, bike shorts, track jacket, headband and a gym bag.",look:"sporty",
   items:{top:["seamless sports top","auto"],bottom:["high-waisted bike shorts","auto"],legwear:["knee-high athletic socks","@accent"],outerwear:["zip-up track jacket","@third"],belt:["elastic cinch belt","-"],waistAccessory:["bandana tied at the hip","@accent"],neckAccessory:["cord pendant necklace","-"],wristAccessory:["fitness tracker","@accent"],headwear:["sports headband","@accent"],eyewear:["sport sunglasses","-"],gloves:["fingerless training gloves","-"],tagCharm:["water-bottle clip charm","@accent"],hipAccessory:["small gym bag","@third"],earAccessory:["simple stud earrings","-"],ringAccessory:["thin rings","-"]},
-  details:{detailOne:"reflective piping",detailTwo:"athletic fit",detailThree:"matte finish"}}
+  details:{detailOne:"reflective piping",detailTwo:"athletic fit",detailThree:"matte finish"}},
+ {id:"sugar",name:"Sugar-sweet overload",blurb:"Ruffles, bows, bunny ears, heart socks and pom-poms in pastel everything.",look:"sweet",season:"",
+  items:{top:["ruffled pastel blouse","auto"],bottom:["rainbow tulle skirt","auto"],corset:["pastel ribbon-laced bodice","@accent"],legwear:["heart-print thigh-high socks","@secondary"],outerwear:["pastel bow-trimmed cape","@third"],belt:["woven ribbon belt","@accent"],waistAccessory:["oversized bow at the waist","@accent"],neckAccessory:["bell ribbon choker","@accent"],wristAccessory:["heart charm bracelets","@accent"],headwear:["bunny-ear headband","@secondary"],eyewear:["heart-shaped sunglasses","@accent"],gloves:["short satin gloves with a bow","@secondary"],tagCharm:["heart badge cluster","@accent"],hipAccessory:["bunny-shaped bag","@third"],earAccessory:["heart earrings","-"],ringAccessory:["flower ring","@accent"],bra:["bow-trim bralette","@secondary"],panties:["bow-trim cotton panties","@secondary"]},
+  details:{detailOne:"bow clusters",detailTwo:"puffy balloon sleeves",detailThree:"rainbow gradient"}},
+ {id:"cuddle",name:"Cuddly loungewear",blurb:"Bear-ear hoodie, cloud-print shorts, fuzzy cuffs and a plush charm.",look:"sweet",season:"w",
+  items:{top:["fluffy pom-pom hoodie","auto"],bottom:["cloud-print shorts","auto"],corset:["pastel ribbon-laced bodice","@accent"],legwear:["rainbow-striped knee socks","@accent"],outerwear:["bear-ear fleece hoodie","@third"],belt:["elastic cinch belt","@accent"],waistAccessory:["oversized sweater tied at the waist","@secondary"],neckAccessory:["oversized ribbon bow","@accent"],wristAccessory:["fuzzy wrist cuffs","@secondary"],headwear:["bear-ear beanie","@secondary"],eyewear:["pastel-frame glasses","@accent"],gloves:["pastel knit mittens","@secondary"],tagCharm:["plush keychain charm","@accent"],hipAccessory:["star-shaped mini bag","@third"],earAccessory:["bow earrings","-"],ringAccessory:["beaded ring","@accent"],bra:["cotton bralette","@secondary"],panties:["cotton hipster panties","@secondary"]},
+  details:{detailOne:"pom-pom trim",detailTwo:"slightly oversized fit",detailThree:"bunny print"}},
+ {id:"lewdlace",name:"After hours",blurb:"Sheer lace, a latex corset, garters and a chiffon robe. Adult only.",look:"boudoir",season:"",showUnder:true,
+  items:{top:["open-front mesh bodysuit","auto"],bottom:["sheer mesh mini skirt","auto"],corset:["latex underbust corset","@accent"],legwear:["garter-strap stockings with lace tops","@third"],outerwear:["transparent chiffon robe","@secondary"],belt:["chain body harness","@accent"],waistAccessory:["layered waist chain","@accent"],neckAccessory:["leather collar with a ring","@third"],wristAccessory:["leather wrist cuffs with rings","@third"],headwear:["jeweled hair comb","@accent"],eyewear:["cat-eye sunglasses","@third"],gloves:["latex opera gloves","@third"],tagCharm:["safety pin charm","-"],hipAccessory:["chain wallet","-"],earAccessory:["dangling crystal earrings","-"],ringAccessory:["statement cocktail ring","@accent"],bra:["sheer lace plunge bra","@third"],panties:["sheer mesh thong","@third"]},
+  details:{detailOne:"open lacing",detailTwo:"sheer panel at the hips",detailThree:"wet-look fabric"}},
+ {id:"lewdlatex",name:"Latex and chains",blurb:"A latex bodysuit, harness straps, thigh-highs and a collar. Adult only.",look:"boudoir",season:"",showUnder:true,
+  items:{top:["latex halter bodysuit","auto"],bottom:["latex shorts","auto"],corset:["strappy harness corset","@accent"],legwear:["latex thigh-highs","@third"],outerwear:["open satin robe worn off the shoulders","@secondary"],belt:["leather body harness belt","@accent"],waistAccessory:["strap-and-buckle waist harness","@accent"],neckAccessory:["chain-link collar","@accent"],wristAccessory:["leather wrist cuffs with rings","@third"],headwear:["holographic claw clips","@accent"],eyewear:["mirrored sunglasses","@third"],gloves:["lace-up latex gloves","@third"],tagCharm:["chain-and-padlock charm","-"],hipAccessory:["jeweled chain purse","@accent"],earAccessory:["chain-link ear cuffs","-"],ringAccessory:["chunky chain ring","@accent"],bra:["latex bra","@third"],panties:["latex briefs","@third"]},
+  details:{detailOne:"exposed chain links",detailTwo:"skin-tight latex fit",detailThree:"glossy vinyl finish"}}
 ];
 
 
@@ -634,7 +682,7 @@ const RULES=[
   {
     when:{ageIn:[], subjectWord:""},
 
-    /* Body options that are not allowed. Per field:
+    /* Character options that are not allowed: body, face, makeup, skin and posture. Per field:
          deny      - wording that is refused (applies to premade and typed options)
          typedOnly - extra wording refused only in text the user typed in
          onlyPremade - if present, ONLY these premade values are allowed
@@ -649,7 +697,21 @@ const RULES=[
       thighBuild:  {deny:"(thick|plush|wide|full|huge)"},
       legShape:    {deny:"(thick|plush|full)"},
       bodySoftness:{deny:"(thick|curvy|plush|hourglass|top-heavy|exaggerat|voluptuous)"},
-      waistShape:  {deny:"(cinched|hourglass)"}
+      waistShape:  {deny:"(cinched|hourglass)"},
+
+      /* Sexualized face, makeup, skin and posture options (adult age categories only) */
+      expression:  {deny:"(seductive|sultry|come-hither|lustful|breathless|biting her lip|tongue-out|ahegao|bedroom|smoldering|aroused)"},
+      impression:  {deny:"(alluring|sultry|seductive|bedroom|lewd|femme fatale|temptress|bombshell|lustful|irresistible)"},
+      eyeShape:    {deny:"(bedroom|sultry|seductive|smoldering|half-lidded|heavy-lidded)"},
+      mouthShape:  {deny:"(sensual|full, parted|plump pouting|tongue|bitten)"},
+      lipFinish:   {deny:"(wet|swollen|smudged|seductive|dripping|smeared)"},
+      blushStyle:  {deny:"(flushed|aroused|spreading to)"},
+      makeupStyle: {deny:"(bedroom|afterglow|femme fatale|seductive)"},
+      faceAccents: {deny:"(kiss marks|smudged)"},
+      lashStyle:   {deny:"(bedroom|seductive)"},
+      skinFinish:  {deny:"(glistening|oiled|sweat|flushed skin|body glitter|wet skin|water droplets|oil-slick)"},
+      markings:    {deny:"(tan lines|kiss marks|love bites|tattoo|piercing|beauty marks across)"},
+      posture:     {deny:"(arched|sultry|over-the-shoulder|leaning forward|kneeling|reclining|behind[- ]the[- ]head)"}
     },
 
     /* Outfit items that are not allowed: whole slots, words in the item name,
@@ -667,7 +729,7 @@ const RULES=[
     heldNotice:true,           // choices already made are kept but held out of the prompt
     banner:"Girl-labeled subject: explicit and lewd tags are off.",
     text:{
-      concept:"This design is girl-labeled. The explicit tag, the “sexy, lewd” tag, underwear, lewd-tier clothing and adult body options (larger breasts, wide hips, thick thighs and so on) are switched off, along with the adult body and makeup presets.",
+      concept:"This design is girl-labeled. The explicit tag, the “sexy, lewd” tag, underwear, lewd-tier clothing and adult body options (larger breasts, wide hips, thick thighs and so on), sexualized expression, makeup, skin and posture options and the adult presets are switched off.",
       body:"Girl-labeled design: larger breast, hip, butt and thigh options are hidden and adult body presets are unavailable. You can still type your own body descriptions; wording for adult proportions is held out of the prompt.",
       underwear:"Underwear isn’t available for girl-labeled subjects.",
       checkbox:"Unavailable for girl-labeled subjects.",
@@ -747,11 +809,12 @@ const Policy=(()=>{
     return !(I.words&&rx(I.words).test(v));
   }
   function held(){
-    const h={body:[],items:[],lewdCover:[]},r=active();
+    const h={body:[],items:[],details:[],lewdCover:[]},r=active();
     if(!r)return h;
     Object.keys(r.body||{}).forEach(f=>{const v=S.c[f];if(v&&!bodyOk(f,v))h.body.push(f)});
     S.outfits.forEach((o,i)=>{
       OUT_ITEM_FIELDS.forEach(f=>{const it=o.items[f];if(it&&!itemAllowed(f,it.v))h.items.push([i,f])});
+      Object.entries(o.details||{}).forEach(([f,v])=>{if(v&&!itemAllowed(f,v))h.details.push([i,f])});
       if(r.items&&(r.items.coverage||[]).includes(o.cover))h.lewdCover.push(i);
     });
     return h;
@@ -788,7 +851,7 @@ const Policy=(()=>{
       OUT_ITEM_FIELDS.filter(f=>o0.items[f]&&youthRx.test(o0.items[f].v)).map(f=>o0.items[f].v)
         .forEach(v=>n.push({level:"warn",msg:`“${v}” ${YOUTH_SIGNALS.reasons.warnItem}`}));
       if(r&&r.heldNotice){
-        const h=held(),c=h.body.length+h.items.length;
+        const h=held(),c=h.body.length+h.items.length+h.details.length;
         if(c)n.push({level:"info",msg:txt("held").replace("{n}",c).replace("{is}",c===1?"is":"are").replace("{returns}",c===1?"It returns":"They return")});
       }
       return n;
@@ -800,12 +863,13 @@ const Policy=(()=>{
     },
     view(fn){
       const h=held();
-      if(!h.body.length&&!h.items.length&&!h.lewdCover.length)return fn();
+      if(!h.body.length&&!h.items.length&&!h.details.length&&!h.lewdCover.length)return fn();
       const c0=S.c,o0=S.outfits;
       S.c={...c0};h.body.forEach(f=>{delete S.c[f]});
       S.outfits=o0.map((o,i)=>{
         const items={...o.items};h.items.forEach(([k,f])=>{if(k===i)delete items[f]});
-        return{...o,items,cover:h.lewdCover.includes(i)?"":o.cover};
+        const details={...o.details};h.details.forEach(([k,f])=>{if(k===i)delete details[f]});
+        return{...o,items,details,cover:h.lewdCover.includes(i)?"":o.cover};
       });
       try{return fn()}finally{S.c=c0;S.outfits=o0}
     }
@@ -1333,6 +1397,27 @@ CHAR.impression=[
     if(OUTFIT[f].some(x=>x.v===v))return;
     const it={v,t,g};if(l)it.f=l;if(se)it.s=se;OUTFIT[f].push(it);
   });
+})();
+/* ---- v23: extra options for the cute and the adult ends of the range ---- */
+(function(){
+  const CH={"expression": [["bubbly open-mouthed grin", "Cute"], ["blushing shy smile", "Cute"], ["wide-eyed delighted expression", "Cute"], ["puffed-cheek pout", "Cute"], ["tiny cat-mouth smile", "Cute"], ["happy closed-eye smile", "Cute"], ["sparkling-eyed excited expression", "Cute"]], "impression": [["an adorable, bubbly charm", "Innocent and doll-like"], ["a plush, huggable softness", "Innocent and doll-like"], ["a sparkling cute-and-sweet look", "Innocent and doll-like"]], "faceAccents": [["tiny heart stickers on the cheek", "Accents"], ["star stickers beside the eyes", "Accents"], ["glitter dots under the eyes", "Accents"]], "blushStyle": [["heavy rosy cheek blush", "Blush"], ["heart-shaped blush", "Blush"]], "lipFinish": [["cherry-tinted gloss", "Lips"], ["strawberry-milk gloss", "Lips"]], "makeupStyle": [["sweet pastel makeup", "Overall Style"], ["strawberry-milk makeup", "Overall Style"]], "eyeShape": [["very large sparkling eyes", "Stylized"], ["very large glossy eyes", "Stylized"]], "hairStyle": [["twin buns with ribbons", "Buns / Updos"], ["fluffy twin buns", "Buns / Updos"], ["bunny-ear bow ponytail", "Ponytails"]]};
+  Object.entries(CH).forEach(([f,rows])=>rows.forEach(([v,g])=>{if(!CHAR[f].some(x=>x[0]===v))CHAR[f].push([v,g])}));
+  const add=(rows)=>Object.entries(rows).forEach(([f,list])=>list.forEach(([v,t,l,se])=>{
+    if((OUTFIT[f]||[]).some(i=>i.v===v))return;
+    const it={v,t};if(l)it.f=l;if(se)it.s=se;OUTFIT[f].push(it);
+  }));
+  add({"top": [["ruffled pastel blouse", "CU", "sweet,cottage", ""], ["bow-front ruffle sweater", "CU", "sweet", "w"], ["fluffy pom-pom hoodie", "CU", "sweet,casual", "w"], ["strawberry-print knit top", "CU", "sweet,cottage", ""], ["heart-appliqué cropped sweater", "CU", "sweet", "w"]], "bottom": [["pastel pleated skort", "CU", "sweet,sporty", ""], ["rainbow tulle skirt", "CU", "sweet", ""], ["bow-trimmed ruffle skirt", "CU", "sweet,cottage", ""], ["cloud-print shorts", "CU", "sweet,casual", "s"]], "outerwear": [["bunny-ear hooded jacket", "CU", "sweet", "w"], ["bear-ear fleece hoodie", "CU", "sweet,casual", "w"], ["pastel bow-trimmed cape", "CU", "sweet,cottage", "w"]], "legwear": [["heart-print thigh-high socks", "CU", "sweet", ""], ["frilly bow-top socks", "CU", "sweet,cottage", ""], ["rainbow-striped knee socks", "CU", "sweet,casual", ""]], "headwear": [["bunny-ear headband", "CU", "sweet", ""], ["bear-ear beanie", "CU", "sweet", "w"], ["giant satin hair bow", "CU", "sweet,cottage", ""], ["heart-shaped hair clips", "CU", "sweet", ""]], "neckAccessory": [["bell ribbon choker", "CU", "sweet", ""], ["oversized ribbon bow", "CU", "sweet,cottage", ""]], "wristAccessory": [["heart charm bracelets", "CU", "sweet", ""], ["fuzzy wrist cuffs", "CU", "sweet", "w"]], "tagCharm": [["heart badge cluster", "CU", "sweet", ""], ["plush keychain charm", "CU", "sweet,casual", ""], ["candy-shaped charm", "CU", "sweet", ""]], "hipAccessory": [["bunny-shaped bag", "CU", "sweet", ""], ["star-shaped mini bag", "CU", "sweet", ""], ["heart-shaped crossbody bag", "CU", "sweet", ""]], "detailOne": [["pom-pom trim", "CU", "sweet", ""], ["heart appliqués", "CU", "sweet", ""], ["bow clusters", "CU", "sweet", ""]], "detailTwo": [["puffy balloon sleeves", "CU", "sweet,cottage", ""], ["oversized collar bow", "CU", "sweet", ""]], "detailThree": [["bunny print", "CU", "sweet", ""], ["cherry print", "CU", "sweet,cottage", "s"], ["rainbow gradient", "CU", "sweet", ""]]});
+  add({"top": [["open-front mesh bodysuit", "L", "boudoir,glam", ""], ["latex halter bodysuit", "L", "boudoir,edgy", ""], ["wet-look sheer tank", "L", "boudoir,resort", "s"], ["cross-strap bandage top", "L", "boudoir,edgy", ""], ["strappy harness top", "L", "boudoir,edgy", ""], ["string halter top", "L", "boudoir,resort", "s"]], "bottom": [["sheer mesh mini skirt", "L", "boudoir,glam", ""], ["latex shorts", "L", "boudoir,edgy", ""], ["open-side string skirt", "L", "boudoir", ""], ["lace-up latex pants", "L", "boudoir,edgy", ""]], "corset": [["latex underbust corset", "L", "boudoir,edgy", ""], ["strappy harness corset", "L", "boudoir,edgy", ""], ["corset with built-in garters", "L", "boudoir,glam", ""]], "outerwear": [["transparent chiffon robe", "L", "boudoir,glam", ""], ["open satin robe worn off the shoulders", "L", "boudoir,glam", ""]], "legwear": [["latex thigh-highs", "L", "boudoir,edgy", ""], ["open-weave fishnet bodystocking", "L", "boudoir,edgy", ""], ["garter-strap stockings with lace tops", "L", "boudoir,glam", ""]], "belt": [["leather body harness belt", "L", "boudoir,edgy", ""], ["chain body harness", "L", "boudoir,edgy", ""]], "neckAccessory": [["leather collar with a ring", "L", "boudoir,edgy", ""], ["chain-link collar", "L", "boudoir,edgy", ""]], "wristAccessory": [["leather wrist cuffs with rings", "L", "boudoir,edgy", ""]], "gloves": [["latex opera gloves", "L", "boudoir,edgy", ""], ["lace-up latex gloves", "L", "boudoir,edgy", ""]], "bra": [["sheer lace plunge bra", "L", "boudoir,glam", ""], ["strappy cage bralette", "L", "boudoir,edgy", ""], ["latex bra", "L", "boudoir,edgy", ""], ["wet-look triangle bra", "L", "boudoir,resort", "s"]], "panties": [["sheer mesh thong", "L", "boudoir,glam", ""], ["latex briefs", "L", "boudoir,edgy", ""], ["strappy cage panties", "L", "boudoir,edgy", ""], ["side-tie string panties", "L", "boudoir,resort", "s"]], "detailOne": [["exposed chain links", "L", "boudoir,edgy", ""], ["open lacing", "L", "boudoir,glam", ""]], "detailTwo": [["backless to the waist", "L", "boudoir,glam", ""], ["high-cut leg line", "L", "boudoir,resort", ""], ["sheer panel at the hips", "L", "boudoir,glam", ""], ["skin-tight latex fit", "L", "boudoir,edgy", ""]]});
+})();
+/* ---- v24: more options for the adult end of the range (age rules: see Rule 1) ---- */
+(function(){
+  const CH={"expression": [["seductive smile", "Sultry (adult)"], ["half-lidded sultry gaze", "Sultry (adult)"], ["come-hither look", "Sultry (adult)"], ["lustful expression", "Sultry (adult)"], ["breathless, flushed expression", "Sultry (adult)"], ["biting her lip", "Sultry (adult)"], ["teasing tongue-out expression", "Sultry (adult)"], ["ahegao-style blissful expression", "Sultry (adult)"], ["bedroom stare", "Sultry (adult)"], ["smoldering sultry expression", "Sultry (adult)"], ["aroused, parted-lip expression", "Sultry (adult)"]], "impression": [["a seductive, bedroom-ready allure", "Sultry (adult)"], ["a lewd, irresistible allure", "Sultry (adult)"], ["a femme fatale presence", "Sultry (adult)"], ["a sinful temptress look", "Sultry (adult)"], ["a bombshell presence", "Sultry (adult)"], ["an openly lustful presence", "Sultry (adult)"]], "eyeShape": [["half-lidded bedroom eyes", "Sultry (adult)"], ["heavy-lidded sultry eyes", "Sultry (adult)"], ["narrowed seductive eyes", "Sultry (adult)"], ["smoldering eyes", "Sultry (adult)"]], "mouthShape": [["sensual full lips", "Sultry (adult)"], ["full, parted lips", "Sultry (adult)"], ["plump pouting lips", "Sultry (adult)"], ["lips parted with the tip of her tongue showing", "Sultry (adult)"], ["a bitten lower lip", "Sultry (adult)"]], "lipFinish": [["wet glossy lips", "Sultry (adult)"], ["kiss-swollen lips", "Sultry (adult)"], ["smudged red lipstick", "Sultry (adult)"], ["deep red seductive lips", "Sultry (adult)"], ["dripping-gloss lips", "Sultry (adult)"], ["smeared lipstick", "Sultry (adult)"]], "blushStyle": [["flushed cheeks and chest", "Sultry (adult)"], ["flushed from cheeks to collarbones", "Sultry (adult)"], ["heavy aroused blush", "Sultry (adult)"], ["blush spreading to the ears and neck", "Sultry (adult)"]], "makeupStyle": [["bedroom makeup", "Sultry (adult)"], ["afterglow smudged makeup", "Sultry (adult)"], ["femme fatale makeup", "Sultry (adult)"], ["seductive smoky makeup", "Sultry (adult)"]], "faceAccents": [["lipstick kiss marks on the cheek", "Sultry (adult)"], ["smudged mascara", "Sultry (adult)"]], "lashStyle": [["bedroom lashes", "Sultry (adult)"], ["seductive dramatic lashes", "Sultry (adult)"]], "skinFinish": [["glistening oiled skin", "Sultry (adult)"], ["sweat-sheened skin", "Sultry (adult)"], ["dewy flushed skin", "Sultry (adult)"], ["body glitter shimmer", "Sultry (adult)"], ["wet skin with water droplets", "Sultry (adult)"], ["oil-slick sheen", "Sultry (adult)"]], "markings": [["tan lines across the chest and hips", "Sultry (adult)"], ["lipstick kiss marks across the neck and chest", "Sultry (adult)"], ["small love bites along the neck and collarbones", "Sultry (adult)"], ["an ornate lower-belly tattoo", "Sultry (adult)"], ["a floral thigh tattoo", "Sultry (adult)"], ["a hip tattoo", "Sultry (adult)"], ["a chest tattoo", "Sultry (adult)"], ["a navel piercing", "Sultry (adult)"], ["beauty marks across the chest", "Sultry (adult)"]], "posture": [["arched-back posture", "Sultry (adult)"], ["hip-popped sultry stance", "Sultry (adult)"], ["over-the-shoulder glance", "Sultry (adult)"], ["leaning forward posture", "Sultry (adult)"], ["kneeling with an arched back", "Sultry (adult)"], ["reclining posture", "Sultry (adult)"], ["hands-behind-the-head posture", "Sultry (adult)"]], "bustSize": [["enormous breasts", ""], ["massive breasts", ""]], "bustShape": [["gravity-defying round shape", ""], ["heavy teardrop shape", ""]], "bustWeight": [["extreme heavy fullness", ""]], "hipShape": [["extremely wide, curvy hips", ""]], "waistShape": [["extremely cinched waist", ""]], "buttSize": [["very large, plump butt", ""]], "thighBuild": [["extremely thick, plush thighs", ""]], "legShape": [["thick, plush legs", ""]], "bodySoftness": [["extremely curvy, exaggerated hourglass figure", ""], ["voluptuous bombshell figure", ""]]};
+  Object.entries(CH).forEach(([f,rows])=>rows.forEach(([v,g])=>{if(!CHAR[f].some(x=>x[0]===v))CHAR[f].push([v,g])}));
+  const add=(rows)=>Object.entries(rows).forEach(([f,list])=>list.forEach(([v,t,l,se])=>{
+    if((OUTFIT[f]||[]).some(i=>i.v===v))return;
+    const it={v,t};if(l)it.f=l;if(se)it.s=se;OUTFIT[f].push(it);
+  }));
+  add({"top": [["sheer lace crop top", "L", "boudoir,glam", ""], ["mesh halter top", "L", "boudoir,glam", ""], ["open-back latex top", "L", "boudoir,edgy", ""], ["latex tube top", "L", "boudoir,edgy", ""], ["chain-link halter top", "L", "boudoir,edgy", ""], ["soaked see-through white tee", "L", "boudoir,resort", "s"], ["high-cut latex leotard", "L", "boudoir,edgy", ""], ["keyhole cut-out bodysuit", "L", "boudoir,glam", ""]], "bottom": [["fishnet mini skirt", "L", "boudoir,edgy", ""], ["chain-link mini skirt", "L", "boudoir,edgy", ""], ["wet-look vinyl skirt", "L", "boudoir,edgy", ""], ["see-through lace shorts", "L", "boudoir,glam", ""]], "legwear": [["over-the-knee latex boots", "L", "boudoir,edgy", ""], ["sheer seamed thigh-high stockings", "L", "boudoir,glam", ""], ["leg harness straps", "L", "boudoir,edgy", ""]], "neckAccessory": [["collar with a hanging chain", "L", "boudoir,edgy", ""]], "wristAccessory": [["metal cuffs joined by a chain", "L", "boudoir,edgy", ""]], "gloves": [["elbow-length wet-look gloves", "L", "boudoir,edgy", ""]], "waistAccessory": [["lace-up waist harness", "L", "boudoir,edgy", ""]], "hipAccessory": [["hip chains with charms", "L", "boudoir,edgy", ""]], "headwear": [["latex bunny-ear headband", "L", "boudoir,edgy", ""]], "detailOne": [["keyhole openings", "L", "boudoir,glam", ""], ["exposed hardware zippers", "L", "boudoir,edgy", ""]], "detailTwo": [["plunging to the navel", "L", "boudoir,glam", ""], ["thigh-high slit to the hip", "L", "boudoir,glam", ""], ["open sides held by straps", "L", "boudoir,edgy", ""], ["sheer panels over the chest", "L", "boudoir,glam", ""]], "detailThree": [["oiled latex sheen", "L", "boudoir,edgy", ""], ["wet translucent finish", "L", "boudoir,resort", "s"], ["body-glitter shimmer", "L", "boudoir,glam", ""]]});
 })();
 const OUT_GROUPS=[
  {id:"garments",label:"Garments",fields:["top","bottom","corset","outerwear","legwear"]},
@@ -2179,9 +2264,34 @@ function paletteLibrary(){
   box.append(grid);return box;
 }
 function applyLibrary(p){mut(()=>{SLOTS.forEach(([k],i)=>{S.pal[k]=p.c[i]||""})},"palib");toast(`Palette set to “${p.n}”.`)}
+const PRESET_GROUPS={
+  face:[{label:"Sweet",keys:["soft","adorable","shy","dollface"]},{label:"Bright and playful",keys:["bright","playful","dreamy"]},{label:"Polished",keys:["elegant","cool","fierce"]},{label:"Adult only",keys:["sultry","seductive","lustful","fatale"]}],
+  eye:[{label:"Sweet",keys:["doe","adorable","dolleyes","sparkling","glossy","starry"]},{label:"Everyday",keys:["almond","upturned","sleepy"]},{label:"Striking",keys:["catlike","sharp","celestial"]},{label:"Adult only",keys:["bedroom","heavylid","hypnotic"]}],
+  makeup:[{label:"Natural",keys:["natural","dewy"]},{label:"Sweet",keys:["sweet","cute","dollmk"]},{label:"Polished",keys:["glam","editorial","dark"]},{label:"Adult only",keys:["sexy","lewdglam","afterglow","fatalemk"]}],
+  body:[{label:"Petite and slim",keys:["petiteFlat","slender"]},{label:"Everyday",keys:["average","athletic"]},{label:"Curves (adult only)",keys:["curvy","thick","full","delicateTop","hourglassX","bombshell"]}],
+  outfit:[{label:"Everyday",keys:["cafe","picnic","preppy"]},{label:"Sporty and resort",keys:["gym","beach"]},{label:"Sweet",keys:["sugar","cuddle"]},{label:"Dressed up",keys:["velvet","gown"]},{label:"Alternative",keys:["punk","neon"]},{label:"Adult only",keys:["lewdlace","lewdlatex"]}],
+  start:[{label:"Odd-eyed originals",keys:["bluelong","redgold","bluecream"]},{label:"Everyday",keys:["academic","herbalist","seaside"]},{label:"Stylish",keys:["evening","gothic","courier","punk"]},{label:"Fantasy",keys:["kitsune"]},{label:"The two extremes",keys:["maxcute","maxlewd"]}]
+};
+/* chips grouped under small labels, in the order above; anything unlisted lands in "More" */
+function chipGroups(groups,PRESETS,make,extra){
+  const wrap=h("div",{class:"pgroups"}),listed=new Set(groups.flatMap(g=>g.keys));
+  const all=groups.concat([{label:"More",keys:Object.keys(PRESETS).filter(k=>!listed.has(k))}]);
+  all.forEach(g=>{const keys=g.keys.filter(k=>PRESETS[k]);if(!keys.length)return;
+    wrap.append(h("div",{class:"pgroup"},h("small",{class:"pgl",text:g.label}),h("div",{class:"chips"},keys.map(k=>make(k,PRESETS[k])))))});
+  if(extra)wrap.append(h("div",{class:"pgroup"},extra));
+  return wrap;
+}
+function presetBar(PRESETS,FIELDS,clearLabel,key,groups){
+  return chipGroups(groups,PRESETS,(k,p)=>{const ok=presetAvailable(p);return h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:Policy.presetNote(p),onclick:()=>mut(()=>{FIELDS.forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},key),text:p.label})},
+    h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{FIELDS.forEach(i=>delete S.c[i])}),text:clearLabel}));
+}
 function stepFace(){
   const f=document.createDocumentFragment();
+  f.append(sub("Face presets","A preset sets the face shape, expression, brows, nose, mouth and overall impression. Change any part afterward."));
+  f.append(presetBar(FACE_PRESETS,FACE_FIELDS,"Clear face","fpreset",PRESET_GROUPS.face));
   f.append(sub("Face"));["faceShape","expression","browShape","noseShape","mouthShape","faceMark","impression"].forEach(id=>f.append(fieldRow(id)));
+  f.append(sub("Eye presets","A preset sets the eye shape, pupils, iris detail and lashes. Colors and the eye setup stay as you have them."));
+  f.append(presetBar(EYE_PRESETS,EYE_FIELDS,"Clear eyes","epreset",PRESET_GROUPS.eye));
   f.append(sub("Eyes"));
   ["eyeShape","pupilStyle","irisDetail","lashNatural","eyeConfig"].forEach(id=>f.append(fieldRow(id)));
   f.append(colorRow("eyeOne"));f.append(colorRow("eyeTwo","Only needed for two-color eye setups."));
@@ -2214,13 +2324,10 @@ function skinSuggestBox(){
 function stepBody(){
   const f=document.createDocumentFragment();
   f.append(sub("Presets","A preset sets every proportion at once. You can still change any of them after."));
-  const bar=h("div",{class:"chips"});
-  Object.entries(BODY_PRESETS).forEach(([k,p])=>{
+  f.append(chipGroups(PRESET_GROUPS.body,BODY_PRESETS,(k,p)=>{
     const ok=presetAvailable(p);
-    bar.append(h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:Policy.presetNote(p),onclick:()=>{mut(()=>{STEP_FIELDS.body.slice(0,13).forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},"preset");if(Policy.afterBodyPreset())toast(Policy.afterBodyPreset())},text:p.label}));
-  });
-  bar.append(h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{STEP_FIELDS.body.slice(0,13).forEach(i=>delete S.c[i])}),text:"Clear body"}));
-  f.append(bar);
+    return h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:Policy.presetNote(p),onclick:()=>{mut(()=>{STEP_FIELDS.body.slice(0,13).forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},"preset");if(Policy.afterBodyPreset())toast(Policy.afterBodyPreset())},text:p.label});
+  },h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{STEP_FIELDS.body.slice(0,13).forEach(i=>delete S.c[i])}),text:"Clear body"})));
   if(Policy.callout("body"))f.append(h("p",{class:"callout"},Policy.callout("body")));
   f.append(sub("Bust"));["bustSize","bustShape","bustWeight"].forEach(id=>f.append(fieldRow(id)));
   f.append(sub("Proportions"));["heightStature","shoulderShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture"].forEach(id=>f.append(fieldRow(id,{forcePick:id==="buttSize"})));
@@ -2241,10 +2348,7 @@ function nailColorRow(){
 function stepMakeup(){
   const f=document.createDocumentFragment();
   f.append(sub("Presets","A preset sets the whole look. Change any part afterward."));
-  const bar=h("div",{class:"chips"});
-  Object.entries(MAKEUP_PRESETS).forEach(([k,p])=>{const ok=presetAvailable(p);bar.append(h("button",{type:"button",class:"chip preset",disabled:ok?null:true,title:Policy.presetNote(p),onclick:()=>mut(()=>{MAKEUP_FIELDS.forEach(i=>delete S.c[i]);Object.assign(S.c,p.v)},"mpreset"),text:p.label}))});
-  bar.append(h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{MAKEUP_FIELDS.forEach(i=>delete S.c[i])}),text:"Clear makeup"}));
-  f.append(bar);f.append(sub("Details"));
+  f.append(presetBar(MAKEUP_PRESETS,MAKEUP_FIELDS,"Clear makeup","mpreset",PRESET_GROUPS.makeup));f.append(sub("Details"));
   ["makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents"].forEach(id=>f.append(fieldRow(id)));
   f.append(colorRow("makeupColor","Used for “her makeup uses … accents”."));
   f.append(sub("Nails","Style and polish. Choose several palette colors for a coordinated set."));
@@ -2322,7 +2426,7 @@ const pick1=a=>a[Math.floor(Math.random()*a.length)];
 function applyOutfitPreset(p){
   mut(()=>{
     const o=cur(),def=!Object.keys(o.items).length||/^Outfit( \d+)?$/.test(o.name||"")||/ outfit$/.test(o.name||"")||/ mix$/.test(o.name||"")||OUTFIT_PRESETS.some(x=>x.name===o.name);
-    o.items={};o.details={};o.showUnder=false;o.look=p.look||"";o.season=p.season||"";o.cover="";
+    o.items={};o.details={};o.showUnder=!!p.showUnder;o.look=p.look||"";o.season=p.season||"";o.cover="";
     Object.entries(p.items).forEach(([f,[v,c]])=>{o.items[f]={v,c}});
     Object.assign(o.details,p.details||{});
     if(def)o.name=p.name;
@@ -2394,7 +2498,10 @@ function stepOutfit(){
     h("span",{class:"muted small",text:"Builds a matching outfit. It follows the look, coverage and season below, so leave Look on “Any look” for more variety. Undo brings back the last one."})));
   f.append(sub("Starting points","Load a finished outfit, then change anything. Colors follow your palette."));
   const pg=h("div",{class:"opresets"});
-  OUTFIT_PRESETS.forEach(p=>pg.append(h("button",{type:"button",class:"opreset",onclick:()=>applyOutfitPreset(p)},h("b",{text:p.name}),h("span",{text:p.blurb}))));
+  const byId=Object.fromEntries(OUTFIT_PRESETS.map(p=>[p.id,p]));
+  const oGroups=PRESET_GROUPS.outfit.concat([{label:"More",keys:OUTFIT_PRESETS.map(p=>p.id).filter(id=>!PRESET_GROUPS.outfit.some(g=>g.keys.includes(id)))}]);
+  oGroups.forEach(g=>{const ps=g.keys.map(k=>byId[k]).filter(Boolean);if(!ps.length)return;pg.append(h("div",{class:"ggh",text:g.label}));
+    ps.forEach(p=>pg.append(h("button",{type:"button",class:"opreset",onclick:()=>applyOutfitPreset(p)},h("b",{text:p.name}),h("span",{text:p.blurb}))))});
   f.append(pg);
   /* filters */
   const lookSel=h("select",{"aria-label":"Look",onchange:e=>mut(()=>{cur().look=e.target.value})},h("option",{value:"",text:"Any look"}),LOOKS.map(([id,l])=>h("option",{value:id,selected:o.look===id?true:null,text:l})));
@@ -2537,8 +2644,8 @@ function stateFromTemplate(t){
   const c={...t.c};const body=c._body;delete c._body;
   if(body&&BODY_PRESETS[body])Object.assign(c,BODY_PRESETS[body].v);
   b.c=c;
-  const o=newOutfit(t.name.split(" ")[0]+" outfit");o.look=t.outfit.look||"";
-  Object.entries(t.outfit.items).forEach(([f,[v,col]])=>{o.items[f]={v,c:col}});
+  const o=newOutfit(t.name.split(" ")[0]+" outfit");o.look=t.outfit.look||"";o.showUnder=!!t.outfit.showUnder;
+  Object.entries(t.outfit.items).forEach(([f,[v,col]])=>{o.items[f]={v,c:col}});Object.assign(o.details,t.outfit.details||{});
   b.outfits=[o];
   b.out={...S.out,...(t.out||{})};b.layers={...S.layers};b.order=S.order.slice();
   return b;
@@ -2546,8 +2653,11 @@ function stateFromTemplate(t){
 function openStarts(){
   const d=$("#startsDlg"),grid=$("#startGrid");grid.textContent="";
   grid.append(h("button",{type:"button",class:"start blank",onclick:()=>{replaceState({...blankState(),out:S.out,layers:S.layers,order:S.order});d.close()}},h("b",{text:"Blank"}),h("span",{text:"Nothing set. Build from nothing."})));
-  TEMPLATES.forEach(t=>grid.append(h("button",{type:"button",class:"start",onclick:()=>{replaceState(stateFromTemplate(t));toast(`Loaded “${t.name}”. Undo brings back your previous design.`);d.close()}},
-    h("div",{class:"strip"},Object.values(t.pal).filter(Boolean).map(n=>h("i",{style:`background:${COLORS[n]}`,title:n}))),h("b",{text:t.name}),h("span",{text:t.blurb}))));
+  const tById=Object.fromEntries(TEMPLATES.map(t=>[t.id,t]));
+  const sGroups=PRESET_GROUPS.start.concat([{label:"More",keys:TEMPLATES.map(t=>t.id).filter(id=>!PRESET_GROUPS.start.some(g=>g.keys.includes(id)))}]);
+  sGroups.forEach(g=>{const ts=g.keys.map(k=>tById[k]).filter(Boolean);if(!ts.length)return;grid.append(h("div",{class:"ggh",text:g.label}));
+    ts.forEach(t=>grid.append(h("button",{type:"button",class:"start",onclick:()=>{replaceState(stateFromTemplate(t));toast(`Loaded “${t.name}”. Undo brings back your previous design.`);d.close()}},
+      h("div",{class:"strip"},Object.values(t.pal).filter(Boolean).map(n=>h("i",{style:`background:${COLORS[n]}`,title:n}))),h("b",{text:t.name}),h("span",{text:t.blurb}))))});
   d.showModal();
 }
 function readSaves(){return loadJSON(KEY_SAVES,[])}
