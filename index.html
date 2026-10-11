@@ -3459,8 +3459,13 @@ function detailRow(field){
 const pick1=a=>a[Math.floor(Math.random()*a.length)];
 function applyOutfitPreset(p){
   if(stepFrozen("outfit")){toast("This outfit is locked. Unlock it to load a starting point.");return}
-  let held=0;
+  preparePresets();
+  let held=0,filled=0;
   mut(()=>{
+    if(p.pal){
+      const usedByChar=new Set();Object.values(S.c).forEach(v=>{if(typeof v==="string")v.split("+").forEach(x=>{if(x[0]==="@")usedByChar.add(x.slice(1))})});
+      SLOT_KEYS.forEach(k=>{if(p.pal[k]&&!S.pal[k]&&!kept("pal:"+k)&&!usedByChar.has(k)){S.pal[k]=p.pal[k];filled++}});
+    }
     const o=cur(),L=o.lock||{},oldItems=o.items,oldDet=o.details,oldDcol=o.dcol||{},def=!Object.keys(o.items).length||/^Outfit( \d+)?$/.test(o.name||"")||/ outfit$/.test(o.name||"")||/ mix$/.test(o.name||"")||OUTFIT_PRESETS.some(x=>x.name===o.name);
     o.items={};o.details={};o.dcol={};o.showUnder=!!p.showUnder;o.look=p.look||"";o.season=p.season||"";o.cover="";
     Object.entries(p.items).forEach(([f,[v,c,w,c2]])=>{o.items[f]={v,c,...(w?{w}:{}),...(c2?{c2}:{})}});
@@ -3472,7 +3477,7 @@ function applyOutfitPreset(p){
     });
     if(def)o.name=p.name;
   });
-  toast(`Loaded “${p.name}”. Item colors come from the preset; change any color, or use Reset outfit colors to auto to follow your palette.`+keptNote(held));
+  toast(`Loaded “${p.name}”. Its colors follow your palette.`+(filled?` Filled ${filled} empty palette slot${filled>1?"s":""} with its colors.`:"")+keptNote(held));
 }
 function stepOutfit(){
   const f=document.createDocumentFragment(),o=cur();
@@ -3489,7 +3494,7 @@ function stepOutfit(){
   f.append(h("div",{class:"btnrow"},h("button",{type:"button",class:"btn primary",id:"rndOutfit",onclick:randomizeOutfit,text:"Randomize outfit"}),
     h("span",{class:"muted small",text:"Builds a matching outfit. It follows the look, coverage and season below, so leave Look on “Any look” for more variety. Locked pieces stay. Undo brings back the last one."})));
   const byId=Object.fromEntries(OUTFIT_PRESETS.map(p=>[p.id,p]));
-  f.append(presetRow("opreset",byId,PRESET_GROUPS.outfit,(k,p)=>applyOutfitPreset(p),()=>clearOutfit(),"Clear outfit","Loads a finished outfit with its own colors, then change anything.",{title:"Outfit starting points",stack:true}));
+  f.append(presetRow("opreset",byId,PRESET_GROUPS.outfit,(k,p)=>applyOutfitPreset(p),()=>clearOutfit(),"Clear outfit","Loads a finished outfit. Its colors follow your palette, and empty palette slots take its own colors.",{title:"Outfit starting points",stack:true}));
   /* filters */
   const lookSel=h("select",{"aria-label":"Look",onchange:e=>mut(()=>{cur().look=e.target.value})},h("option",{value:"",text:"Any look"}),LOOKS.map(([id,l])=>h("option",{value:id,selected:o.look===id?true:null,text:l})));
   const covSel=h("select",{"aria-label":"Coverage",onchange:e=>mut(()=>{cur().cover=e.target.value})},COVER.map(([v,l])=>h("option",{value:v,selected:o.cover===v?true:null,disabled:Policy.coverageAllowed(v)?null:true,text:l+(Policy.coverageAllowed(v)?"":" (unavailable)")})));
@@ -3628,14 +3633,763 @@ function renderSide(){
 hooks.change=()=>{renderRail();renderSide();if(typing!=="main")renderMain()};
 
 /* ---------- dialogs ---------- */
+/* ---- v60: "Horned metalhead" starting point and the options it needs ---- */
+(function(){
+  const addC=(f,v,g)=>{CHAR[f]=CHAR[f]||[];if(!CHAR[f].some(x=>x[0]===v))CHAR[f].push([v,g])};
+  const addO=(f,v,t,fam,g)=>{OUTFIT[f]=OUTFIT[f]||[];if(!OUTFIT[f].some(i=>i.v===v)){const it={v,t};if(fam)it.f=fam;if(g)it.g=g;OUTFIT[f].push(it)}};
+
+  /* character options */
+  addC("hornStyle","asymmetrical horns with one large curved horn and one small ridged horn","Horns / Antlers / Antennae");
+  addC("hornStyle","bat-wing-shaped horns","Horns / Antlers / Antennae");
+  addC("hornStyle","one large ridged horn curving back over one side of the head","Horns / Antlers / Antennae");
+  addC("expression","wild open-mouthed fanged laugh","Fantasy and animal");
+  addC("expression","wide gritted-teeth fanged grin","Fantasy and animal");
+  addC("faceAccents","tear-streak makeup running down from one eye","Accents");
+  addC("markings","a rune tattoo along the neck","Tattoos (adult)");
+  addC("markings","a tribal tattoo across the lower belly","Tattoos (adult)");
+  addC("markings","a rune tattoo along the neck and a tribal tattoo across the lower belly","Tattoos (adult)");
+  addC("markings","tribal tattoos across the lower belly and down one thigh","Tattoos (adult)");
+  addC("nailStyle","long stiletto fingernails","Nails");
+  addC("nailStyle","long pointed claw-shaped fingernails","Nails");
+  addC("hairStyle","high side ponytail","Ponytails");
+  addC("hairStyle","high side ponytail with long loose strands","Ponytails");
+
+  /* outfit options */
+  addO("top","oversized off-shoulder band tee knotted at the hem","CUS","edgy");
+  addO("top","oversized band tee with safety pins and frayed edges","CU","edgy");
+  addO("top","cropped band tank top","CUS","edgy");
+  addO("outerwear","cropped studded leather jacket covered in enamel pins","CU","edgy");
+  addO("bottom","ripped denim shorts","CUS","edgy");
+  addO("bottom","shorts with zipper details","CUS","edgy");
+  addO("belt","wide belt with {c2} pyramid studs","CUS","edgy");
+  addO("neckAccessory","layered spiked chokers and chain necklaces with a pentagram pendant","US","edgy,gothic");
+  addO("wristAccessory","stacked spiked leather wristbands","CUS","edgy");
+  addO("gloves","{c}-and-{c2} striped fingerless arm warmers","CU","edgy");
+  addO("earAccessory","stacked ear piercings with a fine linking chain","CUS","edgy","Earrings");
+  addO("thighAccessory","studded thigh strap with hanging chains","CUS","edgy","Bands and chains");
+  addO("thighAccessory","buckled thigh strap with a heart-shaped ring","CUS","edgy","Bands and chains");
+  addO("hipAccessory","heavy chains on the belt looped to the hip","CUS","edgy");
+  addO("legwear","fishnet tights","CUS","edgy,gothic");
+  addO("detailThree","distressed {c} blackletter logo print","CU","edgy");
+
+  const T={id:"metalhead",name:"Horned metalhead",
+    blurb:"Black hair with a cobalt underlayer in a high side ponytail, asymmetrical black horns, crimson slit-pupil eyes, a fanged grin, a tear-streak and neck and belly tattoos. Three studded, chained band-tee outfits.",
+    pal:{"primary":"black","secondary":"cobalt blue","third":"charcoal gray","accent":"crimson red","extra":"silver"},
+    c:{"age":"woman","subjectType":"demon",
+      "faceShape":"elegant angular face","expression":"wide gritted-teeth fanged grin","browShape":"defined brows","noseShape":"small straight nose","mouthShape":"soft full lips",
+      "eyeConfig":"matching","eyeShape":"sharp, slightly hooded eyes","pupilStyle":"vertical slit pupils","eyeOne":"@accent","eyeTwo":"@accent",
+      "hairStyle":"high side ponytail with long loose strands","hairLength":"waist-length","hairTexture":"sleek","bangs":"long side bangs over one eye","hairBase":"@primary","hairUnderlayer":"@secondary",
+      "hornStyle":"asymmetrical horns with one large curved horn and one small ridged horn","earStyle":"slightly pointed ears","tailStyle":"none","wingStyle":"none","fangClawStyle":"sharp fangs","auraStyle":"none","fantasyAccentColor":"@primary",
+      "skinTone":"porcelain","markings":"a rune tattoo along the neck and a tribal tattoo across the lower belly",
+      "makeupStyle":"gothic makeup","eyelinerStyle":"smudged eyeliner","faceAccents":"tear-streak makeup running down from one eye","makeupColor":"@primary",
+      "nailStyle":"long stiletto fingernails","nailColor":"@primary",
+      "_body":"slender"},
+    outfit:{oname:"Band tee",look:"edgy",items:{
+        "top":["oversized off-shoulder band tee knotted at the hem","@primary"],
+        "bottom":["ripped denim shorts","@third"],
+        "belt":["wide belt with {c2} pyramid studs","@primary","","@extra"],
+        "neckAccessory":["layered spiked chokers and chain necklaces with a pentagram pendant","@extra"],
+        "wristAccessory":["stacked spiked leather wristbands","@primary"],
+        "ringAccessory":["stacked {c} rings","@extra"],
+        "earAccessory":["stacked ear piercings with a fine linking chain","@extra"],
+        "thighAccessory":["studded thigh strap with hanging chains","@primary"],
+        "hipAccessory":["heavy chains on the belt looped to the hip","@extra"]},
+      details:{"detailTwo":"deliberately torn edges","detailThree":"distressed {c} blackletter logo print"},dcol:{"detailThree":"@extra"}},
+    more:[
+      {oname:"Plaid and warmers",look:"edgy",items:{
+        "top":["oversized band tee with safety pins and frayed edges","@primary"],
+        "bottom":["plaid mini skirt","@accent"],
+        "gloves":["{c}-and-{c2} striped fingerless arm warmers","@primary","","@extra"],
+        "legwear":["fishnet tights","@primary"],
+        "neckAccessory":["spiked choker","@primary"],
+        "earAccessory":["chain-link ear cuffs","@extra"],
+        "thighAccessory":["buckled thigh strap with a heart-shaped ring","@extra"]},
+        details:{},dcol:{}},
+      {oname:"Studded jacket",look:"edgy",items:{
+        "top":["cropped band tank top","@primary"],
+        "outerwear":["cropped studded leather jacket covered in enamel pins","@primary"],
+        "bottom":["shorts with zipper details","@third"],
+        "belt":["utility belt with small pouches","brown"],
+        "neckAccessory":["chain necklace","@extra"],
+        "wristAccessory":["chain bracelet","@extra"],
+        "eyewear":["rimless glasses","-"],
+        "ringAccessory":["stacked {c} rings","@extra"],
+        "earAccessory":["stacked ear piercings with a fine linking chain","@extra"],
+        "thighAccessory":["studded leather thigh band","@primary"]},
+        details:{},dcol:{}}
+    ]};
+  if(!TEMPLATES.some(t=>t.id===T.id))TEMPLATES.push(T);
+  const sg=PRESET_GROUPS.start.find(g=>g.label==="Stylish");if(sg&&!sg.keys.includes(T.id))sg.keys.push(T.id);
+})();
+
+/* ---- v61: ten beach and ten at-home outfit presets, and presets that follow the palette ---- */
+(function(){
+  const addO=(f,v,t,fam,s)=>{OUTFIT[f]=OUTFIT[f]||[];if(!OUTFIT[f].some(i=>i.v===v)){const it={v,t};if(fam)it.f=fam;if(s)it.s=s;OUTFIT[f].push(it)}};
+  /* beach pieces */
+  addO("outerwear","airy cotton beach dress","CU","resort","s");
+  addO("top","short-sleeve rash guard","CU","resort,sporty","s");
+  addO("top","high-cut one-piece swimsuit with a plunging front","LS","resort,boudoir","s");
+  addO("top","micro triangle bikini top","L","resort,boudoir","s");
+  addO("top","layered body chains over the bare chest","L","boudoir,resort","s");
+  addO("bottom","board shorts","CU","resort,sporty","s");
+  addO("bottom","micro thong bikini bottoms","L","resort,boudoir","s");
+  addO("bottom","sheer sarong tied low on the hips","L","resort,boudoir","s");
+  addO("waistAccessory","delicate body chain draped around the waist","CUS","resort,boudoir","s");
+  /* at-home pieces */
+  addO("top","button-up pajama top","CU","casual,sweet");
+  addO("top","short lace chemise","LS","boudoir");
+  addO("top","sheer mesh teddy with open cut-outs","L","boudoir");
+  addO("top","no clothing at all (fully nude)","L","boudoir");
+  addO("bottom","fleece lounge shorts","CU","casual","w");
+  addO("bottom","matching pajama shorts","CU","casual,sweet");
+  addO("bottom","satin sleep shorts","CUS","boudoir");
+  addO("outerwear","fluffy bathrobe","CU","casual","w");
+  addO("outerwear","small bath towel held loosely in front","L","boudoir");
+  addO("legwear","fuzzy sleep socks","CU","casual,sweet","w");
+  addO("headwear","silk sleep mask pushed up on the forehead","CU","casual,boudoir");
+  addO("headwear","towel wrapped around the hair","CU","casual");
+  addO("headwear","fabric hair scrunchie","CU","casual");
+
+  const P=(id,name,blurb,look,season,adult,pal,items,details)=>({id,name,blurb,look,season,...(adult?{adultOnly:true}:{}),pal:{primary:pal[0],secondary:pal[1],third:pal[2],accent:pal[3],extra:pal[4]},items,details:details||{}});
+  const NEW=[
+    P("bch_cover","Sundress over a swimsuit","One-piece swimsuit under an airy beach dress, sun hat, shell earrings and a straw bag.","resort","s",false,["ivory","sky blue","coral","gold","tan"],
+      {top:["one-piece swimsuit with a scoop back","@secondary"],outerwear:["airy cotton beach dress","auto"],headwear:["wide-brim sun hat","-"],eyewear:["oversized round sunglasses","-"],earAccessory:["shell earrings","-"],wristAccessory:["stacked beaded bracelets","@accent"],legwear:["beaded anklet","@accent"],hipAccessory:["straw beach bag","-"]},{detailTwo:"breezy loose fit"}),
+    P("bch_surf","Surf day","Rash guard, board shorts, sport sunglasses and a shell necklace.","sporty","s",false,["black","teal","coral","white","silver"],
+      {top:["short-sleeve rash guard","auto"],bottom:["board shorts","@secondary"],headwear:["sports headband","@accent"],eyewear:["sport sunglasses","-"],neckAccessory:["shell necklace","-"],wristAccessory:["fitness tracker","@accent"],tagCharm:["zip pull charm","@accent"]},{detailTwo:"athletic fit",detailThree:"swimwear stretch fabric"}),
+    P("bch_ruffle","Ruffle bikini","Frilled halter bikini with a ribbon choker, flower earrings, heart sunglasses and a sun hat.","resort","s",false,["rose pink","white","mint green","coral","gold"],
+      {top:["frilled halter bikini top with a front ribbon tie","auto"],bottom:["frilled bikini bottoms","auto"],headwear:["wide-brim sun hat","-"],eyewear:["heart-shaped sunglasses","@accent"],neckAccessory:["ribbon choker","@accent"],earAccessory:["flower earrings","@accent"],legwear:["beaded anklet","@accent"]},{detailOne:"frilled trim"}),
+    P("bch_sarong","Sarong and triangle top","Triangle bikini top, sarong-style bottoms, a hip sarong and a sheer kimono cover-up. Adult only.","resort","s",true,["white","turquoise","gold","coral","tan"],
+      {top:["triangle bikini top","auto"],bottom:["sarong-style swim bottoms","auto"],waistAccessory:["sarong tied at the hips","@accent"],outerwear:["sheer kimono cover-up","@third"],eyewear:["cat-eye sunglasses","-"],neckAccessory:["shell necklace","-"],earAccessory:["shell earrings","-"],legwear:["beaded anklet","@accent"]}),
+    P("bch_highcut","High-cut swimsuit","High-cut one-piece with a plunging front, a body chain at the waist and hoop earrings, with a wet, clinging finish. Adult only.","resort","s",true,["navy blue","white","coral","gold","silver"],
+      {top:["high-cut one-piece swimsuit with a plunging front","auto"],waistAccessory:["delicate body chain draped around the waist","@accent"],eyewear:["oversized sunglasses","-"],earAccessory:["chunky hoop earrings","@accent"]},{detailThree:"wet clinging fabric"}),
+    P("bch_tie","Side-tie bikini and body chain","Triangle top, side-tie bottoms, a draped body chain, an anklet and sunglasses. Adult only.","resort","s",true,["coral","white","gold","turquoise","tan"],
+      {top:["triangle bikini top","auto"],bottom:["side-tie bikini bottoms","auto"],waistAccessory:["delicate body chain draped around the waist","@accent"],legwear:["beaded anklet","@accent"],eyewear:["oversized round sunglasses","-"]},{detailTwo:"knotted front"}),
+    P("bch_wet","Wet and clinging","Bandeau top and high-cut bottoms in water-soaked, see-through fabric with a shell necklace. Adult only.","resort","s",true,["white","black","sky blue","silver","gold"],
+      {top:["bandeau bikini top","auto"],bottom:["high-cut bikini bottoms","auto"],neckAccessory:["shell necklace","-"],eyewear:["sunglasses","-"]},{detailThree:"water-soaked see-through fabric"}),
+    P("bch_string","String bikini","String halter top and string bottoms with a waist chain and an anklet. Adult only.","resort","s",true,["black","crimson red","gold","white","silver"],
+      {top:["string halter top","auto"],bottom:["string bikini bottoms","auto"],waistAccessory:["delicate body chain draped around the waist","@accent"],legwear:["beaded anklet","@accent"],eyewear:["sunglasses","-"]}),
+    P("bch_micro","Micro bikini","Micro triangle top and micro thong bottoms in a wet, clinging finish with a waist chain. Adult only.","resort","s",true,["neon pink","black","electric blue","white","silver"],
+      {top:["micro triangle bikini top","auto"],bottom:["micro thong bikini bottoms","auto"],waistAccessory:["delicate body chain draped around the waist","@accent"],legwear:["beaded anklet","@accent"],eyewear:["sunglasses","-"]},{detailThree:"wet clinging fabric"}),
+    P("bch_bare","Chains and a sheer sarong","Layered body chains across the bare chest and a sheer sarong tied low, with nothing else. Adult only.","resort","s",true,["white","gold","turquoise","coral","sand"],
+      {top:["layered body chains over the bare chest","@accent"],bottom:["sheer sarong tied low on the hips","auto"],waistAccessory:["delicate body chain draped around the waist","@accent"],legwear:["beaded anklet","@accent"],eyewear:["oversized round sunglasses","-"]}),
+
+    P("home_cozy","Cozy sweater and socks","Oversized knit, fleece lounge shorts, fuzzy socks and a hair scrunchie.","casual","w",false,["cream","dusty rose","camel","sage green","chocolate brown"],
+      {top:["oversized cotton sweater","auto"],bottom:["fleece lounge shorts","auto"],legwear:["fuzzy sleep socks","@accent"],headwear:["fabric hair scrunchie","@accent"]},{detailThree:"ribbed knit texture"}),
+    P("home_pj","Pajama set","Button-up pajama top and matching shorts, fuzzy socks and a sleep mask pushed up.","casual","",false,["lavender","white","powder blue","soft pink","silver"],
+      {top:["button-up pajama top","auto"],bottom:["matching pajama shorts","auto"],legwear:["fuzzy sleep socks","@third"],headwear:["silk sleep mask pushed up on the forehead","@accent"]},{detailOne:"contrast piping"}),
+    P("home_robe","Bathrobe and hair towel","Fluffy bathrobe over a ribbed tank, with a towel wrapped around wet hair and fuzzy socks.","casual","w",false,["white","sage green","cream","blush pink","tan"],
+      {top:["ribbed knit tank top","auto"],outerwear:["fluffy bathrobe","auto"],headwear:["towel wrapped around the hair","@third"],legwear:["fuzzy sleep socks","@accent"]}),
+    P("home_satin","Satin sleep set","Satin camisole, satin sleep shorts and a satin robe. Adult only.","boudoir","",true,["champagne","black","blush pink","rose gold","gold"],
+      {top:["satin camisole","auto"],bottom:["satin sleep shorts","auto"],outerwear:["satin robe","@third"],headwear:["silk sleep mask pushed up on the forehead","@accent"]}),
+    P("home_shirt","Oversized shirt and nothing else","Open oversized button-up shirt over cotton panties. Adult only.","boudoir","",true,["white","light blue","black","silver","gold"],
+      {top:["oversized open button-up shirt","auto"],panties:["cotton bikini panties","@third"]},{detailTwo:"one shoulder slipping off"}),
+    P("home_chemise","Lace chemise and robe","Short lace chemise, sheer lace robe and a lace thong. Adult only.","boudoir","",true,["ivory","black","burgundy","rose gold","silver"],
+      {top:["short lace chemise","auto"],outerwear:["sheer lace robe","@third"],panties:["lace thong","@accent"]}),
+    P("home_lingerie","Lace lingerie set","Lace balconette bra, string thong, garter-strap stockings and a lace choker. Adult only.","boudoir","",true,["black","burgundy","charcoal gray","crimson red","silver"],
+      {bra:["lace balconette bra","auto"],panties:["string thong","auto"],legwear:["garter-strap stockings with lace tops","@secondary"],neckAccessory:["lace choker","@accent"]}),
+    P("home_teddy","Sheer teddy","Sheer mesh teddy with open cut-outs, seamed thigh-highs and a velvet choker. Adult only.","boudoir","",true,["wine","black","mauve","gold","silver"],
+      {top:["sheer mesh teddy with open cut-outs","auto"],legwear:["sheer seamed thigh-high stockings","@secondary"],neckAccessory:["velvet choker","@accent"]}),
+    P("home_towel","Just a towel","A small bath towel held loosely in front, with nothing else. Adult only.","boudoir","",true,["white","blush pink","cream","gold","tan"],
+      {outerwear:["small bath towel held loosely in front","@primary"]}),
+    P("home_nude","Nothing at all","No clothing, with only stud earrings and thin rings. Adult only.","boudoir","",true,["rose gold","black","blush pink","ivory","gold"],
+      {top:["no clothing at all (fully nude)","-"],earAccessory:["simple stud earrings","-"],ringAccessory:["thin rings","-"]})
+  ];
+  ["home_shirt","home_chemise","home_lingerie"].forEach(id=>{const p=NEW.find(x=>x.id===id);p.showUnder=true});
+  const COLOR_WORDS=()=>COLOR_RX;
+  NEW.forEach(p=>{
+    Object.entries(p.items).forEach(([f,[v]])=>{
+      if(!(OUTFIT[f]||[]).some(i=>i.v===v))throw new Error("preset "+p.id+": missing item "+f+" / "+v);
+      if(COLOR_WORDS().test(v))throw new Error("color word in item name: "+v)});
+    Object.values(p.pal).forEach(n=>{if(!COLORS[n])throw new Error("unknown palette color "+n)});
+    if(!OUTFIT_PRESETS.some(x=>x.id===p.id))OUTFIT_PRESETS.push(p);
+  });
+  PRESET_GROUPS.outfit.push({label:"Beach, cute to bare",keys:NEW.filter(p=>/^bch_/.test(p.id)).map(p=>p.id)});
+  PRESET_GROUPS.outfit.push({label:"At home, cozy to nude",keys:NEW.filter(p=>/^home_/.test(p.id)).map(p=>p.id)});
+})();
+
+/* ---- v61: every outfit preset carries its own five-color palette and follows yours ----
+   Fixed color names become palette slots. Metals and leathers stay as they are.
+   Loading a preset fills only the palette slots you left empty. */
+const PRESET_PAL={
+  cafe:["cream","chocolate brown","camel","dusty rose","silver"],
+  preppy:["navy blue","cream","burgundy","forest green","gold"],
+  picnic:["ivory","sage green","dusty rose","peach","gold"],
+  velvet:["black","burgundy","plum","silver","gold"],
+  punk:["black","crimson red","charcoal gray","silver","white"],
+  neon:["black","electric blue","hot pink","neon green","silver"],
+  gown:["black","ivory","silver","gold","white"],
+  beach:["ivory","turquoise","coral","tan","gold"],
+  gym:["charcoal gray","black","hot pink","electric blue","white"],
+  sugar:["baby pink","white","baby blue","lavender","gold"],
+  cuddle:["cream","lavender","powder blue","peach","soft pink"],
+  lewdlace:["black","burgundy","charcoal gray","crimson red","silver"],
+  lewdlatex:["black","crimson red","charcoal gray","silver","electric purple"]
+};
+let _presetsReady=false;
+function preparePresets(){
+  if(_presetsReady)return;_presetsReady=true;
+  const KEEP=/^(gold|silver|brass|bronze|copper|brown|tan|khaki|beige|camel|chocolate brown|antique gold|metallic gold|rose gold|platinum|champagne gold)$/i;
+  const COMPOUND=/ and |-and-|plaid|striped|print/i;
+  const SK=["primary","secondary","third","accent","extra"];
+  const al=n=>({navy:"navy blue",ruby:"ruby red"})[String(n).toLowerCase()]||String(n).toLowerCase();
+  const hx=n=>hexFor(n)||Sprite.hexFor(n)||"";
+  const palOf=a=>a?Object.fromEntries(SK.map((k,i)=>[k,a[i]])):null;
+  const REFT={ref_pp_:"serpentrobes",ref_gv_:"goldenveil",ref_va_:"vaporblue",ref_ee_:"eevee",ref_jo_:"jolteon",ref_fl_:"flareon",ref_es_:"espeon",ref_um_:"umbreon",ref_le_:"leafeon",ref_gl_:"glaceon",ref_sy_:"sylveon",ref_bluebikini:"seasidebluehair",ref_sunhat:"lilacsunhat",ref_holobunny:"lilacsunhat"};
+  const tplPal=p=>{const rk=Object.keys(REFT).find(k=>p.id.startsWith(k));if(rk){const t=TEMPLATES.find(x=>x.id===REFT[rk]);if(t)return t.pal}
+    if(!/^ref_/.test(p.id)||!Object.values(p.items).some(it=>[1,3].some(i=>typeof it[i]==="string"&&it[i][0]==="@")))return null;let best=null,bn=0;TEMPLATES.forEach(t=>{const its=t.outfit&&t.outfit.items||{};let n=0;Object.entries(p.items).forEach(([f,it])=>{if(its[f]&&its[f][0]===it[0])n++});if(n>bn){bn=n;best=t}});return best&&bn?best.pal:null};
+  const litOf=v=>typeof v==="string"&&v&&v!=="-"&&v!=="auto"&&v[0]!=="@"&&!KEEP.test(v)&&!COMPOUND.test(v);
+  /* keep the five slots distinct: reorder so alike colors are not both primary and secondary, and fold in a color that is nearly the same as another */
+  const lim=(i,j)=>(i+j===1)?85:45;
+  const viol=a=>{let n=0;for(let i=0;i<5;i++)for(let j=i+1;j<5;j++){const x=a[i]&&hx(a[i]),y=a[j]&&hx(a[j]);if(x&&y&&colorDist(x,y)<lim(i,j))n++}return n};
+  const assigns=n=>{const out=[];const go=(cur,used)=>{if(cur.length===n){out.push(cur);return}for(let s=0;s<5;s++)if(!used.has(s))go(cur.concat(s),new Set([...used,s]))};go([],new Set());return out};
+  /* a sparse five-slot list: colors may skip a slot (for example primary and third) so alike colors are not neighbours */
+  const spread=top=>{
+    top=top.map(al);
+    for(let i=0;i<top.length;i++)for(let j=top.length-1;j>i;j--){const x=hx(top[i]),y=hx(top[j]);if(x&&y&&colorDist(x,y)<30)top.splice(j,1)}
+    const best=assigns(top.length).map(as=>{const a=[];as.forEach((sl,k)=>{a[sl]=top[k]});return{a,v:viol(a),d:as.reduce((s,v,k)=>s+Math.abs(v-k),0)}}).sort((x,y)=>x.v-y.v||x.d-y.d)[0];
+    return best.a;
+  };
+  OUTFIT_PRESETS.forEach(p=>{
+    const refs=[];
+    Object.values(p.items).forEach(it=>{[1,3].forEach(i=>{if(litOf(it[i]))refs.push([it,i])})});
+    Object.keys(p.dcol||{}).forEach(f=>{if(litOf(p.dcol[f]))refs.push([p.dcol,f])});
+    let pal=p.pal||palOf(PRESET_PAL[p.id])||tplPal(p);
+    if(!refs.length){if(pal&&!p.pal)p.pal=pal;return}
+    const get=r=>r[0][r[1]];
+    if(!pal){
+      const cnt={};refs.forEach(r=>{const k=al(get(r));cnt[k]=(cnt[k]||0)+1});
+      let top=Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x]).slice(0,5);
+      top=spread(top);
+      pal=Object.fromEntries(SK.map((k,i)=>[k,top[i]||""]));
+    }
+    const near=n=>{n=al(n);const h0=hx(n);let best="",bd=1e9;SK.forEach(k=>{if(!pal[k])return;if(String(pal[k]).toLowerCase()===String(n).toLowerCase()){best=k;bd=-1;return}if(bd<0)return;const d=h0&&hx(pal[k])?colorDist(h0,hx(pal[k])):1e9;if(d<bd){bd=d;best=k}});return{k:best,d:bd}};
+    refs.forEach(r=>{const n=near(get(r));if(n.k&&(n.d<=70||!p.pal&&!PRESET_PAL[p.id]&&!tplPal(p)))r[0][r[1]]="@"+n.k});
+    p.pal=pal;
+  });
+}
+/* ---- v62: ten beach starting points, one for each beach outfit preset, and the options they need ---- */
+(function(){
+  const addC=(f,v,g)=>{CHAR[f]=CHAR[f]||[];if(!CHAR[f].some(x=>x[0]===v))CHAR[f].push([v,g])};
+  const addO=(f,v,t,fam,s,g)=>{OUTFIT[f]=OUTFIT[f]||[];if(!OUTFIT[f].some(i=>i.v===v)){const it={v,t};if(fam)it.f=fam;if(s)it.s=s;if(g)it.g=g;OUTFIT[f].push(it)}};
+
+  /* character options */
+  addC("impression","a stunning, sun-kissed beauty with Brazilian heritage and a radiant, carefree glow","Heritage");
+  addC("impression","a strikingly beautiful, athletic island beauty with Polynesian and Pacific Islander heritage","Heritage");
+  addC("impression","a flawlessly beautiful, camera-ready glow with Korean heritage","Heritage");
+  addC("impression","a graceful, radiant island beauty with Thai and Vietnamese heritage","Heritage");
+  addC("impression","a sophisticated, effortlessly stunning beauty with Southern European (Italian, Spanish and Greek) heritage","Heritage");
+  addC("impression","a dazzling, carnival-bright beauty with Afro-Caribbean heritage","Heritage");
+  addC("impression","an ethereal, mesmerizing beauty with Northern European (Scandinavian) heritage","Heritage");
+  addC("impression","a magnetic, golden-hour beauty with North Indian and Punjabi heritage","Heritage");
+  addC("impression","a vivid, head-turning beauty with Mexican and Central American (Mestiza) heritage","Heritage");
+  addC("impression","a regal, radiant beauty with North African (Berber and Egyptian) heritage","Heritage");
+  addC("skinFinish","sun-bronzed skin with a soft salt-water sheen","Glow and sheen");
+  addC("hairTexture","wet and glossy","Texture");
+  addC("hairTexture","salt-tousled waves","Texture");
+  addC("hairMovement","falls in damp, sleek strands over the shoulders","Natural and realistic");
+  addC("hairBlend","sun-bleached ends fading from the darker roots","Color blending");
+  addC("expression","relaxed, sun-drenched smile","Natural");
+  addC("expression","radiant, head-tilted smile","Natural");
+  addC("makeupStyle","sun-bronzed makeup","Natural and realistic");
+  addC("makeupStyle","golden-hour glow makeup","Natural and realistic");
+  addC("faceAccents","a stripe of zinc sunscreen across the nose","Natural");
+
+  /* outfit options */
+  addO("earAccessory","{c} jhumka-style bell earrings","CUS","resort,cottage",null,"Earrings");
+  addO("headwear","slim headband with a small sun-disc ornament","CU","resort");
+  addO("neckAccessory","wide beaded collar necklace","US","resort");
+
+  const SOFT_P=(k,over)=>Object.assign({},HERITAGE[k].v,over);
+  const B=(id,name,blurb,pal,c,body,items,details,dcol,look)=>({id,name,blurb,adultOnly:true,pal:{primary:pal[0],secondary:pal[1],third:pal[2],accent:pal[3],extra:pal[4]},c:(Object.assign(c,{age:"woman",_body:body}),["irisDetail","pupilStyle"].forEach(k=>{if(c[k]==="")delete c[k]}),c),outfit:{oname:"Beach",look:look||"resort",items,details:details||{},dcol:dcol||{}}});
+
+  const NEWT=[
+   B("carioca","Carioca","Rio beach beauty in a sundress over her swimsuit: sun-streaked chestnut waves, honey-brown eyes, golden-tan skin, shell earrings, a sun hat and a straw bag.",
+     ["ivory","sky blue","coral","gold","tan"],
+     SOFT_P("brazilian",{irisDetail:"",pupilStyle:"",impression:"a stunning, sun-kissed beauty with Brazilian heritage and a radiant, carefree glow",expression:"radiant, head-tilted smile",faceShape:"heart-shaped face with high cheekbones and a tapered chin",
+       eyeOne:"honey brown",eyeTwo:"honey brown",hairStyle:"long wavy hair",hairLength:"mid-back length",hairTexture:"beachy waves",bangs:"long face-framing pieces",hairMovement:"is tossed gently by a breeze",
+       hairBase:"chestnut brown",hairHighlights:"golden blonde",hairBlend:"sun-bleached ends fading from the darker roots",skinTone:"golden tan",skinFinish:"sun-bronzed skin with a soft salt-water sheen",
+       markings:"light freckles across the nose",makeupStyle:"sun-bronzed makeup",lipFinish:"glossy lips",blushStyle:"soft sun-kissed blush"}),
+     "bottomHeavy",
+     {top:["one-piece swimsuit with a scoop back","@secondary"],outerwear:["airy cotton beach dress","auto"],headwear:["wide-brim sun hat","-"],eyewear:["oversized round sunglasses","-"],earAccessory:["shell earrings","-"],wristAccessory:["stacked beaded bracelets","@accent"],legwear:["beaded anklet","@accent"],hipAccessory:["straw beach bag","-"]},
+     {detailTwo:"breezy loose fit"}),
+
+   B("surfer","Pacific surfer","A strong, sun-bronzed Pacific Islander surfer: long black hair in a wet braided ponytail, a zinc stripe on the nose, a rash guard, board shorts and a shell necklace.",
+     ["black","teal","coral","white","silver"],
+     SOFT_P("polynesian",{impression:"a strikingly beautiful, athletic island beauty with Polynesian and Pacific Islander heritage",expression:"bright cheerful expression",
+       hairStyle:"low braided ponytail",hairLength:"hip-length",hairTexture:"wet and glossy",bangs:"open forehead",hairMovement:"falls in damp, sleek strands over the shoulders",hairBase:"jet black",
+       skinFinish:"sun-bronzed skin with a soft salt-water sheen",skinTone:"golden brown",makeupStyle:"minimal makeup",faceAccents:"a stripe of zinc sunscreen across the nose",lipFinish:"natural lip finish",nailStyle:"short rounded fingernails",nailColor:"@accent"}),
+     "strongCurvy",
+     {top:["short-sleeve rash guard","auto"],bottom:["board shorts","@secondary"],headwear:["sports headband","@accent"],eyewear:["sport sunglasses","-"],neckAccessory:["shell necklace","-"],wristAccessory:["fitness tracker","@accent"],tagCharm:["zip pull charm","@accent"]},
+     {detailTwo:"athletic fit",detailThree:"swimwear stretch fabric"},{},"sporty"),
+
+   B("holidayidol","Holiday idol","A Korean pop idol on vacation: glass-skin glow, rose-pink ombre ends, ribbon choker, flower earrings, heart sunglasses and a frilled halter bikini.",
+     ["rose pink","white","mint green","coral","gold"],
+     SOFT_P("korean",{impression:"a flawlessly beautiful, camera-ready glow with Korean heritage",expression:"gentle smile",
+       hairStyle:"high half-up ponytail",hairLength:"waist-length",hairTexture:"silky straight",bangs:"see-through wispy bangs",hairMovement:"flows softly past the waist",hairBase:"jet black",hairUnderlayer:"@primary",hairBlend:"a seamless ombre between the colors",
+       skinTone:"porcelain",skinFinish:"dewy skin",makeupStyle:"idol makeup",eyelinerStyle:"thin winged eyeliner",eyeshadowStyle:"shimmer eyeshadow",lipFinish:"glass-like gloss",blushStyle:"soft cheek blush",faceAccents:"luminous highlighting",nailStyle:"long almond fingernails",nailColor:"@primary",makeupColor:"@primary",lashNatural:"long, thick dark eyelashes"}),
+     "pinup",
+     {top:["frilled halter bikini top with a front ribbon tie","auto"],bottom:["frilled bikini bottoms","auto"],headwear:["wide-brim sun hat","-"],eyewear:["heart-shaped sunglasses","@accent"],neckAccessory:["ribbon choker","@accent"],earAccessory:["flower earrings","@accent"],legwear:["beaded anklet","@accent"]},
+     {detailOne:"frilled trim"}),
+
+   B("andaman","Andaman islander","A Thai and Vietnamese island beauty at sunset: long black hair with a flower clip, golden-beige skin, a triangle bikini, a hip sarong, a sheer kimono cover-up and shell jewelry.",
+     ["white","turquoise","gold","coral","tan"],
+     SOFT_P("thai",{impression:"a graceful, radiant island beauty with Thai and Vietnamese heritage",expression:"relaxed, sun-drenched smile",
+       hairStyle:"long straight hair",hairLength:"hip-length",bangs:"center-parted front pieces",hairMovement:"falls smoothly down the back",hairBase:"jet black",
+       skinFinish:"sun-bronzed skin with a soft salt-water sheen",finishColor:"",makeupStyle:"golden-hour glow makeup",eyelinerStyle:"soft eyeliner",lipFinish:"glossy lips",faceAccents:"soft pearl shimmer",nailStyle:"long almond fingernails",nailColor:"@accent",makeupColor:"@accent"}),
+     "petiteCurved",
+     {top:["triangle bikini top","auto"],bottom:["sarong-style swim bottoms","auto"],waistAccessory:["sarong tied at the hips","@accent"],outerwear:["sheer kimono cover-up","@third"],headwear:["flower hair clip","@accent"],eyewear:["cat-eye sunglasses","-"],neckAccessory:["shell necklace","-"],earAccessory:["shell earrings","-"],legwear:["beaded anklet","@accent"]}),
+
+   B("riviera","Riviera swimmer","A Southern European yacht-club beauty: hazel eyes, olive skin, a glossy twisted chignon, a high-cut navy swimsuit with a plunging front, a gold waist chain and hoop earrings.",
+     ["navy blue","white","coral","gold","silver"],
+     SOFT_P("mediterranean",{impression:"a sophisticated, effortlessly stunning beauty with Southern European (Italian, Spanish and Greek) heritage",expression:"confident smile",
+       eyeOne:"hazel",eyeTwo:"hazel",hairStyle:"twisted chignon",hairLength:"long",hairTexture:"wet and glossy",bangs:"long face-framing pieces",hairMovement:"frames the face in soft layers",hairBase:"dark brown",
+       skinTone:"olive",skinFinish:"sun-bronzed skin with a soft salt-water sheen",makeupStyle:"classic glam makeup",eyelinerStyle:"classic winged eyeliner",lipFinish:"glossy lips",blushStyle:"soft sun-kissed blush",nailStyle:"long almond fingernails",nailColor:"@third",makeupColor:"@third"}),
+     "longLegged",
+     {top:["high-cut one-piece swimsuit with a plunging front","auto"],waistAccessory:["delicate body chain draped around the waist","@accent"],eyewear:["oversized sunglasses","-"],earAccessory:["chunky hoop earrings","@accent"]},
+     {detailThree:"wet clinging fabric"}),
+
+   B("calypso","Calypso","An Afro-Caribbean carnival beauty: gold-threaded box braids, deep warm brown skin, a coral side-tie bikini, a turquoise body chain and anklet, and a dazzling smile.",
+     ["coral","white","gold","turquoise","tan"],
+     SOFT_P("caribbean",{impression:"a dazzling, carnival-bright beauty with Afro-Caribbean heritage",expression:"laughing expression",
+       faceShape:"heart-shaped face with high cheekbones and a tapered chin",eyeShape:"large, striking eyes",
+       hairStyle:"box braids",hairLength:"waist-length",hairTexture:"glossy",bangs:"open forehead",hairMovement:"falls smoothly down the back",hairBase:"dark brown",hairHighlights:"@third",
+       skinTone:"deep warm brown",skinFinish:"natural skin texture with a deep, rich glow",makeupStyle:"golden-hour glow makeup",eyeshadowStyle:"shimmer eyeshadow",lipFinish:"glossy lips",faceAccents:"luminous highlighting",nailStyle:"long almond fingernails",nailColor:"@primary",makeupColor:"@third"}),
+     "curvy",
+     {top:["triangle bikini top","auto"],bottom:["side-tie bikini bottoms","auto"],waistAccessory:["delicate body chain draped around the waist","@accent"],legwear:["beaded anklet","@accent"],eyewear:["oversized round sunglasses","-"]},
+     {detailTwo:"knotted front"}),
+
+   B("seasiren","Sea siren","A pale Nordic siren rising from the surf: platinum hair soaked sleek, sky-blue eyes, silver-and-pearl sheen, a white bandeau top and black high-cut bottoms in water-soaked, see-through fabric.",
+     ["white","black","sky blue","silver","gold"],
+     SOFT_P("nordic",{subjectType:"siren",impression:"an ethereal, mesmerizing beauty with Northern European (Scandinavian) heritage",expression:"serene expression",
+       eyeOne:"@third",eyeTwo:"@third",hairStyle:"long straight hair",hairLength:"hip-length",hairTexture:"wet and glossy",bangs:"center-parted front pieces",hairMovement:"falls in damp, sleek strands over the shoulders",hairBase:"platinum blonde",hairHighlights:"@third",
+       skinTone:"pale ivory",skinFinish:"a pearlescent {c} sheen",finishColor:"@accent",makeupStyle:"mermaidcore makeup",eyelinerStyle:"thin winged eyeliner",lipFinish:"wet glossy lips",faceAccents:"soft pearl shimmer",nailStyle:"long almond fingernails",nailColor:"@secondary",makeupColor:"@third"}),
+     "delicateTop",
+     {top:["bandeau bikini top","auto"],bottom:["high-cut bikini bottoms","auto"],neckAccessory:["shell necklace","-"]},
+     {detailThree:"water-soaked see-through fabric"}),
+
+   B("goasunset","Goa sunset","A North Indian beauty at a beach party: long glossy black waves, gold jhumka earrings, kohl-lined eyes, and a crimson string bikini with a gold waist chain and anklet.",
+     ["black","crimson red","white","gold","silver"],
+     SOFT_P("northindian",{irisDetail:"",pupilStyle:"",impression:"a magnetic, golden-hour beauty with North Indian and Punjabi heritage",expression:"confident smile",
+       hairStyle:"long wavy hair",hairLength:"hip-length",hairTexture:"thick, glossy waves",hairBase:"@primary",
+       skinFinish:"sun-bronzed skin with a soft salt-water sheen",makeupStyle:"golden-hour glow makeup",eyelinerStyle:"cat-eye eyeliner",makeupColor:"@accent"}),
+     "hourglassWide",
+     {top:["string halter top","@secondary"],bottom:["string bikini bottoms","@secondary"],waistAccessory:["delicate body chain draped around the waist","@accent"],legwear:["beaded anklet","@accent"],earAccessory:["{c} jhumka-style bell earrings","@accent"],eyewear:["sunglasses","-"]}),
+
+   B("neoncove","Neon night swim","A Mexican and Central American party-goer at a midnight beach rave: jet-black hair with an electric-blue underlayer, neon-pink glow, a wet micro bikini and a waist chain.",
+     ["neon pink","black","electric blue","white","silver"],
+     SOFT_P("mestiza",{impression:"a vivid, head-turning beauty with Mexican and Central American (Mestiza) heritage",expression:"playful smile",
+       hairStyle:"high ponytail",hairLength:"waist-length",hairTexture:"wet and glossy",bangs:"curtain bangs",hairMovement:"flows dramatically behind her",hairBase:"@secondary",hairUnderlayer:"@third",hairBlend:"distinct color blocking between the layers",
+       skinFinish:"sun-bronzed skin with a soft salt-water sheen",makeupStyle:"neon cyberpunk makeup",eyelinerStyle:"graphic eyeliner",eyeshadowStyle:"metallic eyeshadow",lipFinish:"high-shine lips",faceAccents:"sparkling rhinestone accents",nailStyle:"long coffin fingernails",nailColor:"@primary",makeupColor:"@primary"}),
+     "bombshell",
+     {top:["micro triangle bikini top","auto"],bottom:["micro thong bikini bottoms","auto"],waistAccessory:["delicate body chain draped around the waist","@accent"],legwear:["beaded anklet","@accent"],eyewear:["sunglasses","-"]},
+     {detailThree:"wet clinging fabric"}),
+
+   B("sunpriestess","Nile sun priestess","A North African beauty dressed as a desert sun priestess at the shore: kohl and gold-lined eyes, a wide beaded collar, a sun-disc headband, layered gold chains and a sheer turquoise sarong.",
+     ["white","turquoise","coral","gold","sand"],
+     SOFT_P("maghrebi",{irisDetail:"",pupilStyle:"",impression:"a regal, radiant beauty with North African (Berber and Egyptian) heritage",expression:"serene divine smile",
+       hairStyle:"long straight hair",hairLength:"waist-length",hairTexture:"sleek",bangs:"center-parted front pieces",hairMovement:"falls smoothly down the back",hairBase:"jet black",
+       skinTone:"warm tan",skinFinish:"sun-bronzed skin with a soft salt-water sheen",makeupStyle:"editorial makeup",eyelinerStyle:"graphic eyeliner",eyeshadowStyle:"metallic eyeshadow",makeupColor:"@accent"}),
+     "statuesque",
+     {top:["layered body chains over the bare chest","@accent"],bottom:["sheer sarong tied low on the hips","auto"],waistAccessory:["delicate body chain draped around the waist","@accent"],headwear:["slim headband with a small sun-disc ornament","@accent"],neckAccessory:["wide beaded collar necklace","@third"],wristAccessory:["armlets","@accent"],legwear:["beaded anklet","@accent"]},
+     {},{}, "resort")
+  ];
+  NEWT.forEach(t=>{if(!TEMPLATES.some(x=>x.id===t.id))TEMPLATES.push(t)});
+  const grp=PRESET_GROUPS.start.find(g=>g.label==="Beach beauties");
+  if(!grp)PRESET_GROUPS.start.push({label:"Beach beauties",keys:NEWT.map(t=>t.id)});
+  else NEWT.forEach(t=>{if(!grp.keys.includes(t.id))grp.keys.push(t.id)});
+})();
+
+/* ---- v63: cultural outfit presets, a cute and a sexy one for every heritage, and the pieces they need ---- */
+(function(){
+  const addO=(f,v,t,fam,s,g)=>{OUTFIT[f]=OUTFIT[f]||[];if(!OUTFIT[f].some(i=>i.v===v)){const it={v,t};if(fam)it.f=fam;if(s)it.s=s;if(g)it.g=g;OUTFIT[f].push(it)}};
+  const CU="CU",XS="US";
+  /* pieces (tagged "cultural" so the outfit randomizer keeps drawing from the same pool as before) */
+  const N=[
+   /* tops and dresses, cute */
+   ["top","linen folk dress with an embroidered bodice",CU],["top","dirndl dress with a laced bodice and a full skirt",CU],["top","embroidered blouse with puffed sleeves",CU],
+   ["top","eyelet sundress with a square neckline",CU],["top","embroidered kaftan dress with wide sleeves",CU],["top","embroidered tunic with wide sleeves",CU],
+   ["top","handwoven striped wrap dress with a tie waist",CU],["top","short embroidered kurta with side slits",CU],["top","fitted silk blouse with short sleeves",CU],
+   ["top","cotton saree with a bold woven border",CU],["top","long embroidered kameez tunic",CU],["top","wrap-front wool dress with a high collar",CU],
+   ["top","cross-collar hanfu-style blouse with wide sleeves",CU],["top","cotton yukata with a bow-tied obi",CU],["top","short hanbok-style jacket with long ribbon ties",CU],
+   ["top","embroidered wool deel-style dress with a wrapped front",CU],["top","butterfly-sleeve blouse with stiff puffed sleeves",CU],["top","fitted ao dai tunic with side slits",CU],
+   ["top","fitted lace kebaya blouse",CU],["top","fitted wax-print peplum top",CU],["top","cotton dress with a woven embroidered border",CU],
+   ["top","shweshwe-print cotton dress with a flared skirt",CU],["top","madras-print fitted dress with a flared skirt",CU],["top","polka-dot swing dress with a sweetheart neckline",CU],
+   ["top","off-shoulder blouse with floral embroidery",CU],["top","alpaca-knit sweater with a patterned yoke",CU],["top","ruffled off-shoulder top with a tie front",CU],
+   ["top","ruffled off-shoulder rumba top",CU],["top","beadwork-trimmed fringed suede dress",CU],["top","tropical-print halter dress",CU],
+   ["top","tiered cotton sundress with a woven border pattern",CU],["top","mandarin-collar silk blouse with frog buttons",CU],["top","fitted blouse with woven kente-style trim",CU],
+   ["top","embroidered linen dress with a tie waist",CU],["top","off-shoulder blouse with a stand collar",CU],
+   /* tops and dresses, sexy */
+   ["top","cropped Nordic-pattern knit top with a deep neckline",XS],["top","laced tartan corset top",XS],["top","plunging dirndl dress with a laced bodice and a short skirt",XS],
+   ["top","short embroidered sarafan dress with a plunging laced neckline",XS],["top","one-shoulder Grecian drape dress with a high slit",XS],["top","embroidered cropped kaftan top with a deep neckline",XS],
+   ["top","cropped brocade bolero top with a plunging neckline",XS],["top","velvet embroidered cropped jacket worn open",XS],["top","pleated linen sheath dress with a plunging neckline and a high slit",XS],
+   ["top","embroidered backless choli top",XS],["top","silk saree draped low over a backless blouse",XS],["top","sheer silk saree draped low over a cropped halter blouse",XS],
+   ["top","short embroidered kameez dress with high side slits",XS],["top","short wool wrap dress with a deep neckline",XS],["top","short-sleeve qipao dress with a high slit and a keyhole neckline",XS],
+   ["top","short kimono-style wrap dress with a plunging neckline",XS],["top","cropped hanbok-style top with a plunging neckline",XS],["top","short silk deel-style wrap dress with a deep neckline",XS],
+   ["top","cropped butterfly-sleeve top with a plunging neckline",XS],["top","silk sabai shoulder wrap over a fitted tube top",XS],["top","sheer lace kebaya with a plunging neckline",XS],
+   ["top","wax-print corset top",XS],["top","sheer lightweight dirac-style dress with a deep neckline",XS],["top","beaded bandeau top",XS],
+   ["top","beaded carnival bikini top with feather accents",XS],["top","fringed beaded flapper dress with a plunging neckline",XS],["top","embroidered crop top with a deep scooped neckline",XS],
+   ["top","cropped patterned knit top with a deep neckline",XS],["top","sequin bikini top with feathered shoulder pieces",XS],["top","knotted ruffle crop top",XS],
+   ["top","fringed suede mini dress with a plunging beadwork neckline",XS],["top","bandeau top with beaded trim",XS],["top","cropped fur-trimmed parka top with an open front",XS],
+   ["top","woven-fiber-trimmed halter top",XS],["top","corset-style qipao crop top",XS],["top","plunging tailored vest top with woven trim",XS],
+   ["top","silk slip dress with a deep neckline",XS],["top","off-shoulder crop top with a stand collar",XS],
+   /* bottoms */
+   ["bottom","dirndl skirt with a full gathered hem",CU],["bottom","tapered silk trousers",CU],["bottom","gathered harem pants",CU],["bottom","wide palazzo pants",CU],
+   ["bottom","silk pavadai skirt with a woven border",CU],["bottom","slim cotton shalwar trousers",CU],["bottom","high-waisted pleated hanfu-style skirt",CU],
+   ["bottom","full high-waisted hanbok-style skirt",CU],["bottom","tiered patterned skirt",CU],["bottom","wide silk trousers",CU],["bottom","batik wrap skirt",CU],
+   ["bottom","wax-print wrap skirt",CU],["bottom","tiered ruffled skirt with ribbon trim",CU],["bottom","layered pollera-style skirt",CU],["bottom","tiered ruffle samba skirt",CU],
+   ["bottom","long ruffle-tiered skirt",CU],
+   ["bottom","high-slit wool wrap skirt",XS],["bottom","short tartan kilt with a high side slit",XS],["bottom","high-slit embroidered skirt",XS],["bottom","sheer flowing silk skirt with a high slit",XS],
+   ["bottom","sheer-panelled harem pants",XS],["bottom","low-waisted flared lehenga skirt",XS],["bottom","fitted slim trousers",XS],["bottom","sheer layered hanbok-style skirt with a high slit",XS],
+   ["bottom","high-slit patterned wrap skirt",XS],["bottom","wrapped silk skirt with a high slit",XS],["bottom","high-slit batik sarong skirt",XS],["bottom","high-slit wax-print mermaid skirt",XS],
+   ["bottom","high-cut carnival bikini bottoms with feather trim",XS],["bottom","high-slit tiered ruffle skirt",XS],["bottom","short layered pollera-style skirt",XS],["bottom","high-cut sequin bikini bottoms",XS],
+   ["bottom","high-slit ruffle-tiered rumba skirt",XS],["bottom","high-slit pareo wrap skirt",XS],["bottom","fur-trimmed shorts",XS],
+   /* outerwear */
+   ["outerwear","embroidered sleeveless sarafan dress",CU],["outerwear","kilim-pattern woven vest",CU],["outerwear","lightweight dupatta draped over the shoulders",CU],
+   ["outerwear","half-saree drape over one shoulder",CU],["outerwear","thin cotton shawl with a woven border",CU],["outerwear","woven manta shawl",CU],["outerwear","belted trench coat",CU],
+   ["outerwear","tailored blazer with woven trim",CU],["outerwear","fur-trimmed hooded parka with embroidered trim",CU],
+   ["outerwear","tartan shawl draped off one shoulder",CU],["outerwear","sheer dupatta draped over one arm",XS],["outerwear","tailored blazer worn off the shoulders",XS],
+   /* waist, belt, legwear, hands */
+   ["waistAccessory","striped woven apron tied at the waist",CU],["waistAccessory","silk sash tied at the waist",CU],["waistAccessory","wide woven sash",CU],
+   ["waistAccessory","coin-fringed hip scarf",XS],["waistAccessory","striped woven half apron tied low",XS],["waistAccessory","wide obi-style sash",XS],["waistAccessory","feather hip plume",XS],
+   ["waistAccessory","ruffled hip sash",XS],["belt","wide studded metal belt",XS],["belt","coin-trimmed hip belt",XS],
+   ["legwear","knee-high wool socks",CU],["legwear","thigh-high wool stockings",XS],["legwear","knee-high fur-trimmed leg warmers",CU],["legwear","fringed suede leg wraps",XS],
+   ["gloves","fur-lined mittens",CU],["gloves","long fur-lined gloves",XS],["gloves","long satin opera gloves",XS],["thighAccessory","tartan thigh garter",XS],
+   /* neck, ears, wrists, head */
+   ["neckAccessory","layered coin necklaces",CU],["neckAccessory","chunky stone-bead necklace",CU],["neckAccessory","layered beaded necklaces",CU],["neckAccessory","layered stone-and-metal necklaces",CU],
+   ["neckAccessory","fresh flower lei",CU],["neckAccessory","long layered pearl strands",XS],
+   ["wristAccessory","beaded cuff bracelet",CU],["wristAccessory","feathered arm bands",XS],
+   ["headwear","patterned headband",CU],["headwear","jasmine garland braided into the hair",CU],["headwear","ornate hair sticks with small tassels",CU],["headwear","kanzashi hair ornament",CU],
+   ["headwear","ribbon hair ornament",CU],["headwear","fur-trimmed felt hat",CU],["headwear","flower garland worn in the hair",CU],["headwear","conical straw hat",CU],
+   ["headwear","bold head wrap tied in a fan shape",CU],["headwear","small bowler hat",CU],["headwear","beaded headband",CU],["headwear","woven fiber headband",CU],
+   ["headwear","feathered carnival headpiece",XS],["headwear","beaded headband with a feather",XS],
+   ["tagCharm","knotted tassel charm",CU]
+  ];
+  N.forEach(([f,v,t])=>addO(f,v,t,"cultural"));
+  /* details */
+  [["detailThree","woven geometric pattern",CU],["detailThree","wax-print pattern",CU],["detailThree","batik pattern",CU],["detailThree","brocade pattern",CU],["detailThree","tartan check",CU],
+   ["detailOne","woven border trim",CU],["detailOne","embroidered hem",CU],["detailOne","coin trim",XS],["detailOne","feather trim",XS],["detailOne","fringe trim",XS]].forEach(([f,v,t])=>addO(f,v,t,"cultural"));
+  /* presets */
+  const SL={p:"@primary",s:"@secondary",t:"@third",a:"@accent",e:"@extra","-":"-",auto:"auto"};
+  const mk=(id,name,blurb,adult,pal,items,det)=>{
+    const it={};Object.entries(items).forEach(([f,[v,c]])=>{it[f]=[v,SL[c]||c]});
+    return {id,name,blurb,look:"",season:"",...(adult?{adultOnly:true}:{}),pal:{primary:pal[0],secondary:pal[1],third:pal[2],accent:pal[3],extra:pal[4]},items:it,details:det||{}};
+  };
+  const C=(k,name,blurb,pal,items,det)=>mk("cul_"+k+"_c",name+" (cute)",blurb,false,pal,items,det);
+  const X=(k,name,blurb,pal,items,det)=>mk("cul_"+k+"_x",name+" (sexy)",blurb+" Adult only.",true,pal,items,det);
+  const CUL=[
+  /* ---------- Europe ---------- */
+  ["nordic",
+   C("nordic","Midsummer dress","Northern European: a linen folk dress with an embroidered bodice, a flower crown, a knit shawl and a woven sash.",["ivory","forest green","sky blue","lemon yellow","dusty rose"],
+     {top:["linen folk dress with an embroidered bodice","p"],outerwear:["knit shawl","t"],headwear:["flower crown","e"],waistAccessory:["woven sash","a"],wristAccessory:["woven flower bracelet","e"]},{detailOne:"embroidered hem"}),
+   X("nordic","Knit and fur","Northern European: a cropped Nordic-pattern knit top with a deep neckline, a high-slit wool wrap skirt, a fur stole and thigh-high wool stockings.",["cream","charcoal gray","crimson red","silver","ice blue"],
+     {top:["cropped Nordic-pattern knit top with a deep neckline","p"],bottom:["high-slit wool wrap skirt","s"],outerwear:["fur stole","e"],legwear:["thigh-high wool stockings","p"],neckAccessory:["chain necklace","-"]},{detailTwo:"low-cut neckline"})],
+  ["celtic",
+   C("celtic","Highland tartan","Irish and Scottish: a lace-up peasant blouse, a tartan kilt skirt, a knit shawl and knee-high wool socks.",["ivory","forest green","burgundy","navy blue","gold"],
+     {top:["lace-up peasant blouse","p"],bottom:["tartan kilt skirt","s"],outerwear:["knit shawl","t"],legwear:["knee-high wool socks","p"],belt:["braided leather belt","-"]},{detailThree:"tartan check"}),
+   X("celtic","Highland heartbreaker","Irish and Scottish: a laced tartan corset top, a short tartan kilt with a high slit, a tartan shawl off one shoulder and a tartan thigh garter.",["black","crimson red","forest green","gold","silver"],
+     {top:["laced tartan corset top","p"],bottom:["short tartan kilt with a high side slit","s"],outerwear:["tartan shawl draped off one shoulder","t"],thighAccessory:["tartan thigh garter","a"],neckAccessory:["velvet choker","-"]},{detailThree:"tartan check"})],
+  ["westeuro",
+   C("westeuro","Alpine dirndl","Western European: a dirndl dress with a laced bodice and full skirt, a frilled apron, a braid crown and a pearl strand.",["navy blue","ivory","dusty rose","forest green","gold"],
+     {top:["dirndl dress with a laced bodice and a full skirt","p"],waistAccessory:["frilled apron tied at the waist","s"],headwear:["ribbon-wrapped braid crown","a"],neckAccessory:["pearl strand","-"],legwear:["knee-high wool socks","s"]},{detailOne:"embroidered hem"}),
+   X("westeuro","Festival dirndl","Western European: a plunging dirndl dress with a laced bodice and short skirt, a tiny frilled apron and lace-top garter stockings.",["burgundy","ivory","black","gold","dusty rose"],
+     {top:["plunging dirndl dress with a laced bodice and a short skirt","p"],waistAccessory:["tiny frilled apron","s"],legwear:["garter-strap stockings with lace tops","s"],neckAccessory:["velvet choker","-"]},{detailTwo:"low-cut neckline"})],
+  ["slavic",
+   C("slavic","Folk sarafan","Eastern European: an embroidered white blouse under an embroidered sarafan dress, a flower crown and a beaded necklace set.",["white","scarlet red","forest green","golden yellow","royal blue"],
+     {top:["embroidered blouse with puffed sleeves","s"],outerwear:["embroidered sleeveless sarafan dress","p"],headwear:["flower crown","a"],neckAccessory:["beaded necklace set","-"],waistAccessory:["woven sash","t"]},{detailOne:"embroidered flowers"}),
+   X("slavic","Short sarafan","Eastern European: a short embroidered sarafan dress with a plunging laced neckline, sheer seamed stockings, a flower crown and beads.",["scarlet red","white","black","golden yellow","forest green"],
+     {top:["short embroidered sarafan dress with a plunging laced neckline","p"],legwear:["sheer seamed thigh-high stockings","s"],headwear:["flower crown","a"],neckAccessory:["beaded necklace set","-"]},{detailOne:"embroidered flowers"})],
+  ["mediterranean",
+   C("mediterranean","Aegean sundress","Southern European: a eyelet sundress with a square neckline, a straw hat, a woven sash and stacked slim bracelets.",["white","cobalt blue","sand","terracotta","gold"],
+     {top:["eyelet sundress with a square neckline","p"],headwear:["straw hat","-"],waistAccessory:["woven sash","s"],wristAccessory:["stacked slim bracelets","-"],earAccessory:["small pearl earrings","-"]}),
+   X("mediterranean","Grecian goddess","Southern European: a one-shoulder Grecian drape dress with a high slit, a laurel leaf crown, a layered waist chain and armlets.",["white","gold","sapphire blue","terracotta","champagne"],
+     {top:["one-shoulder Grecian drape dress with a high slit","p"],headwear:["laurel leaf crown","-"],waistAccessory:["layered chain waist","a"],wristAccessory:["armlets","a"]},{detailThree:"sheer chiffon"})],
+  /* ---------- Middle East and North Africa ---------- */
+  ["arab",
+   C("arab","Embroidered kaftan","Arab: an embroidered kaftan dress with wide sleeves, chandelier earrings, layered coin necklaces and a woven sash.",["teal","ivory","gold","burgundy","sand"],
+     {top:["embroidered kaftan dress with wide sleeves","p"],waistAccessory:["woven sash","a"],neckAccessory:["layered coin necklaces","-"],earAccessory:["statement chandelier earrings","a"],wristAccessory:["bangles","a"]},{detailOne:"embroidered hem"}),
+   X("arab","Gulf nights","Arab: an embroidered cropped kaftan top with a deep neckline, a high-slit embroidered skirt, a coin-fringed hip scarf and chandelier earrings.",["black","gold","emerald green","burgundy","champagne"],
+     {top:["embroidered cropped kaftan top with a deep neckline","p"],bottom:["high-slit embroidered skirt","s"],waistAccessory:["coin-fringed hip scarf","a"],earAccessory:["statement chandelier earrings","a"],neckAccessory:["layered coin necklaces","-"]},{detailOne:"coin trim"})],
+  ["persian",
+   C("persian","Persian garden","Persian: an embroidered tunic with wide sleeves, tapered silk trousers, an embroidered vest and drop earrings.",["turquoise","ivory","plum","gold","rose pink"],
+     {top:["embroidered tunic with wide sleeves","p"],bottom:["tapered silk trousers","s"],outerwear:["embroidered vest","t"],earAccessory:["delicate drop earrings","a"],neckAccessory:["layered delicate necklaces","-"]},{detailThree:"brocade pattern"}),
+   X("persian","Silk and brocade","Persian: a cropped brocade bolero top with a plunging neckline, a sheer flowing silk skirt with a high slit and a layered waist chain.",["midnight blue","gold","turquoise","burgundy","ivory"],
+     {top:["cropped brocade bolero top with a plunging neckline","p"],bottom:["sheer flowing silk skirt with a high slit","s"],waistAccessory:["layered chain waist","a"],earAccessory:["delicate drop earrings","a"]},{detailThree:"brocade pattern"})],
+  ["turkish",
+   C("turkish","Anatolian kilim","Turkish and Anatolian: an embroidered cotton blouse, gathered harem pants, a kilim-pattern woven vest and a woven sash.",["ivory","terracotta","teal","mustard","burgundy"],
+     {top:["embroidered cotton blouse","p"],bottom:["gathered harem pants","s"],outerwear:["kilim-pattern woven vest","t"],waistAccessory:["woven sash","a"],earAccessory:["delicate drop earrings","a"]},{detailThree:"woven geometric pattern"}),
+   X("turkish","Palace velvet","Turkish and Anatolian: a velvet embroidered cropped jacket worn open, sheer-panelled harem pants and a coin-trimmed hip belt.",["wine","gold","midnight blue","ivory","antique gold"],
+     {top:["velvet embroidered cropped jacket worn open","p"],bottom:["sheer-panelled harem pants","s"],belt:["coin-trimmed hip belt","a"],earAccessory:["statement chandelier earrings","a"]},{detailOne:"coin trim"})],
+  ["maghrebi",
+   C("maghrebi","Berber weave","North African: a handwoven striped wrap dress with a tie waist, a patterned headband and layered coin necklaces.",["terracotta","ivory","teal","mustard","indigo"],
+     {top:["handwoven striped wrap dress with a tie waist","p"],headwear:["patterned headband","a"],neckAccessory:["layered coin necklaces","-"],wristAccessory:["bangles","-"]},{detailThree:"woven geometric pattern"}),
+   X("maghrebi","Gilded linen","North African: a pleated linen sheath dress with a plunging neckline and high slit, a wide beaded collar necklace and armlets.",["ivory","gold","turquoise","terracotta","sand"],
+     {top:["pleated linen sheath dress with a plunging neckline and a high slit","p"],neckAccessory:["wide beaded collar necklace","t"],wristAccessory:["armlets","a"],waistAccessory:["delicate body chain draped around the waist","a"]},{detailThree:"sheer organza"})],
+  /* ---------- South and Central Asia ---------- */
+  ["northindian",
+   C("northindian","Phulkari kurta","North Indian and Punjabi: a short embroidered kurta, wide palazzo pants, a lightweight dupatta, jhumka earrings and bangles.",["fuchsia","ivory","mustard","emerald green","gold"],
+     {top:["short embroidered kurta with side slits","p"],bottom:["wide palazzo pants","s"],outerwear:["lightweight dupatta draped over the shoulders","t"],earAccessory:["{c} jhumka-style bell earrings","a"],wristAccessory:["bangles","a"]},{detailOne:"embroidered hem"}),
+   X("northindian","Lehenga choli","North Indian and Punjabi: an embroidered backless choli top, a low-waisted flared lehenga skirt, a sheer dupatta and a layered waist chain.",["crimson red","gold","ivory","emerald green","champagne"],
+     {top:["embroidered backless choli top","p"],bottom:["low-waisted flared lehenga skirt","s"],outerwear:["sheer dupatta draped over one arm","t"],waistAccessory:["layered chain waist","a"],earAccessory:["{c} jhumka-style bell earrings","a"]},{detailOne:"beaded fringe"})],
+  ["southindian",
+   C("southindian","Half saree","South Indian and Sri Lankan: a fitted silk blouse, a silk pavadai skirt with a woven border, a half-saree drape and jasmine in the hair.",["emerald green","ivory","gold","crimson red","magenta"],
+     {top:["fitted silk blouse with short sleeves","p"],bottom:["silk pavadai skirt with a woven border","s"],outerwear:["half-saree drape over one shoulder","t"],headwear:["jasmine garland braided into the hair","-"],wristAccessory:["bangles","a"]},{detailOne:"woven border trim"}),
+   X("southindian","Silk saree","South Indian and Sri Lankan: a silk saree draped low over a backless blouse, a layered waist chain, bangles and jasmine in the hair.",["peacock blue","gold","crimson red","ivory","antique gold"],
+     {top:["silk saree draped low over a backless blouse","p"],waistAccessory:["layered chain waist","a"],headwear:["jasmine garland braided into the hair","-"],wristAccessory:["bangles","a"],earAccessory:["statement chandelier earrings","a"]},{detailOne:"woven border trim"})],
+  ["bengali",
+   C("bengali","Woven-border saree","Bengali: a cotton saree with a bold woven border, bangles, a flower hair clip and drop earrings.",["ivory","crimson red","gold","sage green","mustard"],
+     {top:["cotton saree with a bold woven border","p"],wristAccessory:["bangles","a"],headwear:["flower hair clip","s"],earAccessory:["delicate drop earrings","a"],neckAccessory:["delicate chain necklace","a"]},{detailOne:"woven border trim"}),
+   X("bengali","Sheer saree","Bengali: a sheer silk saree draped low over a cropped halter blouse, a beaded waist chain, bangles and chandelier earrings.",["wine","gold","ivory","emerald green","champagne"],
+     {top:["sheer silk saree draped low over a cropped halter blouse","p"],waistAccessory:["beaded waist chain","a"],wristAccessory:["bangles","a"],earAccessory:["statement chandelier earrings","a"]},{detailThree:"sheer chiffon"})],
+  ["pakistani",
+   C("pakistani","Embroidered shalwar","Pakistani and Afghan: a long embroidered kameez tunic, slim cotton shalwar trousers, a lightweight dupatta and chandelier earrings.",["turquoise","ivory","burgundy","gold","mustard"],
+     {top:["long embroidered kameez tunic","p"],bottom:["slim cotton shalwar trousers","s"],outerwear:["lightweight dupatta draped over the shoulders","t"],earAccessory:["statement chandelier earrings","a"],wristAccessory:["bangles","a"]},{detailOne:"embroidered hem"}),
+   X("pakistani","Coin and kameez","Pakistani and Afghan: a short embroidered kameez dress with high side slits, fitted slim trousers, a sheer dupatta and layered coin necklaces.",["black","gold","crimson red","ivory","antique gold"],
+     {top:["short embroidered kameez dress with high side slits","p"],bottom:["fitted slim trousers","s"],outerwear:["sheer dupatta draped over one arm","t"],neckAccessory:["layered coin necklaces","-"],earAccessory:["statement chandelier earrings","a"]},{detailOne:"coin trim"})],
+  ["himalayan",
+   C("himalayan","Mountain wool","Nepali and Tibetan: a wrap-front wool dress with a high collar, a striped woven apron, a stone-bead necklace and a patterned headband.",["indigo","ivory","crimson red","golden yellow","turquoise"],
+     {top:["wrap-front wool dress with a high collar","p"],waistAccessory:["striped woven apron tied at the waist","s"],neckAccessory:["chunky stone-bead necklace","-"],headwear:["patterned headband","a"],legwear:["knee-high wool socks","s"]},{detailThree:"woven geometric pattern"}),
+   X("himalayan","Short wool wrap","Nepali and Tibetan: a short wool wrap dress with a deep neckline, a striped half apron tied low, thigh-high wool stockings and a stone-bead necklace.",["wine","ivory","golden yellow","indigo","silver"],
+     {top:["short wool wrap dress with a deep neckline","p"],waistAccessory:["striped woven half apron tied low","s"],legwear:["thigh-high wool stockings","p"],neckAccessory:["chunky stone-bead necklace","-"]},{detailThree:"woven geometric pattern"})],
+  ["mongolian",
+   C("mongolian","Steppe deel","Mongolian and Central Asian: an embroidered wool deel-style dress with a wide woven sash, a fur-trimmed felt hat and a stone-bead necklace.",["cobalt blue","ivory","burgundy","golden yellow","teal"],
+     {top:["embroidered wool deel-style dress with a wrapped front","p"],waistAccessory:["wide woven sash","a"],headwear:["fur-trimmed felt hat","s"],neckAccessory:["chunky stone-bead necklace","-"],legwear:["knee-high wool socks","s"]},{detailOne:"embroidered hem"}),
+   X("mongolian","Silk deel","Mongolian and Central Asian: a short silk deel-style wrap dress with a deep neckline, a wide studded metal belt, a faux-fur coat and fur-top stockings.",["midnight blue","gold","burgundy","ivory","silver"],
+     {top:["short silk deel-style wrap dress with a deep neckline","p"],belt:["wide studded metal belt","a"],outerwear:["faux-fur coat","e"],legwear:["thigh-high stockings with fur tops","p"]},{detailOne:"embroidered hem"})],
+  /* ---------- East and Southeast Asia ---------- */
+  ["han",
+   C("han","Hanfu-style","Chinese: a cross-collar hanfu-style blouse with wide sleeves, a high-waisted pleated skirt, a silk sash and ornate hair sticks.",["rose pink","ivory","jade green","gold","sky blue"],
+     {top:["cross-collar hanfu-style blouse with wide sleeves","p"],bottom:["high-waisted pleated hanfu-style skirt","s"],waistAccessory:["silk sash tied at the waist","a"],headwear:["ornate hair sticks with small tassels","a"],earAccessory:["delicate drop earrings","a"]},{detailOne:"embroidered hem"}),
+   X("han","High-slit qipao","Chinese: a short-sleeve qipao dress with a high slit and keyhole neckline, sheer thigh-high stockings and ornate hair sticks.",["crimson red","gold","black","ivory","jade green"],
+     {top:["short-sleeve qipao dress with a high slit and a keyhole neckline","p"],legwear:["sheer seamed thigh-high stockings","s"],headwear:["ornate hair sticks with small tassels","a"],earAccessory:["delicate drop earrings","a"]},{detailThree:"brocade pattern"})],
+  ["japanese",
+   C("japanese","Summer yukata","Japanese: a cotton yukata with a bow-tied obi, a kanzashi hair ornament and a drawstring pouch.",["indigo","white","rose pink","gold","sky blue"],
+     {top:["cotton yukata with a bow-tied obi","p"],headwear:["kanzashi hair ornament","a"],hipAccessory:["small pouch bag","s"],tagCharm:["knotted tassel charm","a"]},{detailThree:"embroidered eyelet cotton"}),
+   X("japanese","Short kimono dress","Japanese: a short kimono-style wrap dress with a plunging neckline, a wide obi-style sash, sheer stockings and a kanzashi hair ornament.",["black","crimson red","gold","ivory","silver"],
+     {top:["short kimono-style wrap dress with a plunging neckline","p"],waistAccessory:["wide obi-style sash","s"],legwear:["sheer seamed thigh-high stockings","p"],headwear:["kanzashi hair ornament","a"]},{detailTwo:"low-cut neckline"})],
+  ["korean",
+   C("korean","Hanbok-style","Korean: a short hanbok-style jacket with long ribbon ties, a full high-waisted skirt, a ribbon hair ornament and a tassel charm.",["soft pink","mint green","ivory","gold","lavender"],
+     {top:["short hanbok-style jacket with long ribbon ties","p"],bottom:["full high-waisted hanbok-style skirt","s"],headwear:["ribbon hair ornament","a"],tagCharm:["knotted tassel charm","t"],wristAccessory:["pearl bracelet","-"]},{detailOne:"ribbon trim"}),
+   X("korean","Modern hanbok","Korean: a cropped hanbok-style top with a plunging neckline, a sheer layered skirt with a high slit and a tassel charm.",["wine","ivory","gold","soft pink","silver"],
+     {top:["cropped hanbok-style top with a plunging neckline","p"],bottom:["sheer layered hanbok-style skirt with a high slit","s"],headwear:["ribbon hair ornament","a"],tagCharm:["knotted tassel charm","t"]},{detailThree:"sheer organza"})],
+  ["filipino",
+   C("filipino","Butterfly sleeves","Filipino: a butterfly-sleeve blouse with stiff puffed sleeves, a tiered patterned skirt, a lace shawl and a flower garland.",["ivory","terracotta","mustard","sage green","gold"],
+     {top:["butterfly-sleeve blouse with stiff puffed sleeves","p"],bottom:["tiered patterned skirt","s"],outerwear:["embroidered lace shawl","e"],headwear:["flower garland worn in the hair","-"],neckAccessory:["pearl strand","-"]},{detailThree:"woven geometric pattern"}),
+   X("filipino","Modern terno","Filipino: a cropped butterfly-sleeve top with a plunging neckline, a high-slit patterned wrap skirt and a flower garland.",["white","gold","terracotta","emerald green","champagne"],
+     {top:["cropped butterfly-sleeve top with a plunging neckline","p"],bottom:["high-slit patterned wrap skirt","s"],headwear:["flower garland worn in the hair","-"],earAccessory:["delicate drop earrings","a"]},{detailThree:"sheer organza"})],
+  ["thai",
+   C("thai","Ao dai","Thai and Vietnamese: a fitted ao dai tunic with side slits, wide silk trousers, a conical straw hat and a delicate chain necklace.",["ivory","sky blue","rose pink","gold","jade green"],
+     {top:["fitted ao dai tunic with side slits","p"],bottom:["wide silk trousers","s"],headwear:["conical straw hat","-"],neckAccessory:["delicate chain necklace","a"],earAccessory:["pearl stud earrings","-"]},{detailOne:"embroidered hem"}),
+   X("thai","Silk sabai","Thai and Vietnamese: a silk sabai shoulder wrap over a fitted tube top, a wrapped silk skirt with a high slit and a beaded waist chain.",["gold","emerald green","crimson red","ivory","champagne"],
+     {top:["silk sabai shoulder wrap over a fitted tube top","p"],bottom:["wrapped silk skirt with a high slit","s"],waistAccessory:["beaded waist chain","a"],earAccessory:["statement chandelier earrings","a"]},{detailThree:"metallic sheen"})],
+  ["malay",
+   C("malay","Kebaya and batik","Indonesian and Malay: a fitted lace kebaya blouse, a batik wrap skirt, a flower hair clip and a woven sash.",["ivory","indigo","terracotta","gold","sage green"],
+     {top:["fitted lace kebaya blouse","p"],bottom:["batik wrap skirt","s"],headwear:["flower hair clip","a"],waistAccessory:["woven sash","t"],earAccessory:["small pearl earrings","-"]},{detailThree:"batik pattern"}),
+   X("malay","Sheer kebaya","Indonesian and Malay: a sheer lace kebaya with a plunging neckline, a high-slit batik sarong skirt and a flower hair clip.",["black","gold","burgundy","ivory","champagne"],
+     {top:["sheer lace kebaya with a plunging neckline","p"],bottom:["high-slit batik sarong skirt","s"],headwear:["flower hair clip","a"],waistAccessory:["thin waist chain draped over the hips","a"]},{detailThree:"batik pattern"})],
+  /* ---------- Africa ---------- */
+  ["westafrican",
+   C("westafrican","Wax-print set","West African: a fitted wax-print peplum top, a matching wrap skirt, a bold head wrap and a beaded necklace set.",["mustard","indigo","coral","emerald green","ivory"],
+     {top:["fitted wax-print peplum top","p"],bottom:["wax-print wrap skirt","s"],headwear:["bold head wrap tied in a fan shape","t"],neckAccessory:["beaded necklace set","-"],wristAccessory:["bangles","a"]},{detailThree:"wax-print pattern"}),
+   X("westafrican","Wax-print glam","West African: a wax-print corset top, a high-slit wax-print mermaid skirt, a bold head wrap and statement earrings.",["fuchsia","gold","royal blue","emerald green","black"],
+     {top:["wax-print corset top","p"],bottom:["high-slit wax-print mermaid skirt","s"],headwear:["bold head wrap tied in a fan shape","t"],earAccessory:["statement chandelier earrings","a"],neckAccessory:["beaded necklace set","-"]},{detailThree:"wax-print pattern"})],
+  ["eastafrican",
+   C("eastafrican","Woven-border dress","East African: a cotton dress with a woven embroidered border, a thin cotton shawl, stacked slim bracelets and a delicate necklace.",["white","emerald green","golden yellow","crimson red","tan"],
+     {top:["cotton dress with a woven embroidered border","p"],outerwear:["thin cotton shawl with a woven border","s"],wristAccessory:["stacked slim bracelets","-"],neckAccessory:["delicate chain necklace","-"]},{detailOne:"woven border trim"}),
+   X("eastafrican","Sheer cotton dirac","East African: a sheer lightweight dirac-style dress with a deep neckline, a thin waist chain and layered beaded necklaces.",["wine","gold","ivory","emerald green","tan"],
+     {top:["sheer lightweight dirac-style dress with a deep neckline","p"],waistAccessory:["thin waist chain draped over the hips","a"],neckAccessory:["layered beaded necklaces","-"]},{detailThree:"sheer chiffon"})],
+  ["southafrican",
+   C("southafrican","Shweshwe dress","Southern African: a shweshwe-print cotton dress with a flared skirt, a bold head wrap and stacked beaded bracelets.",["indigo","ivory","terracotta","mustard","teal"],
+     {top:["shweshwe-print cotton dress with a flared skirt","p"],headwear:["bold head wrap tied in a fan shape","s"],neckAccessory:["layered beaded necklaces","-"],wristAccessory:["stacked beaded bracelets","a"]},{detailThree:"woven geometric pattern"}),
+   X("southafrican","Beaded sunset","Southern African: a beaded bandeau top, a beaded fringe skirt, layered beaded necklaces and a beaded waist chain.",["terracotta","ivory","teal","gold","black"],
+     {top:["beaded bandeau top","p"],bottom:["beaded fringe skirt","s"],neckAccessory:["layered beaded necklaces","-"],waistAccessory:["beaded waist chain","a"]},{detailOne:"beaded fringe"})],
+  /* ---------- The Americas ---------- */
+  ["caribbean",
+   C("caribbean","Madras dress","Afro-Caribbean: a madras-print fitted dress with a flared skirt, a bold head wrap, chunky hoop earrings and bangles.",["mustard","navy blue","coral","emerald green","ivory"],
+     {top:["madras-print fitted dress with a flared skirt","p"],headwear:["bold head wrap tied in a fan shape","s"],earAccessory:["chunky hoop earrings","a"],wristAccessory:["bangles","a"]},{detailThree:"tartan check"}),
+   X("caribbean","Carnival fete","Afro-Caribbean: a beaded carnival bikini top with feather accents, high-cut feather-trim bottoms, a feathered headpiece and feathered arm bands.",["hot pink","turquoise","gold","electric purple","lime green"],
+     {top:["beaded carnival bikini top with feather accents","p"],bottom:["high-cut carnival bikini bottoms with feather trim","s"],headwear:["feathered carnival headpiece","a"],wristAccessory:["feathered arm bands","a"]},{detailOne:"feather trim"})],
+  ["blackamerican",
+   C("blackamerican","Harlem swing","Black American: a polka-dot swing dress with a sweetheart neckline, a mini hat with netting, short satin gloves and a pearl strand.",["navy blue","ivory","crimson red","gold","dusty rose"],
+     {top:["polka-dot swing dress with a sweetheart neckline","p"],headwear:["mini hat with netting","a"],gloves:["short satin gloves with a bow","s"],neckAccessory:["pearl strand","-"]},{detailOne:"ribbon trim"}),
+   X("blackamerican","Cotton Club glam","Black American: a fringed beaded flapper dress with a plunging neckline, long satin opera gloves, long pearl strands and a feathered headband.",["black","gold","burgundy","ivory","champagne"],
+     {top:["fringed beaded flapper dress with a plunging neckline","p"],gloves:["long satin opera gloves","s"],neckAccessory:["long layered pearl strands","-"],headwear:["beaded headband with a feather","a"]},{detailOne:"fringe trim"})],
+  ["mestiza",
+   C("mestiza","Embroidered blusa","Mexican and Central American: an off-shoulder blouse with floral embroidery, a tiered ruffled skirt, a flower crown and layered beaded necklaces.",["ivory","fuchsia","emerald green","golden yellow","royal blue"],
+     {top:["off-shoulder blouse with floral embroidery","p"],bottom:["tiered ruffled skirt with ribbon trim","s"],headwear:["flower crown","a"],neckAccessory:["layered beaded necklaces","-"]},{detailOne:"embroidered flowers"}),
+   X("mestiza","Fiesta ruffles","Mexican and Central American: an embroidered crop top with a deep scooped neckline, a high-slit tiered ruffle skirt and chunky hoop earrings.",["crimson red","ivory","emerald green","gold","black"],
+     {top:["embroidered crop top with a deep scooped neckline","p"],bottom:["high-slit tiered ruffle skirt","s"],earAccessory:["chunky hoop earrings","a"],headwear:["flower hair clip","a"]},{detailOne:"embroidered flowers"})],
+  ["andean",
+   C("andean","Alpaca and pollera","Andean: an alpaca-knit sweater with a patterned yoke, a layered pollera-style skirt, a woven manta shawl and a small bowler hat.",["magenta","teal","mustard","ivory","indigo"],
+     {top:["alpaca-knit sweater with a patterned yoke","p"],bottom:["layered pollera-style skirt","s"],outerwear:["woven manta shawl","t"],headwear:["small bowler hat","a"]},{detailThree:"woven geometric pattern"}),
+   X("andean","Short pollera","Andean: a cropped patterned knit top with a deep neckline, a short layered pollera-style skirt, thigh-high wool stockings and a small bowler hat.",["magenta","black","mustard","teal","ivory"],
+     {top:["cropped patterned knit top with a deep neckline","p"],bottom:["short layered pollera-style skirt","s"],legwear:["thigh-high wool stockings","p"],headwear:["small bowler hat","a"]},{detailThree:"woven geometric pattern"})],
+  ["brazilian",
+   C("brazilian","Samba ruffles","Brazilian: a ruffled off-shoulder top with a tie front, a tiered ruffle samba skirt, a flower hair clip and a beaded necklace set.",["white","emerald green","golden yellow","royal blue","coral"],
+     {top:["ruffled off-shoulder top with a tie front","p"],bottom:["tiered ruffle samba skirt","s"],headwear:["flower hair clip","a"],neckAccessory:["beaded necklace set","-"]},{detailOne:"frilled trim"}),
+   X("brazilian","Rio parade","Brazilian: a sequin bikini top with feathered shoulder pieces, high-cut sequin bottoms, a feathered headpiece and a feather hip plume.",["emerald green","golden yellow","royal blue","hot pink","white"],
+     {top:["sequin bikini top with feathered shoulder pieces","p"],bottom:["high-cut sequin bikini bottoms","s"],headwear:["feathered carnival headpiece","a"],waistAccessory:["feather hip plume","t"]},{detailThree:"sequin finish"})],
+  ["afrolatina",
+   C("afrolatina","Rumba ruffles","Afro-Latina: a ruffled off-shoulder rumba top, a long ruffle-tiered skirt, a bold head wrap and chunky hoop earrings.",["white","crimson red","golden yellow","turquoise","black"],
+     {top:["ruffled off-shoulder rumba top","p"],bottom:["long ruffle-tiered skirt","s"],headwear:["bold head wrap tied in a fan shape","a"],earAccessory:["chunky hoop earrings","a"]},{detailOne:"frilled trim"}),
+   X("afrolatina","Rumba fire","Afro-Latina: a knotted ruffle crop top, a high-slit ruffle-tiered rumba skirt, a ruffled hip sash and chunky hoop earrings.",["crimson red","black","gold","white","hot pink"],
+     {top:["knotted ruffle crop top","p"],bottom:["high-slit ruffle-tiered rumba skirt","s"],waistAccessory:["ruffled hip sash","a"],earAccessory:["chunky hoop earrings","a"]},{detailOne:"frilled trim"})],
+  ["native",
+   C("native","Fringe and beadwork","Native American: a beadwork-trimmed fringed suede dress, a beaded headband, layered stone-and-metal necklaces and a beaded cuff.",["camel","ivory","turquoise","rust","brown"],
+     {top:["beadwork-trimmed fringed suede dress","p"],headwear:["beaded headband","a"],neckAccessory:["layered stone-and-metal necklaces","-"],wristAccessory:["beaded cuff bracelet","a"]},{detailOne:"short fringe accents"}),
+   X("native","Fringed suede mini","Native American: a fringed suede mini dress with a plunging beadwork neckline, fringed suede leg wraps and layered stone-and-metal necklaces.",["camel","black","turquoise","rust","ivory"],
+     {top:["fringed suede mini dress with a plunging beadwork neckline","p"],legwear:["fringed suede leg wraps","p"],neckAccessory:["layered stone-and-metal necklaces","-"],wristAccessory:["beaded cuff bracelet","a"]},{detailOne:"fringe trim"})],
+  /* ---------- Pacific, Arctic and Australia ---------- */
+  ["polynesian",
+   C("polynesian","Island print","Polynesian and Pacific Islander: a tropical-print halter dress, a fresh flower lei, a flower crown and a woven flower bracelet.",["ivory","hot pink","turquoise","golden yellow","emerald green"],
+     {top:["tropical-print halter dress","p"],neckAccessory:["fresh flower lei","-"],headwear:["flower crown","a"],wristAccessory:["woven flower bracelet","a"]},{detailThree:"batik pattern"}),
+   X("polynesian","Pareo wrap","Polynesian and Pacific Islander: a bandeau top with beaded trim, a high-slit pareo wrap skirt, a flower lei and a beaded waist chain.",["white","turquoise","coral","gold","emerald green"],
+     {top:["bandeau top with beaded trim","p"],bottom:["high-slit pareo wrap skirt","s"],neckAccessory:["fresh flower lei","-"],waistAccessory:["beaded waist chain","a"],earAccessory:["flower tucked behind one ear","-"]},{detailThree:"sheer chiffon"})],
+  ["inuit",
+   C("inuit","Arctic parka","Inuit and Arctic: a fur-trimmed hooded parka with embroidered trim over a knit sweater, fur-lined mittens and knee-high fur-trimmed leg warmers.",["crimson red","ivory","navy blue","tan","silver"],
+     {top:["oversized cotton sweater","s"],outerwear:["fur-trimmed hooded parka with embroidered trim","p"],gloves:["fur-lined mittens","t"],legwear:["knee-high fur-trimmed leg warmers","s"]},{detailOne:"embroidered hem"}),
+   X("inuit","Arctic furs","Inuit and Arctic: a cropped fur-trimmed parka top with an open front, fur-trimmed shorts, long fur-lined gloves and fur-top stockings.",["black","ivory","crimson red","silver","tan"],
+     {top:["cropped fur-trimmed parka top with an open front","p"],bottom:["fur-trimmed shorts","s"],gloves:["long fur-lined gloves","t"],legwear:["thigh-high stockings with fur tops","p"]},{detailOne:"fur trim"})],
+  ["aboriginal",
+   C("aboriginal","Outback sundress","Aboriginal Australian: a tiered cotton sundress with a woven border pattern, a woven fiber headband, a shell necklace and beaded bracelets.",["terracotta","ivory","sand","teal","mustard"],
+     {top:["tiered cotton sundress with a woven border pattern","p"],headwear:["woven fiber headband","a"],neckAccessory:["shell necklace","-"],wristAccessory:["beaded bracelets","a"]},{detailThree:"woven geometric pattern"}),
+   X("aboriginal","Desert sunset","Aboriginal Australian: a woven-fiber-trimmed halter top, a wrap skirt with a high slit, a shell necklace and layered beaded necklaces.",["terracotta","sand","teal","ivory","gold"],
+     {top:["woven-fiber-trimmed halter top","p"],bottom:["wrap sarong skirt","s"],neckAccessory:["layered beaded necklaces","-"],waistAccessory:["beaded waist chain","a"]},{detailThree:"crochet texture"})],
+  /* ---------- Mixed heritage ---------- */
+  ["eurasian",
+   C("eurasian","East meets West","East Asian and European: a mandarin-collar silk blouse with frog buttons, a pleated midi skirt, a belted trench coat and a silk scarf.",["ivory","jade green","navy blue","camel","gold"],
+     {top:["mandarin-collar silk blouse with frog buttons","p"],bottom:["pleated midi skirt","s"],outerwear:["belted trench coat","t"],neckAccessory:["silk scarf","a"]},{detailOne:"embroidered hem"}),
+   X("eurasian","Qipao and blazer","East Asian and European: a corset-style qipao crop top, a high-slit satin skirt and a tailored blazer worn off the shoulders.",["black","crimson red","gold","ivory","silver"],
+     {top:["corset-style qipao crop top","p"],bottom:["high-slit satin skirt","s"],outerwear:["tailored blazer worn off the shoulders","e"],earAccessory:["delicate drop earrings","a"]},{detailThree:"brocade pattern"})],
+  ["blackeuro",
+   C("blackeuro","Kente-trim tailoring","Black and white mixed: a fitted blouse with woven kente-style trim, a pleated midi skirt, a tailored blazer with woven trim and a beret.",["ivory","forest green","golden yellow","crimson red","navy blue"],
+     {top:["fitted blouse with woven kente-style trim","p"],bottom:["pleated midi skirt","s"],outerwear:["tailored blazer with woven trim","t"],headwear:["beret","a"]},{detailThree:"woven geometric pattern"}),
+   X("blackeuro","Tailored heat","Black and white mixed: a plunging tailored vest top with woven trim, a fitted pencil skirt and a tailored blazer worn off the shoulders.",["black","gold","crimson red","ivory","emerald green"],
+     {top:["plunging tailored vest top with woven trim","p"],bottom:["fitted pencil skirt","s"],outerwear:["tailored blazer worn off the shoulders","e"],neckAccessory:["layered delicate necklaces","-"]},{detailThree:"woven geometric pattern"})],
+  ["mena_euro",
+   C("mena_euro","Linen and trench","Middle Eastern and European: an embroidered linen dress with a tie waist, a belted trench coat, a straw hat and a layered necklace.",["ivory","terracotta","teal","gold","camel"],
+     {top:["embroidered linen dress with a tie waist","p"],outerwear:["belted trench coat","s"],headwear:["straw hat","-"],neckAccessory:["layered delicate necklaces","-"]},{detailOne:"embroidered hem"}),
+   X("mena_euro","Silk and gold","Middle Eastern and European: a silk slip dress with a deep neckline, a tailored blazer off the shoulders and layered gold chains.",["black","gold","emerald green","burgundy","champagne"],
+     {top:["silk slip dress with a deep neckline","p"],outerwear:["tailored blazer worn off the shoulders","s"],neckAccessory:["chunky chain necklace","a"],earAccessory:["statement chandelier earrings","a"]},{detailThree:"metallic sheen"})],
+  ["latino_asian",
+   C("latino_asian","Stand-collar blusa","Latin and East Asian mixed: an off-shoulder blouse with a stand collar, a tiered ruffled skirt, a flower hair clip and drop earrings.",["ivory","fuchsia","jade green","golden yellow","royal blue"],
+     {top:["off-shoulder blouse with a stand collar","p"],bottom:["tiered ruffled skirt with ribbon trim","s"],headwear:["flower hair clip","a"],earAccessory:["delicate drop earrings","a"]},{detailOne:"embroidered flowers"}),
+   X("latino_asian","Fusion fiesta","Latin and East Asian mixed: an off-shoulder crop top with a stand collar, a high-slit tiered ruffle skirt and chunky hoop earrings.",["crimson red","black","gold","ivory","jade green"],
+     {top:["off-shoulder crop top with a stand collar","p"],bottom:["high-slit tiered ruffle skirt","s"],earAccessory:["chunky hoop earrings","a"],headwear:["flower hair clip","a"]},{detailOne:"embroidered flowers"})]
+  ];
+  const REG=[
+   ["Culture: Europe",["nordic","celtic","westeuro","slavic","mediterranean"]],
+   ["Culture: Middle East and North Africa",["arab","persian","turkish","maghrebi"]],
+   ["Culture: South and Central Asia",["northindian","southindian","bengali","pakistani","himalayan","mongolian"]],
+   ["Culture: East and Southeast Asia",["han","japanese","korean","filipino","thai","malay"]],
+   ["Culture: Africa",["westafrican","eastafrican","southafrican"]],
+   ["Culture: The Americas",["caribbean","blackamerican","mestiza","andean","brazilian","afrolatina","native"]],
+   ["Culture: Pacific, Arctic and Australia",["polynesian","inuit","aboriginal"]],
+   ["Culture: Mixed heritage",["eurasian","blackeuro","mena_euro","latino_asian"]]
+  ];
+  const byKey=Object.fromEntries(CUL.map(([k,c,x])=>[k,[c,x]]));
+  const BAD=[];
+  REG.forEach(([lab,ks])=>{
+    const ids=[];
+    ks.forEach(k=>{if(!byKey[k])throw new Error("missing cultural outfits for "+k);byKey[k].forEach(p=>{
+      Object.entries(p.items).forEach(([f,[v]])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===v))BAD.push("preset "+p.id+": missing item "+f+" / "+v);if(COLOR_RX.test(v))BAD.push("color word in item name: "+v)});
+      Object.entries(p.details).forEach(([f,v])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===v))BAD.push("preset "+p.id+": missing detail "+f+" / "+v)});
+      Object.values(p.pal).forEach(n=>{if(!COLORS[n])BAD.push("unknown palette color "+n+" in "+p.id)});
+      if(!OUTFIT_PRESETS.some(x=>x.id===p.id))OUTFIT_PRESETS.push(p);ids.push(p.id)})});
+    PRESET_GROUPS.outfit.push({label:lab,keys:ids});
+  });
+  if(BAD.length)throw new Error([...new Set(BAD)].join(" ## "));
+})();
+
+/* ---- v64: five BDSM-style and five hedonistic adult outfit presets ---- */
+(function(){
+  const addO=(f,v,t,fam,s,g)=>{OUTFIT[f]=OUTFIT[f]||[];if(!OUTFIT[f].some(i=>i.v===v)){const it={v,t};if(fam)it.f=fam;if(s)it.s=s;if(g)it.g=g;OUTFIT[f].push(it)}};
+  [["top","latex catsuit with a front zipper","L"],["top","sheer draped silk toga dress with a plunging neckline","LS"],
+   ["bra","leather chest harness with metal rings","L"],["bottom","leather pencil skirt with a back zipper","LS"],
+   ["outerwear","long open leather coat worn off the shoulders","LS"],["headwear","peaked leather cap","S"],
+   ["eyewear","jeweled masquerade eye mask","US"]].forEach(([f,v,t])=>addO(f,v,t,"boudoir"));
+  const SL={p:"@primary",s:"@secondary",t:"@third",a:"@accent",e:"@extra","-":"-"};
+  const mk=(id,name,blurb,pal,items,det,under)=>{const it={};Object.entries(items).forEach(([f,[v,c]])=>{it[f]=[v,SL[c]||c]});
+    return {id,name,blurb:blurb+" Adult only.",look:"boudoir",season:"",adultOnly:true,...(under?{showUnder:true}:{}),pal:{primary:pal[0],secondary:pal[1],third:pal[2],accent:pal[3],extra:pal[4]},items:it,details:det||{}}};
+  const NEW=[
+   mk("bd_harness","Leather harness set","A leather chest harness with metal rings, micro leather shorts, a body harness belt, long leather gloves, a ringed collar and cuffs.",["black","crimson red","silver","charcoal gray","white"],
+     {bra:["leather chest harness with metal rings","p"],bottom:["micro leather shorts","p"],belt:["leather body harness belt","p"],gloves:["long leather gloves","p"],neckAccessory:["leather collar with a ring","p"],wristAccessory:["leather wrist cuffs with rings","p"],legwear:["thigh-high stockings","s"],thighAccessory:["leather thigh straps","p"]},{detailThree:"buttery soft leather",detailOne:"exposed chain links"},true),
+   mk("bd_latex","Latex catsuit","A glossy latex catsuit with a front zipper, latex opera gloves, a chain-link collar and a layered waist chain.",["black","electric purple","silver","charcoal gray","white"],
+     {top:["latex catsuit with a front zipper","p"],gloves:["latex opera gloves","s"],neckAccessory:["chain-link collar","t"],waistAccessory:["layered waist chain","t"],ringAccessory:["chunky chain ring","t"]},{detailThree:"oiled latex sheen",detailTwo:"skin-tight latex fit"}),
+   mk("bd_corset","Velvet corset and chains","A lace-up velvet corset, a micro pleated leather skirt, fishnet thigh-highs, a chained collar, lace cuffs and hanging hip chains.",["burgundy","black","silver","plum","charcoal gray"],
+     {corset:["lace-up velvet corset","p"],bottom:["micro pleated leather skirt","s"],legwear:["fishnet thigh-high stockings","s"],neckAccessory:["collar with a hanging chain","e"],wristAccessory:["lace wrist cuffs","s"],thighAccessory:["studded thigh strap with hanging chains","s"],hipAccessory:["hip chains with charms","e"]},{detailThree:"velvet texture",detailOne:"chain-link trim"},true),
+   mk("bd_mistress","Leather mistress","A lace-up leather corset, a leather pencil skirt, a long open leather coat off the shoulders, seamed stockings, long gloves and a peaked leather cap.",["black","silver","scarlet red","charcoal gray","white"],
+     {corset:["lace-up leather corset","p"],bottom:["leather pencil skirt with a back zipper","p"],outerwear:["long open leather coat worn off the shoulders","p"],gloves:["long leather gloves","p"],legwear:["seamed stockings","t"],headwear:["peaked leather cap","p"],neckAccessory:["metal ring choker","s"]},{detailThree:"buttery soft leather",detailTwo:"thigh-high slit"},true),
+   mk("bd_satin","Satin collar set","A satin bralette, a strappy garter thong, thigh-highs, a satin robe, a belled satin choker, satin ribbon cuffs and satin thigh garters.",["blush pink","ivory","rose gold","wine","silver"],
+     {bra:["satin bralette","p"],panties:["strappy garter thong","p"],outerwear:["satin robe","s"],legwear:["thigh-high stockings","s"],neckAccessory:["satin choker with a bell","t"],wristAccessory:["satin ribbon cuffs","t"],thighAccessory:["satin thigh garters with tiny bells","t"]},{detailThree:"glossy satin finish"},true),
+   mk("hd_roman","Roman bacchanal","A sheer draped silk toga dress with a plunging neckline, a laurel leaf crown, a jeweled collar, armlets and a layered waist chain.",["ivory","wine","gold","emerald green","champagne"],
+     {top:["sheer draped silk toga dress with a plunging neckline","p"],headwear:["laurel leaf crown","-"],neckAccessory:["jeweled collar necklace","a"],wristAccessory:["armlets","a"],waistAccessory:["layered chain waist","a"],ringAccessory:["gemstone ring","s"]},{detailThree:"sheer chiffon"}),
+   mk("hd_penthouse","Penthouse pool party","A sequined bandeau and metallic thong under an open satin robe, a diamond choker, oversized sunglasses and a jeweled chain purse.",["champagne","black","gold","rose gold","silver"],
+     {bra:["sequined bandeau","p"],panties:["metallic thong","p"],outerwear:["open satin robe worn off the shoulders","s"],neckAccessory:["diamond choker","-"],eyewear:["oversized sunglasses","-"],hipAccessory:["jeweled chain purse","a"],ringAccessory:["gemstone ring","a"],waistAccessory:["delicate body chain draped around the waist","a"]},{detailThree:"sequin finish"},true),
+   mk("hd_rave","Rave afterglow","A neon mesh tank over a glow-strap bra, a chain-link mini skirt, bright fishnet tights, fingerless fishnet gloves and a holographic choker.",["neon pink","black","electric blue","neon green","silver"],
+     {top:["neon mesh tank top","p"],bra:["glow-strap bra","s"],bottom:["chain-link mini skirt","s"],legwear:["bright fishnet tights","t"],gloves:["fingerless fishnet gloves","s"],neckAccessory:["holographic choker","-"],wristAccessory:["holographic bracelet","-"]},{detailThree:"body-glitter shimmer",detailOne:"sequin accents"},true),
+   mk("hd_velvet","Velvet decadence","A velvet bustier top, a high-slit satin skirt, long velvet gloves, a feather boa, long pearl strands and chandelier earrings.",["burgundy","gold","champagne","black","emerald green"],
+     {top:["velvet bustier top","p"],bottom:["high-slit satin skirt","s"],outerwear:["fur boa draped over the arms","t"],gloves:["long velvet gloves","p"],neckAccessory:["long layered pearl strands","-"],earAccessory:["statement chandelier earrings","s"],ringAccessory:["statement cocktail ring","s"]},{detailThree:"velvet texture",detailOne:"feather trim"}),
+   mk("hd_masq","Masquerade indulgence","A lace bodysuit under a sheer lace robe, long lace gloves, lace-top thigh-highs, a lace choker and a jeweled masquerade mask.",["black","plum","gold","silver","ivory"],
+     {top:["lace bodysuit","p"],outerwear:["sheer lace robe","s"],gloves:["long lace gloves","p"],legwear:["lace-top thigh-high stockings","p"],neckAccessory:["lace choker","p"],eyewear:["jeweled masquerade eye mask","a"]},{detailOne:"sheer lace panels"})
+  ];
+  const BAD=[];
+  NEW.forEach(p=>{
+    Object.entries(p.items).forEach(([f,[v]])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===v))BAD.push("preset "+p.id+": missing item "+f+" / "+v);if(COLOR_RX.test(v))BAD.push("color word in item name: "+v)});
+    Object.entries(p.details).forEach(([f,v])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===v))BAD.push("preset "+p.id+": missing detail "+f+" / "+v)});
+    Object.values(p.pal).forEach(n=>{if(!COLORS[n])BAD.push("unknown palette color "+n+" in "+p.id)});
+  });
+  if(BAD.length)throw new Error([...new Set(BAD)].join(" ## "));
+  NEW.forEach(p=>{if(!OUTFIT_PRESETS.some(x=>x.id===p.id))OUTFIT_PRESETS.push(p)});
+  PRESET_GROUPS.outfit.push({label:"BDSM styles (adult only)",keys:NEW.filter(p=>/^bd_/.test(p.id)).map(p=>p.id)});
+  PRESET_GROUPS.outfit.push({label:"Hedonistic (adult only)",keys:NEW.filter(p=>/^hd_/.test(p.id)).map(p=>p.id)});
+})();
+
+/* ---- v65: ten monochrome outfit presets, one for each color ---- */
+(function(){
+  const SL={p:"@primary",s:"@secondary",t:"@third",a:"@accent",e:"@extra","-":"-"};
+  const mk=(id,name,blurb,look,season,pal,items,det)=>{const it={};Object.entries(items).forEach(([f,[v,c]])=>{it[f]=[v,SL[c]||c]});
+    return {id,name,blurb,look,season,pal:{primary:pal[0],secondary:pal[1],third:pal[2],accent:pal[3],extra:pal[4]},items:it,details:det||{}}};
+  const NEW=[
+   mk("mono_red","Scarlet evening","Monochrome red: a satin evening gown, a satin opera coat, opera gloves, a velvet choker, chandelier earrings and a clutch.","glam","",["crimson red","burgundy","blush pink","dusty rose","scarlet red"],
+     {top:["satin evening gown","p"],outerwear:["satin opera coat","s"],gloves:["opera satin gloves","s"],neckAccessory:["velvet choker","s"],earAccessory:["statement chandelier earrings","e"],hipAccessory:["mini clutch bag","s"],ringAccessory:["statement cocktail ring","e"]},{detailThree:"glossy satin finish"}),
+   mk("mono_pink","Pink confection","Monochrome pink: a puff-sleeve bow-front top, a bow-trimmed ruffle skirt, a fluffy cardigan, a satin hair bow and heart accessories.","sweet","",["hot pink","shell pink","rose pink","mauve","bubblegum pink"],
+     {top:["puff-sleeve bow-front top","p"],bottom:["bow-trimmed ruffle skirt","s"],outerwear:["fluffy cardigan","t"],legwear:["thigh-high socks with bows","p"],headwear:["satin hair bow","e"],neckAccessory:["bow-front choker","e"],earAccessory:["heart earrings","e"],hipAccessory:["pastel heart-shaped bag","p"]},{detailOne:"bow clusters",detailThree:"satin finish"}),
+   mk("mono_orange","Harvest sunset","Monochrome orange: a cable-knit sweater, a tiered cotton skirt, a quilted vest, knee socks, a newsboy cap and a silk scarf.","cottage","",["burnt orange","peach","caramel brown","mango","orange"],
+     {top:["cable-knit sweater","p"],bottom:["tiered cotton skirt","s"],outerwear:["quilted cottage vest","t"],legwear:["knee-high socks","t"],headwear:["tweed newsboy cap","p"],neckAccessory:["silk scarf","e"],hipAccessory:["woven market tote","t"],wristAccessory:["stacked beaded bracelets","e"]},{detailThree:"chunky knit texture"}),
+   mk("mono_yellow","Sunshine day","Monochrome yellow: a halter sundress, a cropped cardigan, a straw hat, a delicate necklace, flower earrings and a market tote.","casual","s",["golden yellow","pale yellow","honey gold","mustard yellow","lemon yellow"],
+     {top:["halter sundress","p"],outerwear:["cropped cardigan","s"],headwear:["straw hat","-"],neckAccessory:["delicate chain necklace","t"],earAccessory:["flower earrings","e"],legwear:["ankle socks","s"],hipAccessory:["woven market tote","-"]},{detailThree:"polka dots"}),
+   mk("mono_green","Forest meadow","Monochrome green: a puff-sleeve linen blouse, a high-waisted prairie skirt, a crochet cardigan, knee socks and a flower crown.","cottage","",["emerald green","mint green","olive green","eucalyptus","lime green"],
+     {top:["puff-sleeve linen blouse","s"],bottom:["high-waisted prairie skirt","p"],outerwear:["crochet cardigan","t"],legwear:["knee-high socks","t"],headwear:["flower crown","a"],belt:["woven belt","e"],hipAccessory:["wicker basket bag","-"]},{detailOne:"embroidered flowers"}),
+   mk("mono_blue","Ocean tailoring","Monochrome blue: a silk blouse, wide-leg trousers, a tailored blazer, a silk scarf, a headband and a structured satchel.","preppy","",["cobalt blue","navy blue","sky blue","ice blue","azure blue"],
+     {top:["silk blouse","t"],bottom:["wide-leg trousers","s"],outerwear:["tailored blazer","p"],neckAccessory:["silk scarf","a"],headwear:["headband","t"],hipAccessory:["structured satchel","s"],earAccessory:["tiny gemstone studs","a"]},{detailThree:"crisp poplin"}),
+   mk("mono_purple","Amethyst gala","Monochrome purple: a velvet gown, a beaded evening wrap, long velvet gloves, a small tiara and crystal earrings.","glam","",["royal purple","dusty lavender","plum","orchid purple","violet"],
+     {top:["velvet gown","p"],outerwear:["beaded evening wrap","s"],gloves:["long velvet gloves","p"],headwear:["small tiara","e"],earAccessory:["dangling crystal earrings","e"],hipAccessory:["beaded evening bag","t"],ringAccessory:["gemstone ring","a"]},{detailThree:"crushed velvet texture"}),
+   mk("mono_white","Winter white","Monochrome white: a fuzzy knit sweater, a pleated midi skirt, a wool coat, opaque tights, a beanie, knit gloves and a puffy scarf.","casual","w",["white","silver","champagne","antique ivory","pearl gray"],
+     {top:["fuzzy knit sweater","p"],bottom:["pleated midi skirt","p"],outerwear:["wool coat","t"],legwear:["opaque tights","p"],headwear:["beanie","p"],gloves:["knit gloves","p"],neckAccessory:["puffy scarf","t"],hipAccessory:["mini top-handle bag","p"]},{detailThree:"chunky knit texture"}),
+   mk("mono_black","Noir","Monochrome black: a fitted turtleneck, tailored trousers, a leather jacket, a thin choker, a leather cuff and dark sunglasses.","edgy","",["black","charcoal gray","smoky gray","mist gray","pearl gray"],
+     {top:["fitted turtleneck","p"],bottom:["high-waisted tailored trousers","p"],outerwear:["leather jacket","s"],belt:["thin leather belt","p"],neckAccessory:["thin choker","p"],wristAccessory:["leather cuff","p"],eyewear:["dark round sunglasses","-"],hipAccessory:["crossbody bag","p"],ringAccessory:["signet ring","t"]},{detailThree:"matte finish"}),
+   mk("mono_gold","Gilded glamour","Monochrome gold: a sequin mini dress, a beaded evening wrap, a statement necklace, bangles, a cocktail ring and a jeweled hair comb.","glam","",["gold","antique gold","sand","cream","champagne gold"],
+     {top:["sequin mini dress","p"],outerwear:["beaded evening wrap","t"],neckAccessory:["statement necklace","p"],earAccessory:["statement chandelier earrings","p"],wristAccessory:["bangles","p"],ringAccessory:["statement cocktail ring","p"],headwear:["jeweled hair comb","p"],hipAccessory:["beaded evening bag","s"]},{detailThree:"metallic sheen"})
+  ];
+  const BAD=[];
+  NEW.forEach(p=>{
+    Object.entries(p.items).forEach(([f,[v]])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===v))BAD.push("preset "+p.id+": missing item "+f+" / "+v);if(COLOR_RX.test(v))BAD.push("color word in item name: "+v)});
+    Object.entries(p.details).forEach(([f,v])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===v))BAD.push("preset "+p.id+": missing detail "+f+" / "+v)});
+    Object.values(p.pal).forEach(n=>{if(!COLORS[n])BAD.push("unknown palette color "+n+" in "+p.id)});
+  });
+  if(BAD.length)throw new Error([...new Set(BAD)].join(" ## "));
+  NEW.forEach(p=>{if(!OUTFIT_PRESETS.some(x=>x.id===p.id))OUTFIT_PRESETS.push(p)});
+  PRESET_GROUPS.outfit.push({label:"Monochrome, one color head to toe",keys:NEW.map(p=>p.id)});
+})();
+
 function stateFromTemplate(t){
   const b=blankState();b.name=t.name;Object.assign(b.pal,t.pal);
   const c={...t.c};const body=c._body;delete c._body;
   if(body&&BODY_PRESETS[body])Object.assign(c,BODY_PRESETS[body].v);
   b.c=c;
-  const o=newOutfit(t.name.split(" ")[0]+" outfit");o.look=t.outfit.look||"";o.showUnder=!!t.outfit.showUnder;
-  Object.entries(t.outfit.items).forEach(([f,[v,col,w,c2]])=>{o.items[f]={v,c:col,...(w?{w}:{}),...(c2?{c2}:{})}});Object.assign(o.details,t.outfit.details||{});o.dcol={...(t.outfit.dcol||{})};
-  b.outfits=[o];
+  const mk=(sp,nm)=>{const o=newOutfit(sp.oname||nm);o.look=sp.look||"";o.showUnder=!!sp.showUnder;
+    Object.entries(sp.items).forEach(([f,[v,col,w,c2]])=>{o.items[f]={v,c:col,...(w?{w}:{}),...(c2?{c2}:{})}});Object.assign(o.details,sp.details||{});o.dcol={...(sp.dcol||{})};return o};
+  b.outfits=[mk(t.outfit,t.name.split(" ")[0]+" outfit")].concat((t.more||[]).map((m,i)=>mk(m,"Outfit "+(i+2))));
   b.out={...S.out,...(t.out||{})};b.layers={...S.layers};b.order=S.order.slice();
   return b;
 }
