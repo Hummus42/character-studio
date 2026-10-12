@@ -337,6 +337,7 @@ button,.btn,.chip,.opt,.rail-btn,.pick,.seg button,.tabs button,.swb,.start,labe
 .lockdot:hover{opacity:1;color:var(--ink)}
 .lockdot:focus-visible{opacity:1;outline:2px solid var(--focus);outline-offset:1px}
 .lockdot:disabled{cursor:not-allowed}
+.row.dropped{opacity:.45}.row.dropped .ctl{pointer-events:none}.row.dropped .lab label{text-decoration:none}.dropped[inert]{opacity:.45;pointer-events:none}
 .row.locked{background:linear-gradient(90deg,var(--panel2),transparent 75%)}
 @media (pointer:coarse){.lockdot{width:40px;height:40px;margin:-9px -4px -9px 0;opacity:.7}}
 /* step header */
@@ -1271,7 +1272,7 @@ const MODE_LAYERS={full:LAYER_DEFS.map(d=>d[0]),char:["identity","palette","eyes
 function newOutfit(name){return{name:name||"Outfit",look:"",cover:"",season:"",showUnder:false,items:{},details:{},dcol:{}}}
 function blankState(){
   return{v:1,name:"Untitled character",pal:{primary:"",secondary:"",third:"",accent:"",extra:""},c:{},outfits:[newOutfit("Outfit 1")],cur:0,
-    out:{mode:"full",compact:false,sheet:false,explicit:false,lewdtag:false,wfmt:"numeric",auto:true,framing:"cowboy shot",must:"",avoid:"",notes:""},
+    out:{mode:"full",compact:false,sheet:false,explicit:false,lewdtag:false,wfmt:"numeric",style:"studio",palName:"",repeatBody:false,auto:true,framing:"cowboy shot",must:"",avoid:"",notes:""},
     layers:{},order:LAYER_DEFS.map(d=>d[0])};
 }
 let S=blankState();
@@ -1422,11 +1423,11 @@ function faceSentence(){
 /* hair rules */
 const lenRank=v=>Object.prototype.hasOwnProperty.call(HAIR_LEN_RANK,v)?HAIR_LEN_RANK[v]:Object.prototype.hasOwnProperty.call(HAIR_LEN_RANK_EXTRA,v)?HAIR_LEN_RANK_EXTRA[v]:null;
 function styleProfile(st){
-  const t=(st||"").toLowerCase(),p={};if(!t)return p;const longW=/\blong\b/.test(t);
-  if(/\b(pixie|bixie|buzz(ed)?|undercut|bowl cut|lob)\b|\bbob\b|\bshort\b/.test(t))p.range=longW?[2,4]:[0,3];
-  else if(longW||/\b(hime|princess)\b/.test(t)||/\b(bun|buns|updo|chignon|ponytails?|twin tails|twintails|pigtails?|braids?|braided|twist|top knot|odango)\b/.test(t))p.range=[3,8];
-  if(!p.range&&/(flowing|floating|drifting|swirled|ribbon-like|weightless|gravity-defying|strand hair|ember-tipped|seaweed|vine-entwined|cloudlike|mistlike|crystalline hair)/.test(t))p.range=[4,8];
-  p.tied=/\b(bun|buns|updo|chignon|top knot|odango)\b/.test(t);
+  const t=(st||"").toLowerCase(),p={};if(!t)return p;const longW=/\blong\b/.test(t.replace(/\bwith long [a-z ]*?(strands|sidelocks|pieces)\b/g,""));
+  if(/\b(pixie|bixie|buzz(ed)?|bowl cut|lob)\b|\bbob\b|\bshort\b/.test(t))p.range=longW?[2,4]:[0,3];
+  else if(longW||/\b(hime|princess)\b/.test(t))p.range=[3,8];
+  else if(/\b(bun|buns|updo|chignon|ponytails?|twin tails|twintails|pigtails?|braids?|braided|twist|top knot|odango)\b/.test(t))p.range=[2,8];
+  p.tied=/\b(bun|buns|updo|chignon|top knot|odango)\b/.test(t)&&!/half-up|half-down/.test(t);
   p.tex=/straight/.test(t)?"straight":/\bcurl(y|s)?\b/.test(t)?"curly":/\bwav(y|es)\b/.test(t)?"wavy":null;return p;
 }
 const texConflict=(st,tx)=>{const a=styleProfile(st).tex,c=HAIR_TEX_CLASS[tx];return !!(a&&c&&((a==="straight")!==(c==="straight")))};
@@ -1474,14 +1475,15 @@ function bodySentence(){
   const Sx=cap(subjectPhrase()),s=[],size=g("bustSize"),shape=g("bustShape"),weight=g("bustWeight");
   const bf=activeBodyForm(),noLeg=!!(bf&&(bf.noLegs||bf.dropLegs))||fullBeast();
   if(CK.compact){
-    const t=[size,g("heightStature"),withArticle(g("torsoShape")),withArticle(g("armShape")),withArticle(g("waistShape")),withArticle(g("stomachShape")),g("hipShape"),noLeg?"":withArticle(g("buttSize")),noLeg?"":g("thighBuild"),withArticle(g("bodySoftness"))].filter(v=>v&&v!=="a ");
+    const t=[size,g("heightStature"),withArticle(g("torsoShape")),withArticle(g("armShape")),g("handShape")?g("handShape")+" hands":"",withArticle(g("waistShape")),withArticle(g("stomachShape")),g("hipShape"),noLeg?"":withArticle(g("buttSize")),noLeg?"":g("thighBuild"),withArticle(g("bodySoftness")),g("bodyMarkings")].filter(v=>v&&v!=="a ");
     if(bf)t.push(bf.key);return t.length?t.join(", ")+".":"";
   }
   const extra=[shape&&withArticle(shape),weight].filter(Boolean);
   if(size)s.push(`${Sx} has ${withArticle(size)}${extra.length?` with ${joinNatural(extra)}`:""}.`);else if(extra.length)s.push(`${Sx} has ${joinNatural(extra)}.`);
-  const rest=[g("heightStature"),g("shoulderShape"),withArticle(g("torsoShape")),withArticle(g("armShape")),withArticle(g("waistShape")),withArticle(g("stomachShape")),g("hipShape"),noLeg?"":withArticle(g("buttSize")),noLeg?"":g("thighBuild"),noLeg?"":g("legShape"),withArticle(g("bodySoftness")),g("posture")].filter(v=>v&&v!=="a ");
+  const rest=[g("heightStature"),g("shoulderShape"),withArticle(g("torsoShape")),withArticle(g("armShape")),g("handShape")?g("handShape")+" hands":"",withArticle(g("waistShape")),withArticle(g("stomachShape")),g("hipShape"),noLeg?"":withArticle(g("buttSize")),noLeg?"":g("thighBuild"),noLeg?"":g("legShape"),withArticle(g("bodySoftness")),g("posture")].filter(v=>v&&v!=="a ");
   if(rest.length)s.push(`She has ${joinNatural(rest)}.`);
   if(bf)s.push(bf.s);
+  {const bm=g("bodyMarkings");if(bm)s.push(cap(bm.replace(/[.\s]+$/,""))+".")}
   return s.join(" ");
 }
 function skinSentence(){
@@ -1541,7 +1543,6 @@ function outfitState(o){
     if(it.panties&&panHidden&&!o.showUnder)dropIt("panties","Panties are covered by the bottom.",{label:"Show underwear",fn:()=>mut(()=>{cur().showUnder=true})});
     if(o.showUnder&&((it.bra&&braHidden)||(it.panties&&panHidden)))note("info","Underwear is set to show under covering clothes, so the generator may draw the clothes as see-through.");
   }
-  if(it.gloves&&it.wristAccessory&&parseOpt("gloves",it.gloves.v).kind==="long")dropIt("wristAccessory","The long gloves cover the wrist piece.",rm("wristAccessory"));
   if(it.corset&&it.top&&parseOpt("top",it.top.v).kind==="corset")note("warn",`Corset layer and “${it.top.v}” are both corset-style, so they may merge into one garment.`,rm("corset"));
   if(it.headwear&&(traitValue("earStyle")||traitValue("hornStyle"))&&parseOpt("headwear",it.headwear.v).kind==="beret")note("info",`“${it.headwear.v}” sits on top of the ${traitValue("earStyle")||traitValue("hornStyle")}. Mention how they fit in your notes if the generator hides them.`);
   const wingsOn=!!traitValue("wingStyle");
@@ -1550,7 +1551,9 @@ function outfitState(o){
 }
 function garmentPhrases(fields,o,st){
   const out=[];
-  fields.forEach(f=>{const it=o.items[f];if(!it||st.drop[f])return;const c=itemColor(f,it),fi=fillItem(it.v,c,accentFor(f,it)),base=(c&&!fi.inline)?`${c} ${fi.t}`:fi.t;out.push(it.w?withArticle(base)+" "+it.w:base)});
+  fields.forEach(f=>{const it=o.items[f];if(!it||st.drop[f])return;const c=itemColor(f,it),fi=fillItem(it.v,c,accentFor(f,it)),base=(c&&!fi.inline)?`${c} ${fi.t}`:fi.t;let w=it.w||"";
+    if(f==="wristAccessory"&&!/\bover\b/.test(w)){const g=o.items.gloves;if(g&&!st.drop.gloves&&parseOpt("gloves",g.v).kind==="long")w=(w?w+" ":"")+"worn over the gloves"}
+    out.push(w?withArticle(base)+" "+w:base)});
   return out;
 }
 function outfitLayers(){
@@ -1579,14 +1582,17 @@ function weigh(text,w,fmt){
 /* ---------- compose ---------- */
 function composeRaw(){
   CK={compact:!!S.out.compact,auto:!!S.out.auto,checks:[]};
-  const O=outfitLayers();
+  const O=outfitLayers(),N=narrOn();
   const raw={
-    identity:[identitySentence(),speciesSentence(),animalSentence()].filter(Boolean).join(" "),
-    palette:paletteSentence(S.out.mode==="outfit"?"The outfit":undefined),
-    eyes:eyesSentence(),face:faceSentence(),hair:hairSentence(),body:bodySentence(),skin:skinSentence(),makeup:makeupSentence(),
+    identity:(N?[speciesSentence(),animalSentence()]:[identitySentence(),speciesSentence(),animalSentence()]).filter(Boolean).join(" "),
+    palette:(N&&S.out.mode!=="outfit")?narrPalette():paletteSentence(S.out.mode==="outfit"?"The outfit":undefined),
+    eyes:N?narrEyes():eyesSentence(),face:N?"":faceSentence(),hair:N?narrHair():hairSentence(),body:N?narrBody():bodySentence(),skin:N?narrSkin():skinSentence(),makeup:N?"":makeupSentence(),
     garments:O.garments,accessories:O.accessories,underwear:O.underwear,details:O.details,
     extras:[S.out.must.trim()?`Additional details include ${S.out.must.trim().replace(/[.\s]+$/,"")}.`:"",S.out.notes.trim()].filter(Boolean).join(" ")
   };
+  if(S.out.repeatBody&&raw.body&&!CK.compact)raw.body=raw.body+" "+raw.body;
+  intimateApply(raw);
+  if(N&&S.out.mode!=="outfit")narrNotes();
   if(CK.compact&&raw.palette)raw.palette=raw.palette.replace(/^.*? (?:has|uses) /,"").replace(/ color palette/," palette");
   if(CK.compact)Object.keys(raw).forEach(k=>{raw[k]=(raw[k]||"").replace(/[.\s]+$/,"")});
   const inMode=new Set(MODE_LAYERS[S.out.mode]||MODE_LAYERS.full);
@@ -1835,9 +1841,10 @@ function fieldOptsPop(id,anchor,extra){
     custom:{placeholder:"Type your own "+LABELS[id].toLowerCase(),save:true,use:(t,s)=>{if(s){addCustom(id,t)}setC(id,t)}}});
 }
 function row(id,label,control,hint,cls){
+  const nd=narrDropped(id),idr=!nd&&intimateDropped(id),dr=nd||idr;if(nd)hint="Not used in the narrative sentence style.";else if(idr)hint="Held out of the prompt for now (see above).";
   const lk=lockable(id)?lockButton(id,label):null,held=isLocked(id)||stepFrozen(stepOf(id));
   const lab=h("div",{class:"lab"},h("div",{class:"labtop"},h("label",{text:label}),lk),hint?h("small",{class:"hint",text:hint}):null);
-  return h("div",{class:"row "+(cls||"")+(isSet(id)?" set":"")+(held?" locked":""),"data-field":id},lab,h("div",{class:"ctl"},control));
+  return h("div",{class:"row "+(cls||"")+(isSet(id)?" set":"")+(held?" locked":"")+(dr?" dropped":""),"data-field":id},lab,h("div",{class:"ctl",inert:dr?true:null,"aria-disabled":dr?"true":null},control));
 }
 function chipsControl(id,opts,{auto,none}={}){
   const wrap=h("div",{class:"chips",role:"group","aria-label":LABELS[id]});
@@ -2214,8 +2221,10 @@ function rollOnce(ctx){
       for(let t=0;t<25;t++){attempt();if(!compose().checks.some(c=>/^Hair /.test(c.msg)))break}
     },
     body(){
-      STEP_FIELDS.body.forEach(clr);
+      STEP_FIELDS.body.filter(f=>!INTIMATE_FIELDS.includes(f)).forEach(clr);
       const p=presetPick(BODY_PRESETS,null);if(p)assign(p.v);
+      /* intimate details are never wiped by a roll; with adult options on and a nude outfit they get an adult preset (the safeguard decides what is available) */
+      if(adult&&intimateGate().open){const ip=presetPick(INTIMATE_PRESETS,null);if(ip)assign(ip.v)}
       if(free("skinTone")){const a=nat("skinTone");if(a.length)S.c.skinTone=pick1(a)}
       if(Math.random()<.7){const u=nat("undertone");if(u.length&&free("undertone"))S.c.undertone=pick1(u)}
       nudge("skinFinish",.8);
@@ -2292,13 +2301,12 @@ function rollOutfit(ctx){
   roll("belt",useDress?.15:.4);roll("waistAccessory",.3);
   roll("neckAccessory",.65);roll("wristAccessory",.5);
   roll("headwear",.55,it=>!hat||kindOf("headwear",it.v)!=="beret");
-  roll("eyewear",.2);roll("gloves",W?.3:Sm?.04:.15,it=>!lockedItem("wristAccessory")||kindOf("gloves",it.v)!=="long");
+  roll("eyewear",.2);roll("gloves",W?.3:Sm?.04:.15);
   roll("tagCharm",.25);roll("hipAccessory",.45);
   roll("earAccessory",.65);roll("ringAccessory",.4);
   roll("pocketItem",.12);roll("loopItem",.15);roll("thighAccessory",.12);roll("kneeAccessory",.06);
   /* underwear is rolled too; it stays out of the prompt unless worn uncovered */
   roll("bra",.6);roll("panties",.6);
-  if(items.gloves&&kindOf("gloves",items.gloves.v)==="long"&&!lockedItem("wristAccessory"))delete items.wristAccessory;
   const details={},dcol={};
   [["detailOne",.6],["detailTwo",.5],["detailThree",.45]].forEach(([f,p])=>{
     if(lockedDet(f)){if(o.details[f]){details[f]=o.details[f];if(o.dcol&&o.dcol[f])dcol[f]=o.dcol[f]}return}
@@ -2758,11 +2766,11 @@ function presetBarOld(PRESETS,FIELDS,clearLabel,key,groups){
     h("button",{type:"button",class:"chip more",onclick:()=>mut(()=>{FIELDS.forEach(i=>delete S.c[i])}),text:clearLabel}));
 }
 function stepFace(){
-  const f=document.createDocumentFragment();
+  const f=document.createDocumentFragment();f.append(narrCallout("face")||"");
   f.append(sub("Heritage","Natural, realistic human looks by background. Sets face, eyes, eye color, skin tone, hair color and hair texture. Change anything afterward."));
   f.append(presetRow("hpreset",HERITAGE,PRESET_GROUPS.heritage,(k,p)=>applyHeritage(p),()=>{let n=0;mut(()=>{n=bulkSet(HERITAGE_CLEAR,null)});if(n)toast("Heritage cleared."+keptNote(n))},"Clear heritage","Hair style, expression and body proportions are not changed.",{title:"Heritage presets",stack:true}));
   f.append(sub("Face"));
-  f.append(presetBar(FACE_PRESETS,FACE_FIELDS,"Clear face","fpreset",PRESET_GROUPS.face));["faceShape","expression","browShape","noseShape","mouthShape","faceMark","impression"].forEach(id=>f.append(fieldRow(id)));
+  f.append(narrDim(presetBar(FACE_PRESETS,FACE_FIELDS,"Clear face","fpreset",PRESET_GROUPS.face)));["faceShape","expression","browShape","noseShape","mouthShape","faceMark","impression"].forEach(id=>f.append(fieldRow(id)));
   f.append(sub("Eyes"));
   f.append(presetBar(EYE_PRESETS,EYE_FIELDS,"Clear eyes","epreset",PRESET_GROUPS.eye));
   ["eyeShape","scleraStyle"].forEach(id=>f.append(fieldRow(id)));f.append(colorRow("scleraColor","Colors the sclera. Leave empty for the default eye whites."));["pupilStyle","irisDetail","lashNatural","eyeConfig"].forEach(id=>f.append(fieldRow(id)));
@@ -3351,13 +3359,15 @@ function skinSuggestBox(){
 }
 function stepBody(){
   const f=document.createDocumentFragment();
-  f.append(presetRow("preset",BODY_PRESETS,PRESET_GROUPS.body,(k,p)=>{if(stepFrozen("body")){toast("Body and skin is locked. Unlock the step to load a preset.");return}let held=0;mut(()=>{held=bulkSet(STEP_FIELDS.body.slice(0,15),p.v)},"preset");const am=Policy.afterBodyPreset(),m=((am||"")+keptNote(held)).trim();if(m)toast(m)},()=>{if(stepFrozen("body")){toast("Body and skin is locked. Unlock the step to clear it.");return}let held=0;mut(()=>{held=bulkSet(STEP_FIELDS.body.slice(0,15),null)});if(held)toast("Cleared."+keptNote(held))},"Clear body",PRESET_HINTS.preset,{title:"Body presets",stack:true}));
+  f.append(presetRow("preset",BODY_PRESETS,PRESET_GROUPS.body,(k,p)=>{if(stepFrozen("body")){toast("Body and skin is locked. Unlock the step to load a preset.");return}let held=0;mut(()=>{held=bulkSet(STEP_FIELDS.body.slice(0,16),p.v)},"preset");const am=Policy.afterBodyPreset(),m=((am||"")+keptNote(held)).trim();if(m)toast(m)},()=>{if(stepFrozen("body")){toast("Body and skin is locked. Unlock the step to clear it.");return}let held=0;mut(()=>{held=bulkSet(STEP_FIELDS.body.slice(0,16),null)});if(held)toast("Cleared."+keptNote(held))},"Clear body",PRESET_HINTS.preset,{title:"Body presets",stack:true}));
   if(Policy.callout("body"))f.append(h("p",{class:"callout"},Policy.callout("body")));
   f.append(sub("Bust"));["bustSize","bustShape","bustWeight"].forEach(id=>f.append(fieldRow(id)));
-  f.append(sub("Proportions"));["heightStature","shoulderShape","torsoShape","armShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture"].forEach(id=>f.append(fieldRow(id,{forcePick:id==="buttSize"})));
+  f.append(sub("Proportions"));["heightStature","shoulderShape","torsoShape","armShape","handShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture"].forEach(id=>f.append(fieldRow(id,{forcePick:id==="buttSize"})));
   f.append(sub("Skin"));
   const sb=skinSuggestBox();if(sb)f.append(sb);
   skinRows().forEach(r=>f.append(r));
+  f.append(fieldRow("bodyMarkings",{forcePick:true,hint:"Written as its own sentence, e.g. “Light body freckles dust the shoulders…”."}));
+  intimateRows(f);
   return f;
 }
 function nailColorRow(){
@@ -3370,8 +3380,8 @@ function nailColorRow(){
   return row("nailColor",LABELS.nailColor,wrap,cur&&!cur.startsWith("@")?`Custom color: ${cur}`:"");
 }
 function stepMakeup(){
-  const f=document.createDocumentFragment();
-  f.append(presetBar(MAKEUP_PRESETS,MAKEUP_FIELDS,"Clear makeup","mpreset",PRESET_GROUPS.makeup));f.append(sub("Details"));
+  const f=document.createDocumentFragment();f.append(narrCallout("makeup")||"");
+  f.append(narrDim(presetBar(MAKEUP_PRESETS,MAKEUP_FIELDS,"Clear makeup","mpreset",PRESET_GROUPS.makeup)));f.append(sub("Details"));
   ["makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents"].forEach(id=>f.append(fieldRow(id)));
   f.append(colorRow("makeupColor","Used for “her makeup uses … accents”."));
   f.append(sub("Nails","Style and polish. Choose several palette colors for a coordinated set."));
@@ -3476,8 +3486,30 @@ function applyOutfitPreset(p){
       else if(oldItems[k]){o.items[k]=oldItems[k];held++}
     });
     if(def)o.name=p.name;
+    o.preset=p.id;
   });
   toast(`Loaded “${p.name}”. Its colors follow your palette.`+(filled?` Filled ${filled} empty palette slot${filled>1?"s":""} with its colors.`:"")+keptNote(held));
+}
+function presetOfOutfit(o){preparePresets();return OUTFIT_PRESETS.find(p=>p.id===o.preset)||OUTFIT_PRESETS.find(p=>p.name===o.name)||null}
+function resetPresetColors(){
+  const o=cur(),p=presetOfOutfit(o);
+  if(!p){toast("This outfit has no preset colors to go back to.");return}
+  const PAL=p.pal||{};
+  const res=(f,c)=>{
+    if(c==null||c===""||c==="-")return c;
+    if(c==="auto"){const sl=ROLE_AUTO[f];return(sl&&PAL[sl])||c}
+    if(c[0]==="@"){const parts=c.slice(1).split("+").map(x=>PAL[x.replace(/^@/,"")]).filter(Boolean);return parts.length?joinNatural(parts):c}
+    return c};
+  let n=0;
+  mut(()=>{
+    const oo=cur();
+    Object.entries(p.items).forEach(([f,[v,c,w,c2]])=>{
+      const it=oo.items[f];if(!it||it.v!==v)return;
+      it.c=res(f,c);if(c2)it.c2=res(f,c2);n++});
+    Object.entries(p.dcol||{}).forEach(f=>{const d=f[0];if(oo.details[d]&&oo.details[d]===(p.details||{})[d]){oo.dcol[d]=res(d,f[1]);n++}});
+    oo.preset=p.id;
+  });
+  toast(n?`Colors set back to “${p.name}”’s own. They no longer follow your palette. Load the preset again to follow it.`:"Nothing from this preset is left to recolor.");
 }
 function stepOutfit(){
   const f=document.createDocumentFragment(),o=cur();
@@ -3490,6 +3522,7 @@ function stepOutfit(){
   f.append(h("div",{class:"btnrow outfit-actions"},nameIn,
     h("button",{type:"button",class:"btn sm",onclick:()=>mut(()=>{const c=JSON.parse(JSON.stringify(cur()));c.name+=" copy";S.outfits.splice(S.cur+1,0,c);S.cur++}),text:"Duplicate"}),
     h("button",{type:"button",class:"btn sm",disabled:S.outfits.length<2?true:null,onclick:()=>{if(S.outfits.length<2)return;mut(()=>{S.outfits.splice(S.cur,1);S.cur=Math.max(0,S.cur-1)})},text:"Delete"}),
+    h("button",{type:"button",class:"btn sm",disabled:presetOfOutfit(o)?null:true,title:"Put this outfit back to the colors its preset was made with",onclick:()=>resetPresetColors(),text:"Preset colors"}),
     h("button",{type:"button",class:"btn sm",onclick:()=>clearOutfit(),text:"Clear outfit"})));
   f.append(h("div",{class:"btnrow"},h("button",{type:"button",class:"btn primary",id:"rndOutfit",onclick:randomizeOutfit,text:"Randomize outfit"}),
     h("span",{class:"muted small",text:"Builds a matching outfit. It follows the look, coverage and season below, so leave Look on “Any look” for more variety. Locked pieces stay. Undo brings back the last one."})));
@@ -3535,6 +3568,7 @@ function stepFinish(){
   f.append(h("div",{class:"checks"},check("Compact tags","compact",{hintText:"A comma list instead of sentences. Shorter, less descriptive."}),check("Character sheet prefix","sheet",{hintText:"Adds a turnaround-sheet instruction in front of the prompt."}),check("Resolve conflicts automatically","auto",{hintText:"Leaves conflicting hair, leg and underwear pieces out of the prompt. See Checks."})));
   const wf=h("select",{"aria-label":"Weight format",onchange:e=>mut(()=>{S.out.wfmt=e.target.value})},[["numeric","NovelAI numeric (1.3::text::)"],["braces","Braces { } and [ ]"]].map(([v,l])=>h("option",{value:v,selected:S.out.wfmt===v?true:null,text:l})));
   f.append(h("div",{class:"row"},h("div",{class:"lab"},h("label",{text:"Weight format"}),h("small",{class:"hint",text:"Set each layer’s weight in the Layers tab."})),h("div",{class:"ctl"},wf)));
+  f.append(narrStyleRows());
   f.append(sub("Tags"));
   const blocked=!Policy.explicitAllowed();
   const reason=Policy.reason();
@@ -4382,6 +4416,473 @@ function preparePresets(){
   PRESET_GROUPS.outfit.push({label:"Monochrome, one color head to toe",keys:NEW.map(p=>p.id)});
 })();
 
+/* ---- v66: "Rose-streak beauty" starting point (from reference images) and the options it needs ---- */
+(function(){
+  const addC=(f,v,g)=>{CHAR[f]=CHAR[f]||[];if(!CHAR[f].some(x=>x[0]===v))CHAR[f].push([v,g])};
+  const addO=(f,v,t,fam,g)=>{OUTFIT[f]=OUTFIT[f]||[];if(!OUTFIT[f].some(i=>i.v===v)){const it={v,t};if(fam)it.f=fam;if(g)it.g=g;OUTFIT[f].push(it)}};
+  addC("hairBlend","distinct, sharply defined {c} streaks running from the roots all the way to the tips, with no gradient","Color blending");
+  addC("hairBlend","distinct, sharply defined highlight streaks running from the roots all the way to the tips, with no gradient","Color blending");
+  addC("markings","a beauty mark on the chest","Natural");
+  addC("markings","a small beauty mark on the upper chest and another beneath one eye","Natural");
+  addO("headwear","angular mechanical hair ornaments","CU","edgy,glam");
+  addO("wingPiece","small feathered angel wings (costume)","CU","costume,resort");
+  addO("top","apron-style halter camisole","CU","casual");
+  addO("top","fringed western crop top","CUS","costume,casual");
+  addO("top","sleeveless one-piece swimsuit with a keyhole front","CU","resort,sporty");
+
+  const T={id:"rosestreak",name:"Rose-streak beauty",adultOnly:true,
+    blurb:"Pink-red hair with gray streaks in high twin ponytails, rose-red eyes, a beauty mark beneath one eye and on the chest, X-shaped hair clips and a heart choker. A very curvy figure with a full bust and thick thighs. Seven outfits: frilled bikini with angel wings, white swimsuit, apron camisole, cowgirl, athletic jacket, pleated skirt, bikini and jacket.",
+    pal:{primary:"rose pink",secondary:"slate gray",third:"black",accent:"crimson red",extra:"white"},
+    c:Object.assign({},HERITAGE.japanese.v,{
+      age:"woman",impression:"a bombshell presence",expression:"playful smile",
+      faceShape:"heart-shaped face with high cheekbones and a tapered chin",eyeShape:"large, striking eyes",
+      eyeOne:"@accent",eyeTwo:"@accent",
+      hairStyle:"high twin ponytails",hairLength:"short",hairTexture:"loose waves",bangs:"long sidelocks with loose face-framing strands",
+      hairBase:"@primary",hairHighlights:"@secondary",hairBlend:"distinct, sharply defined highlight streaks running from the roots all the way to the tips, with no gradient",
+      skinTone:"porcelain",markings:"a small beauty mark on the upper chest and another beneath one eye",
+      makeupStyle:"idol makeup",
+      _body:"bottomHeavy"}),
+    outfit:{oname:"Angel bikini",look:"resort",items:{
+        top:["frilled halter bikini top with a front ribbon tie","auto"],bottom:["side-tie bikini bottoms","auto"],
+        wingPiece:["small feathered angel wings (costume)","@extra"],headwear:["X-shaped hair clips","@third"],
+        neckAccessory:["heart choker","@third"],wristAccessory:["ribbon bracelet","@primary"]},
+      details:{detailOne:"frilled trim",detailTwo:"side ribbon ties"},dcol:{}},
+    more:[
+      {oname:"White swimsuit",look:"resort",items:{
+        top:["sleeveless one-piece swimsuit with a keyhole front","@extra"],headwear:["angular mechanical hair ornaments","@third"],
+        neckAccessory:["heart choker","@third"],wristAccessory:["ribbon bracelet","@third"]},
+        details:{detailOne:"{c} trim"},dcol:{detailOne:"emerald green"}},
+      {oname:"Apron camisole",look:"casual",items:{
+        top:["apron-style halter camisole","plum purple"],bottom:["high-waisted shorts","@third"],headwear:["X-shaped hair clips","@third"],
+        neckAccessory:["heart choker","@third"],wristAccessory:["scrunchie on the wrist","@primary"]},
+        details:{},dcol:{}},
+      {oname:"Cowgirl",look:"costume,casual",items:{
+        top:["fringed western crop top","@extra"],bottom:["denim cutoff shorts","light blue"],headwear:["felt cowgirl hat","@extra"],
+        belt:["western belt with a large buckle","brown"],neckAccessory:["heart choker","@third"]},
+        details:{detailOne:"fringe trim"},dcol:{}},
+      {oname:"Athletic jacket",look:"sporty",items:{
+        top:["fitted sports bra top","@third"],outerwear:["cropped warm-up jacket","sky blue"],bottom:["flared yoga leggings","@third"],
+        headwear:["X-shaped hair clips","@third"],neckAccessory:["heart choker","@third"]},
+        details:{detailTwo:"athletic fit"},dcol:{}},
+      {oname:"Pleated skirt",look:"casual",items:{
+        top:["short-sleeve collared blouse","@extra"],bottom:["pleated mini skirt","@third"],legwear:["thigh-high socks","@third"],
+        headwear:["angular mechanical hair ornaments","@third"],neckAccessory:["heart choker","@third"]},
+        details:{},dcol:{}},
+      {oname:"Bikini and jacket",look:"sporty",items:{
+        top:["triangle bikini top","auto"],outerwear:["cropped warm-up jacket","@extra"],bottom:["pleated tennis skirt","@extra"],
+        headwear:["X-shaped hair clips","@third"],neckAccessory:["heart choker","@third"]},
+        details:{detailOne:"{c} trim"},dcol:{detailOne:"emerald green"}}
+    ]};
+  if(!TEMPLATES.some(t=>t.id===T.id))TEMPLATES.push(T);
+  const g=PRESET_GROUPS.start.find(g=>g.label==="Stylish");if(g&&!g.keys.includes(T.id))g.keys.push(T.id);
+})();
+
+/* ---- v73: "Ideal" body preset (adult only) and the options it needs ---- */
+(function(){
+  const addC=(f,v,g)=>{CHAR[f]=CHAR[f]||[];if(!CHAR[f].some(x=>x[0]===v))CHAR[f].push([v,g])};
+  addC("bustSize","very large, full, naturally rounded breasts","Full figure (adult)");
+  addC("heightStature","a petite frame","Height");
+  addC("thighBuild","thick soft thighs","Full figure (adult)");
+  BODY_PRESETS.ideal={label:"Ideal",adultOnly:true,v:{bustSize:"very large, full, naturally rounded breasts",heightStature:"a petite frame",shoulderShape:"narrow shoulders",waistShape:"tiny waist",stomachShape:"soft stomach",hipShape:"rounded hips",buttSize:"full, round butt",thighBuild:"thick soft thighs",legShape:"shapely legs",bodySoftness:"extremely top-heavy hourglass figure",handShape:"small and feminine"},blurb:"Petite frame, very large full breasts, narrow shoulders, tiny waist, rounded hips, a full round butt and thick soft thighs."};
+  const g=PRESET_GROUPS.body.find(x=>/Top-heavy/.test(x.label));if(g&&!g.keys.includes("ideal"))g.keys.push("ideal");
+})();
+
+/* ---- v74: "Narrative" sentence style (Finish > Prompt style), its fields and the "Ideal" starting point ---- */
+(function(){
+  const addCol=(n,hex)=>{if(!COLORS[n])COLORS[n]=hex;if(!ALL_COLORS.includes(n)&&!EVERYDAY_SET.has(n))ALL_COLORS.push(n)};
+  addCol("slightly deeper powder blue","#8FB4DA");addCol("subtle pale-gold","#EBD9A0");addCol("warm honey orange","#E89A45");
+  const addC=(f,v,g)=>{CHAR[f]=CHAR[f]||[];if(!CHAR[f].some(x=>x[0]===v))CHAR[f].push([v,g])};
+  addC("undertone","subtle golden","");
+  addC("markings","soft freckles scattered across the body","Freckles");
+  addC("hairBlend","blended blue, white, and orange gradient streaks","Color blending");
+  ["small and feminine","small and delicate","slender and graceful","long, slender fingers","soft and dainty","strong and capable","elegant, long-fingered","small, soft"].forEach(v=>addC("handShape",v,"Hands"));
+  ["light body freckles dust the shoulders, chest, stomach, hips, and thighs","soft freckles dust the nose, cheeks, and shoulders","dense freckles cover the shoulders, chest, and back","a scattering of beauty marks dots the chest and thighs","faint tan lines mark the shoulders, chest, and hips"].forEach(v=>addC("bodyMarkings",v,"Freckles and marks"));
+  Object.assign(LABELS,{handShape:"Hands",bodyMarkings:"Body freckles and marks"});
+  const B=STEP_FIELDS.body;
+  if(!B.includes("handShape"))B.splice(B.indexOf("posture")+1,0,"handShape");
+  if(!B.includes("bodyMarkings"))B.splice(B.includes("markingColor")?B.indexOf("markingColor")+1:B.indexOf("markings")+1,0,"bodyMarkings");
+  _fieldStep=null;
+})();
+const NARR_DROPPED=new Set(["faceShape","expression","browShape","noseShape","mouthShape","faceMark","impression","eyeShape","scleraStyle","scleraColor","pupilStyle","irisDetail","lashNatural","makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents","makeupColor","nailStyle","nailColor"]);
+const narrOn=()=>!!S&&S.out.style==="narrative"&&!S.out.compact;
+const narrDropped=id=>narrOn()&&NARR_DROPPED.has(id);
+const COLW="blue|orange|green|brown|gray|grey|pink|red|purple|violet|gold|golden|silver|amber|yellow|white|black|teal|aqua|lavender|peach|cream|ivory|tan|bronze|copper|beige";
+const hyC=c=>String(c||"").replace(new RegExp("^(.*[a-z]) ("+COLW+")$","i"),"$1-$2");
+function narrOrder(o,on){
+  o=o.slice();const b=o.indexOf("body"),s=o.indexOf("skin");if(b<0||s<0)return o;
+  if(on&&b<s){o.splice(s,1);o.splice(b,0,"skin")}
+  else if(!on&&s<b){o.splice(s,1);o.splice(o.indexOf("body")+1,0,"skin")}
+  return o;
+}
+function narrPalette(){
+  const Sx=cap(subjectPhrase()),seen=new Set(),all=["primary","secondary","third","accent","extra"].map(k=>S.pal[k]).filter(c=>{if(!c)return false;const k=c.toLowerCase();if(seen.has(k))return false;seen.add(k);return true});
+  if(!all.length)return"";
+  const main=all.slice(0,3),name=(S.out.palName||"").trim()||joinNatural(main);
+  const list=joinNatural(all.length===1?[withArticle(all[0])]:[withArticle(all[0]),...all.slice(1,-1),hyC(all[all.length-1])+" accents"]);
+  return `${Sx} has ${anA(name)} ${name} color palette built around ${list}.`;
+}
+function narrEyes(){
+  const Sx=cap(subjectPhrase()),strip=v=>(v||"").replace(/\s*eyes?$/i,""),one=hyC(strip(g("eyeOne"))),two=hyC(strip(g("eyeTwo"))),cfg=S.c.eyeConfig||"";
+  const A=one||two,B=two||one,same=!A||!B||A.toLowerCase()===B.toLowerCase(),P=`${Sx}’s eyes`;
+  if(!A)return"";
+  if(same)return cfg==="luminous matching"?`${P} are a luminous ${A}.`:`${P} are ${A}.`;
+  const pair=`with one ${A} eye and one ${B} eye`;
+  switch(cfg){
+    case "heterochromatic":return `${P} are heterochromatic, ${pair}.`;
+    case "softly mismatched":return `${P} are subtly mismatched, ${pair}.`;
+    case "mystically mismatched":return `${P} are mystically mismatched, with one glowing ${A} eye and one glowing ${B} eye.`;
+    case "gradient-tinted":return `${P} are gradient-tinted, fading from ${strip(g("eyeOne"))||strip(g("eyeTwo"))} at the pupil to ${strip(g("eyeTwo"))||strip(g("eyeOne"))} at the outer edge.`;
+    case "ringed heterochromia":return `${P} are ringed, mostly ${A} with a distinct ${B} ring around the outer edge.`;
+    case "sectoral heterochromia":return `${P} are sectoral, mostly ${A} with ${withArticle(B)} wedge-shaped sector.`;
+    default:return `${P} are mismatched, ${pair}.`;
+  }
+}
+function narrHair(){
+  const hi=hairIssues(),Sx=cap(subjectPhrase()),bangs=g("bangs"),out=[];
+  const nounTex=hi.tex&&/(waves|curls|coils)$/i.test(hi.tex)?hi.tex:"",lead=[hi.len,nounTex?"":hi.tex].filter(Boolean),withTex=nounTex?`, with ${nounTex}`:"";
+  let desc;
+  if(hi.sty)desc=/\bhair$/i.test(hi.sty)?[...lead,hi.sty].join(", "):`${lead.length?lead.join(", ")+" hair":"hair"} styled as ${withArticle(hi.sty)}`;
+  else desc=`${lead.length?lead.join(", ")+" hair":"hair"}`;
+  let s=`${Sx} has ${desc}${withTex}`;
+  if(hi.mv)s+=` that ${hi.mv}`;
+  const base=g("hairBase"),under=g("hairUnderlayer"),inner=g("hairInner"),hl=g("hairHighlights"),blend=g("hairBlend");
+  const rest=[];
+  if(under)rest.push(withArticle(`${hyC(under)} underlayer`));
+  if(inner)rest.push(`${hyC(inner)} inner sections`);
+  if(hl)rest.push(`${hyC(hl)} highlights`);
+  if(blend)rest.push(/^blended /.test(blend)?blend:`${blend}`);
+  else if(base&&hl&&base.toLowerCase()!==hl.toLowerCase())rest.push(`blended ${base} and ${hl} gradient streaks`);
+  if(base){s+=`, featuring ${withArticle(`${hyC(base)} base`)}`+(rest.length?` with ${joinNatural(rest)}`:"")}
+  else if(rest.length)s+=`, featuring ${joinNatural(rest)}`;
+  out.push(s+".");
+  if(bangs)out.push(`${Sx} also has ${withArticle(bangs)}.`);
+  return out.join(" ");
+}
+function narrSkin(){
+  const Sx=cap(subjectPhrase()),tone=g("skinTone"),und=g("undertone"),fin=g("skinFinish"),mk=g("markings");
+  const parts=[und&&`${und} undertones`,fin,mk&&!/^no markings$/i.test(mk)?mk:""].filter(Boolean);
+  if(tone)return `${Sx} has ${anA(tone)} ${tone} skin tone${parts.length?` with ${joinNatural(parts)}`:""}.`;
+  return parts.length?`${Sx} has ${joinNatural(parts)}.`:"";
+}
+function narrBody(){
+  const Sx=cap(subjectPhrase()),size=g("bustSize"),shape=g("bustShape"),weight=g("bustWeight"),bf=activeBodyForm(),noLeg=!!(bf&&(bf.noLegs||bf.dropLegs))||fullBeast();
+  const extra=[shape&&withArticle(shape),weight].filter(Boolean),bust=size?`${withArticle(size)}${extra.length?` with ${joinNatural(extra)}`:""}`:(extra.length?joinNatural(extra):"");
+  const height=g("heightStature"),soft=g("bodySoftness"),frame=height&&soft?`${height} with ${withArticle(soft)}`:(height||withArticle(soft));
+  const s1=[frame,bust,g("shoulderShape"),withArticle(g("torsoShape")),withArticle(g("waistShape"))].filter(v=>v&&v!=="a ");
+  const s2=[withArticle(g("stomachShape")),g("hipShape"),noLeg?"":g("thighBuild"),noLeg?"":g("legShape"),noLeg?"":withArticle(g("buttSize")),withArticle(g("armShape")),g("posture")].filter(v=>v&&v!=="a ");
+  const out=[];
+  if(s1.length)out.push(`${Sx} has ${joinNatural(s1)}.`);
+  if(s2.length)out.push(`${Sx} has ${joinNatural(s2)}.`);
+  if(bf)out.push(bf.s);
+  const bm=g("bodyMarkings");if(bm)out.push(cap(bm.replace(/[.\s]+$/,""))+".");
+  const hd=g("handShape");if(hd)out.push(`${Sx}’s hands are ${hd}.`);
+  return out.join(" ");
+}
+function narrNotes(){
+  const set=[...NARR_DROPPED].filter(id=>S.c[id]!=null&&S.c[id]!==""&&S.c[id]!=="none");
+  const names=set.map(id=>labelOf(id).toLowerCase());
+  note(set.length?"warn":"info",`Narrative sentence style leaves out the face (shape, expression, brows, nose, mouth, beauty mark, impression), eye details (shape, sclera, pupils, iris, eyelashes), makeup and nails.${set.length?` Set but left out: ${joinNatural(names)}.`:""}`,{label:"Use studio sentences",fn:()=>mut(()=>{S.out.style="studio";S.order=narrOrder(S.order,false)})});
+}
+function narrDim(el){if(el&&el.nodeType&&narrOn()){el.classList.add("dropped");el.setAttribute("inert","")}return el}
+function narrCallout(kind){
+  if(!narrOn())return null;
+  return h("p",{class:"callout warn"},kind==="face"?"Narrative sentence style is on. It does not write the face (shape, expression, brows, nose, mouth, beauty mark, impression) or eye shape, sclera, pupils, iris and eyelashes, so those are grayed out. Eye setup and eye colors still apply.":"Narrative sentence style is on. It does not write makeup or nails, so this step is grayed out.");
+}
+function narrStyleRows(){
+  const f=document.createDocumentFragment();
+  const sel=h("select",{"aria-label":"Sentence style",onchange:e=>{const v=e.target.value;mut(()=>{S.out.style=v;S.order=narrOrder(S.order,v==="narrative")})}},[["studio","Studio sentences"],["narrative","Narrative sentences"]].map(([v,l])=>h("option",{value:v,selected:(S.out.style||"studio")===v?true:null,text:l})));
+  f.append(h("div",{class:"row"},h("div",{class:"lab"},h("label",{text:"Sentence style"}),h("small",{class:"hint",text:"Narrative writes flowing sentences for palette, eyes, hair, skin and body. It leaves out face, makeup and nails. Switching moves Skin above Body in the Layers tab."})),h("div",{class:"ctl"},sel)));
+  f.append(h("div",{class:"checks"},check("Repeat the body paragraph","repeatBody",{hintText:"Writes the body layer twice, which can strengthen the figure in the generation. Not used with Compact tags."})));
+  if(S.out.style==="narrative"&&S.out.compact)f.append(h("p",{class:"muted small",text:"Compact tags is on, so the studio tag list is used instead."}));
+  if(narrOn())f.append(textRow("Palette name","palName","e.g. soft blue, white, and orange",1),h("p",{class:"muted small",text:"Read as “has a ___ color palette built around …”. Leave empty to use the first three palette colors."}));
+  return f;
+}
+
+/* Ideal starting point: reproduces the reference prompt with the narrative sentence style */
+(function(){
+  const T={id:"ideal",name:"Ideal",adultOnly:true,
+    blurb:"Narrative sentence style: powder-blue, milky-white and creamsicle-orange hair with pale-gold highlights, one sky-blue and one honey-orange eye, warm light-brown skin with freckles, a petite and very top-heavy hourglass figure.",
+    pal:{primary:"slightly deeper powder blue",secondary:"milky white",third:"creamsicle orange",accent:"soft peach",extra:"subtle pale-gold"},
+    c:{age:"woman",eyeConfig:"heterochromatic",eyeOne:"sky blue",eyeTwo:"warm honey orange",
+      hairLength:"very long",hairTexture:"straight",hairMovement:"falls smoothly past the waist",hairBase:"@primary",hairUnderlayer:"@secondary",hairInner:"@third",hairHighlights:"pale gold",hairBlend:"blended blue, white, and orange gradient streaks",
+      skinTone:"warm light-brown",undertone:"subtle golden",markings:"soft freckles scattered across the body",bodyMarkings:"light body freckles dust the shoulders, chest, stomach, hips, and thighs",
+      _body:"ideal"},
+    outfit:{oname:"Outfit 1",look:"",items:{},details:{},dcol:{}},
+    out:{style:"narrative",palName:"soft blue, white, and orange",repeatBody:true}};
+  if(!TEMPLATES.some(t=>t.id===T.id))TEMPLATES.push(T);
+  const g=PRESET_GROUPS.start.find(g=>g.label==="Stylish");if(g&&!g.keys.includes(T.id))g.keys.push(T.id);
+})();
+/* ---- v76: ten cute prep-school outfit presets (anime-inspired) and the options they need ---- */
+(function(){
+  const addO=(f,v,t,fam,s,g)=>{OUTFIT[f]=OUTFIT[f]||[];if(!OUTFIT[f].some(i=>i.v===v)){const it={v,t};if(fam)it.f=fam;if(s)it.s=s;if(g)it.g=g;OUTFIT[f].push(it)}};
+  addO("outerwear","crested school blazer","CU","preppy");
+  addO("top","sailor-collar blouse with a chest bow","CU","preppy");
+  addO("top","school gym shirt","CU","sporty");
+  addO("top","paint-splattered art smock","CU","casual");
+  addO("bottom","knee-length plaid pleated skirt","CU","preppy");
+  addO("bottom","knee-length pleated skirt","CU","preppy");
+  addO("bottom","knee-length gym shorts","CU","sporty");
+  addO("headwear","soft beret","CU","preppy,casual");
+  addO("wristAccessory","student council armband","CU","preppy");
+  addO("tagCharm","school crest pin","CU","preppy");
+  const SL={p:"@primary",s:"@secondary",t:"@third",a:"@accent",e:"@extra","-":"-"};
+  const mk=(id,name,blurb,look,season,pal,items,det)=>{const it={};Object.entries(items).forEach(([f,[v,c]])=>{it[f]=[v,SL[c]||c]});
+    return {id,name,blurb,look,season,pal:{primary:pal[0],secondary:pal[1],third:pal[2],accent:pal[3],extra:pal[4]},items:it,details:det||{}}};
+  const NEW=[
+   mk("prep_blazer","Prep blazer set","A crested school blazer over a button-up blouse with a ribbon bow tie, a knee-length plaid pleated skirt, knee-high socks, a crest pin and a satchel.","preppy","",["navy blue","white","crimson red","gray","gold"],
+     {top:["button-up blouse","s"],outerwear:["crested school blazer","p"],bottom:["knee-length plaid pleated skirt","p"],neckAccessory:["ribbon bow tie","t"],legwear:["knee-high socks","s"],tagCharm:["school crest pin","e"],hipAccessory:["structured satchel","a"]},{detailOne:"embroidered crest"}),
+   mk("prep_sailor","Sailor-collar set","A sailor-collar blouse with a chest bow, a knee-length pleated skirt, knee-high socks, a crest pin and a small book satchel.","preppy","",["navy blue","white","crimson red","sky blue","gold"],
+     {top:["sailor-collar blouse with a chest bow","s"],bottom:["knee-length pleated skirt","p"],legwear:["knee-high socks","s"],tagCharm:["school crest pin","e"],hipAccessory:["small book satchel","t"]},{detailOne:"contrast collar"}),
+   mk("prep_vest","Sweater-vest set","A knit sweater vest over a collared shirt with a ribbon bow tie, a pleated midi skirt, argyle knee socks, a bow headband and a book satchel.","preppy","",["gray","white","burgundy","tan","gold"],
+     {top:["sweater vest over a collared shirt","p"],bottom:["pleated midi skirt","p"],neckAccessory:["ribbon bow tie","t"],legwear:["argyle knee socks","a"],headwear:["bow headband","t"],tagCharm:["school crest pin","e"],hipAccessory:["small book satchel","a"]}),
+   mk("prep_summer","Summer short sleeves","A short-sleeve collared blouse with a ribbon bow tie, a pastel pleated skirt, ankle socks, a hair ribbon and a small tote.","preppy","s",["white","sky blue","navy blue","pale yellow","silver"],
+     {top:["short-sleeve collared blouse","p"],bottom:["pastel pleated skirt","s"],neckAccessory:["ribbon bow tie","t"],legwear:["ankle socks","p"],headwear:["ribbon hair bow","a"],tagCharm:["school crest pin","e"],hipAccessory:["small tote bag","s"],wristAccessory:["hair tie on the wrist","a"]}),
+   mk("prep_winter","Winter coat set","A double-breasted peacoat over a sweater vest, a pleated midi skirt, opaque tights, a puffy scarf, knit gloves and a beanie.","preppy","w",["navy blue","gray","burgundy","white","gold"],
+     {top:["sweater vest over a collared shirt","s"],outerwear:["double-breasted peacoat","p"],bottom:["pleated midi skirt","p"],legwear:["opaque tights","p"],neckAccessory:["puffy scarf","t"],gloves:["knit gloves","t"],headwear:["beanie","s"],tagCharm:["school crest pin","e"],hipAccessory:["structured satchel","a"]}),
+   mk("prep_cardigan","Cardigan and ribbon","An oversized cardigan over a button-up blouse with a thin ribbon tie, a knee-length pleated skirt, knee-high socks, a hair ribbon and a ribbon bracelet.","preppy","",["dusty rose","white","navy blue","gray","gold"],
+     {top:["button-up blouse","s"],outerwear:["oversized cardigan","p"],bottom:["knee-length pleated skirt","t"],neckAccessory:["thin ribbon tie at the collar","a"],legwear:["knee-high socks","s"],headwear:["ribbon hair bow","p"],wristAccessory:["ribbon bracelet","p"],tagCharm:["school crest pin","e"],hipAccessory:["small book satchel","t"]},{detailOne:"ribbon trim"}),
+   mk("prep_gym","Gym class","A school gym shirt, knee-length gym shorts, a zip-up track jacket, knee-high athletic socks, a sports headband, a wristband and a small gym bag.","sporty","",["navy blue","white","sky blue","gray","gold"],
+     {top:["school gym shirt","s"],bottom:["knee-length gym shorts","p"],outerwear:["zip-up track jacket","p"],legwear:["knee-high athletic socks","s"],headwear:["sports headband","t"],wristAccessory:["athletic wristband","t"],hipAccessory:["small gym bag","p"]},{detailTwo:"athletic fit"}),
+   mk("prep_tennis","Tennis club","A tennis dress with a lightweight track vest, a visor cap, knee-high athletic socks, a wristband, a crest pin and a gym bag.","sporty","s",["white","navy blue","mint green","gray","gold"],
+     {top:["tennis dress","s"],outerwear:["lightweight track vest","p"],headwear:["visor cap","p"],legwear:["knee-high athletic socks","s"],wristAccessory:["athletic wristband","t"],tagCharm:["school crest pin","e"],hipAccessory:["small gym bag","t"]},{detailTwo:"athletic fit"}),
+   mk("prep_council","Student council","A crested school blazer over a button-up blouse with a necktie, a pleated midi skirt, knee-high socks, a council armband, a name badge, glasses and a book satchel.","preppy","",["navy blue","white","crimson red","gray","gold"],
+     {top:["button-up blouse","s"],outerwear:["crested school blazer","p"],bottom:["pleated midi skirt","p"],neckAccessory:["loosely knotted necktie","t"],legwear:["knee-high socks","s"],wristAccessory:["student council armband","t"],tagCharm:["name badge pinned to the chest","e"],eyewear:["rimless glasses","-"],hipAccessory:["small book satchel","a"]},{detailOne:"embroidered crest"}),
+   mk("prep_art","Art club","A paint-splattered art smock with a knee-length pleated skirt, ankle socks, a soft beret, a hair-tie bracelet, a crest pin and a small tote.","casual","",["white","dusty rose","sky blue","tan","gold"],
+     {top:["paint-splattered art smock","s"],bottom:["knee-length pleated skirt","t"],legwear:["ankle socks","s"],headwear:["soft beret","p"],wristAccessory:["hair tie on the wrist","a"],tagCharm:["school crest pin","e"],hipAccessory:["small tote bag","a"]})
+  ];
+  const BAD=[];
+  NEW.forEach(p=>Object.entries(p.items).forEach(([f,[v]])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===v))BAD.push(p.id+" "+f+": "+v)}));
+  if(BAD.length)throw new Error("prep presets: missing items "+BAD.join("; "));
+  NEW.forEach(p=>{if(!OUTFIT_PRESETS.some(x=>x.id===p.id))OUTFIT_PRESETS.push(p)});
+  const G=PRESET_GROUPS.outfit.find(g=>g.label==="Prep school (cute)");
+  if(!G)PRESET_GROUPS.outfit.push({label:"Prep school (cute)",keys:NEW.map(p=>p.id)});
+})();
+
+/* ---- v77: "Golden retriever girl" starting point ---- */
+(function(){
+  const T={id:"goldenpup",name:"Golden retriever girl",
+    blurb:"A sunny dog-girl built on a golden retriever: honey-gold wavy hair with cream highlights, floppy dog ears, a wagging tail, warm brown eyes, freckles and an open-mouthed grin. Three easygoing outfits.",
+    pal:{primary:"honey gold",secondary:"cream",third:"caramel brown",accent:"sky blue",extra:"white"},
+    c:{age:"woman",subjectType:"dog",
+      faceShape:"heart-shaped face with soft cheeks",expression:"bubbly open-mouthed grin",browShape:"soft, natural eyebrows",noseShape:"small nose",mouthShape:"soft lips",
+      eyeConfig:"matching",eyeShape:"large, warm eyes",pupilStyle:"round pupils",eyeOne:"honey brown",eyeTwo:"honey brown",
+      hairStyle:"long wavy hair",hairTexture:"loose waves",bangs:"curtain bangs",hairBase:"@primary",hairHighlights:"@secondary",hairBlend:"subtle natural highlights",
+      earStyle:"floppy dog ears",tailStyle:"wagging dog tail",fangClawStyle:"subtle fangs and small claws",fantasyAccentColor:"@secondary",
+      skinTone:"light tan",undertone:"warm",skinFinish:"natural skin texture with a sun-kissed glow",markings:"light freckles across the nose",
+      makeupStyle:"minimal makeup",blushStyle:"soft cheek blush",lipFinish:"natural lip finish",
+      _body:"athletic"},
+    outfit:{oname:"Sunny walk",look:"casual",items:{
+        top:["oversized sports tee","@primary"],bottom:["denim shorts","-"],headwear:["bandana headband","@accent"],neckAccessory:["bandana neck scarf","@accent"],
+        legwear:["knee-high athletic socks","@extra"],wristAccessory:["friendship bracelets","-"],hipAccessory:["crossbody bag","@third"],tagCharm:["small paw pin","-"]},
+      details:{},dcol:{}},
+    more:[
+      {oname:"Cozy sweater",look:"casual",items:{
+        top:["oversized cotton sweater","@secondary"],bottom:["tiered cotton skirt","@third"],legwear:["knee-high wool socks","@primary"],
+        neckAccessory:["puffy scarf","@accent"],hipAccessory:["small tote bag","@third"],tagCharm:["small paw pin","-"]},
+        details:{},dcol:{}},
+      {oname:"Sporty",look:"sporty",items:{
+        top:["fitted sports bra top","@extra"],outerwear:["zip-up track jacket","@primary"],bottom:["running shorts","@third"],
+        legwear:["knee-high athletic socks","@secondary"],headwear:["sports headband","@accent"],wristAccessory:["athletic wristband","@accent"],hipAccessory:["small gym bag","@third"]},
+        details:{detailTwo:"athletic fit"},dcol:{}}
+    ]};
+  const BAD=[];
+  [T.outfit].concat(T.more).forEach(o=>Object.entries(o.items).forEach(([f,[v]])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===v))BAD.push(f+": "+v)}));
+  Object.entries(T.c).forEach(([f,v])=>{if(f!=="_body"&&CHAR[f]&&!CHAR[f].some(x=>x[0]===v)&&!String(v).startsWith("@"))BAD.push("c "+f+": "+v)});
+  if(BAD.length)throw new Error("goldenpup: "+BAD.join("; "));
+  if(!TEMPLATES.some(t=>t.id===T.id))TEMPLATES.push(T);
+  const g=PRESET_GROUPS.start.find(g=>g.label==="Fantasy");if(g&&!g.keys.includes(T.id))g.keys.push(T.id);
+})();
+
+/* ---- v78: "Black cat girl" starting point ---- */
+(function(){
+  const T={id:"blackcat",name:"Black cat girl",
+    blurb:"A sleek cat-girl built on a black cat: glossy black hair, amber eyes with slit pupils, cat ears, a slender feline tail and a cool, unbothered look. Three outfits: a cozy turtleneck, a gothic lace dress and lazy loungewear.",
+    pal:{primary:"black",secondary:"charcoal gray",third:"silver",accent:"amber",extra:"white"},
+    c:{age:"woman",subjectType:"cat",
+      faceShape:"heart-shaped face",expression:"cool aloof expression",browShape:"soft, natural eyebrows",noseShape:"small nose",mouthShape:"soft lips",
+      eyeConfig:"matching",eyeShape:"large catlike eyes",pupilStyle:"vertical slit pupils",eyeOne:"amber",eyeTwo:"amber",
+      hairStyle:"long straight hair",hairTexture:"glossy",bangs:"wispy bangs",hairBase:"@primary",
+      earStyle:"cat ears",tailStyle:"slender feline tail",fangClawStyle:"subtle fangs and small claws",fantasyAccentColor:"@accent",
+      skinTone:"fair",undertone:"cool",skinFinish:"natural skin texture with a soft matte finish",markings:"no markings",
+      makeupStyle:"subtle smoky eye makeup",blushStyle:"soft cheek blush",lipFinish:"soft matte lips",
+      _body:"slender"},
+    outfit:{oname:"Midnight turtleneck",look:"casual",items:{
+        top:["fitted turtleneck","@primary"],bottom:["pleated mini skirt","@secondary"],legwear:["knee-high socks","@primary"],
+        neckAccessory:["bell ribbon choker","@accent"],wristAccessory:["delicate bracelet","-"],hipAccessory:["mini shoulder bag","@primary"],tagCharm:["cat-paw pin","-"]},
+      details:{},dcol:{}},
+    more:[
+      {oname:"Gothic lace",look:"gothic",items:{
+        top:["lace-trimmed gothic dress","@primary"],legwear:["opaque tights","@primary"],
+        neckAccessory:["velvet choker with a crescent charm","@accent"],wristAccessory:["lace wrist cuffs","@primary"],tagCharm:["cat-paw pin","-"]},
+        details:{},dcol:{}},
+      {oname:"Lazy loungewear",look:"casual",items:{
+        top:["oversized cotton sweater","@secondary"],bottom:["high-waisted shorts","@primary"],legwear:["fuzzy knee-high socks","@third"],
+        neckAccessory:["bell ribbon choker","@accent"],tagCharm:["cat-paw pin","-"]},
+        details:{},dcol:{}}
+    ]};
+  const BAD=[];
+  [T.outfit].concat(T.more).forEach(o=>Object.entries(o.items).forEach(([f,[v]])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===v))BAD.push(f+": "+v)}));
+  Object.entries(T.c).forEach(([f,v])=>{if(f!=="_body"&&CHAR[f]&&CHAR[f].length&&!CHAR[f].some(x=>x[0]===v)&&!String(v).startsWith("@"))BAD.push("c "+f+": "+v)});
+  if(BAD.length)throw new Error("blackcat: "+BAD.join("; "));
+  if(!TEMPLATES.some(t=>t.id===T.id))TEMPLATES.push(T);
+  const g=PRESET_GROUPS.start.find(g=>g.label==="Fantasy");if(g&&!g.keys.includes(T.id))g.keys.push(T.id);
+})();
+
+/* ---- v81: gate for the intimate detail fields (kept outside the safeguard block; it only calls Policy) ---- */
+const INTIMATE_FIELDS=["nippleColor","nippleType","nippleLength","areolaColor","areolaType","areolaSize","vaginaColor","vaginaType","pubicHair"];
+const INTIMATE_COVERING=["top","bottom","corset","outerwear","bra","panties"];
+const intimateSet=()=>INTIMATE_FIELDS.filter(f=>S.c[f]!=null&&S.c[f]!==""&&S.c[f]!=="none");
+function intimateGate(){
+  if(S.out.mode==="outfit")return{open:false,why:"mode",msg:"Outfit only mode doesn’t write the body."};
+  /* the existing safeguard decides, the same way it does for adult body presets and the explicit tag */
+  if(!Policy.presetAllowed({adultOnly:true}))return{open:false,why:"policy",msg:Policy.presetNote({adultOnly:true})||"Not available for this subject."};
+  if(!Policy.explicitAllowed())return{open:false,why:"policy",msg:Policy.reason()||Policy.banner()||"Not available for this design."};
+  if(S.out.mode!=="char"){
+    const worn=INTIMATE_COVERING.filter(f=>cur().items[f]);
+    if(worn.length)return{open:false,why:"clothed",msg:"Only used when the outfit is nude or the output mode is Character only. This outfit has: "+worn.map(f=>OUT_LABEL[f].toLowerCase()).join(", ")+"."};
+  }
+  return{open:true};
+}
+const intimateDropped=id=>INTIMATE_FIELDS.includes(id)&&!intimateGate().open;
+function intimateStrip(){
+  const o=cur(),L=o.lock||{};let kept=0;
+  INTIMATE_COVERING.forEach(f=>{if(!o.items[f])return;if(L["*"]||L[f]){kept++;return}delete o.items[f]});
+  o.showUnder=false;return kept;
+}
+function intimateFix(){return{label:"Remove clothing",fn:()=>{let k=0;mut(()=>{k=intimateStrip()});if(k)toast(k+" locked item"+(k>1?"s were":" was")+" kept.")}}}
+function intimateText(){
+  const G=id=>{const v=S.c[id];return v&&v!=="none"?rc(String(v)):""},C=CK.compact;
+  const nip=[G("nippleColor"),G("nippleType"),G("nippleLength")].filter(Boolean),are=[G("areolaColor"),G("areolaType"),G("areolaSize")].filter(Boolean);
+  const vc=G("vaginaColor"),vt=G("vaginaType"),ph=G("pubicHair"),out=[];
+  if(C){
+    if(nip.length)out.push(nip.join(", ")+" nipples");
+    if(are.length)out.push(are.join(", ")+" areolae");
+    if(vc||vt)out.push([vc,vt].filter(Boolean).join(", ")+" vagina");
+    if(ph)out.push(ph);
+    return out.join(", ");
+  }
+  if(nip.length)out.push(`Her nipples are ${joinNatural(nip)}.`);
+  if(are.length)out.push(`Her areolae are ${joinNatural(are)}.`);
+  if(vt)out.push(`Her ${vc?vc+" ":""}vagina is ${vt}.`);else if(vc)out.push(`Her vagina is ${vc}.`);
+  if(ph)out.push(`She has ${ph}.`);
+  return out.join(" ");
+}
+function intimateApply(raw){
+  const set=intimateSet();if(!set.length||S.out.mode==="outfit")return;
+  const gt=intimateGate();
+  if(!gt.open){if(gt.why==="clothed"&&S.outfits.some((o,i)=>i!==S.cur&&!INTIMATE_COVERING.some(f=>o.items[f])))return;
+    note("info",`Intimate details (${set.length} set) are held out of the prompt. ${gt.msg}`,gt.why==="clothed"?intimateFix():undefined);return}
+  const t=intimateText();if(t)raw.body=raw.body?raw.body+(CK.compact?", ":" ")+t:t;
+}
+function intimateRows(f){
+  const gt=intimateGate();
+  f.append(sub("Intimate details","Adult subjects only. Used only when the outfit is nude (no top, bottom, corset, outerwear, bra or panties) or the output mode is Character only. Written after the body paragraph."));
+  if(!gt.open){
+    f.append(h("p",{class:"callout warn"},gt.msg));
+    if(gt.why==="clothed")f.append(h("div",{class:"btnrow"},h("button",{type:"button",class:"btn sm",onclick:intimateFix().fn,text:"Remove clothing from this outfit"})));
+  }
+  {const pb=presetBar(INTIMATE_PRESETS,INTIMATE_FIELDS,"Clear intimate details","ipreset",PRESET_GROUPS.intimate);
+    if(!gt.open){pb.classList.add("dropped");pb.setAttribute("inert","")}f.append(pb)}
+  [["Nipples",["nippleColor","nippleType","nippleLength"]],["Areolae",["areolaColor","areolaType","areolaSize"]],["Vagina and hair",["vaginaColor","vaginaType","pubicHair"]]].forEach(([t,ids])=>{
+    f.append(h("p",{class:"muted small",text:t}));ids.forEach(id=>f.append(fieldRow(id)));
+  });
+}
+
+/* ---- v81: adult-only intimate detail fields (Body step). They only work for an explicitly adult subject
+   with no youth-coded content, and only when the outfit is nude (no top, bottom, corset, outerwear, bra
+   or panties) or the output mode is Character only. Everything else holds them out of the prompt. ---- */
+(function(){
+  const addC=(f,v,g)=>{CHAR[f]=CHAR[f]||[];if(!CHAR[f].some(x=>x[0]===v))CHAR[f].push([v,g||""])};
+  const SKIN=["pale pink","soft pink","rosy pink","peachy pink","dusty rose","mauve","light brown","caramel brown","chocolate brown","deep brown"];
+  SKIN.forEach(v=>addC("nippleColor",v));
+  ["flat","soft and rounded","small and perky","prominent","puffy","inverted","firm and erect"].forEach(v=>addC("nippleType",v));
+  ["very short","short","medium-length","long","very long"].forEach(v=>addC("nippleLength",v));
+  SKIN.forEach(v=>addC("areolaColor",v));
+  ["flat","smooth","slightly raised","puffy","textured with tiny bumps","softly blended into the skin"].forEach(v=>addC("areolaType",v));
+  ["tiny","small","medium-sized","large","wide","very wide"].forEach(v=>addC("areolaSize",v));
+  ["pale pink","soft pink","rosy pink","deep pink","dusty rose","mauve","light brown","deep brown"].forEach(v=>addC("vaginaColor",v));
+  ["smooth and closed","neat with minimal labia","full and plump","soft with visible inner labia","soft with prominent inner labia","symmetrical","asymmetrical"].forEach(v=>addC("vaginaType",v));
+  ["no pubic hair","a neatly trimmed patch of pubic hair","a narrow landing strip of pubic hair","a small heart-shaped patch of pubic hair","a soft natural triangle of pubic hair","full natural pubic hair"].forEach(v=>addC("pubicHair",v));
+  Object.assign(LABELS,{nippleColor:"Nipple color",nippleType:"Nipple type",nippleLength:"Nipple length",areolaColor:"Areola color",areolaType:"Areola type",areolaSize:"Areola size",vaginaColor:"Vagina color",vaginaType:"Vagina type",pubicHair:"Pubic hair"});
+  const B=STEP_FIELDS.body;
+  INTIMATE_FIELDS.forEach(f=>{if(!B.includes(f))B.push(f)});
+  _fieldStep=null;
+  if(!OUTFIT_PRESETS.some(p=>p.id==="nude")){
+    OUTFIT_PRESETS.push({id:"nude",name:"Nude",label:"Nude (no clothing)",blurb:"No clothing. Unlocks the intimate detail fields on the Body step. Adult only.",look:"",season:"",items:{},details:{},adultOnly:true});
+    PRESET_GROUPS.outfit.push({label:"No clothing (adult only)",keys:["nude"]});
+  }
+})();
+/* ---- v82: thematic intimate details for the adult starting points, plus a "Nude" outfit on each ---- */
+(function(){
+  const addC=(f,v,g)=>{CHAR[f]=CHAR[f]||[];const e=CHAR[f].find(x=>x[0]===v);if(e)e[1]=g;else CHAR[f].push([v,g])};
+  const FANTASY=["pale blue","ice blue","soft lavender","violet","deep violet","deep teal","sea green","ash gray","pearl white","golden","coral","crimson","deep burgundy","hot pink"];
+  ["nippleColor","areolaColor","vaginaColor"].forEach(f=>{CHAR[f].forEach(e=>{e[1]="Natural"});FANTASY.forEach(v=>addC(f,v,"Fantasy"))});
+  const TONE={
+    1:{n:"pale pink",a:"soft pink",v:"soft pink"},
+    2:{n:"rosy pink",a:"dusty rose",v:"rosy pink"},
+    3:{n:"dusty rose",a:"mauve",v:"dusty rose"},
+    4:{n:"light brown",a:"caramel brown",v:"dusty rose"},
+    5:{n:"chocolate brown",a:"deep brown",v:"deep brown"}};
+  const STY={
+    delicate:{nt:"small and perky",nl:"short",at:"flat",as:"small",vt:"smooth and closed",h:["no pubic hair","a narrow landing strip of pubic hair"]},
+    average:{nt:"soft and rounded",nl:"short",at:"smooth",as:"medium-sized",vt:"neat with minimal labia",h:["a neatly trimmed patch of pubic hair","no pubic hair","a narrow landing strip of pubic hair"]},
+    athletic:{nt:"prominent",nl:"medium-length",at:"smooth",as:"medium-sized",vt:"symmetrical",h:["a narrow landing strip of pubic hair","no pubic hair"]},
+    full:{nt:"puffy",nl:"medium-length",at:"puffy",as:"large",vt:"full and plump",h:["a soft natural triangle of pubic hair","a neatly trimmed patch of pubic hair","no pubic hair"]}};
+  /* id: [skin tone 1-5, body style]; skipped on purpose: maxcute (youth-coded), and creamsicle, obsidian and ideal (their outfit is already unclothed, so their default prompts would change) */
+  const H={bluelong:[4,"average"],redgold:[4,"average"],bluecream:[4,"average"],academic:[2,"average"],herbalist:[2,"full"],gothic:[1,"delicate"],courier:[3,"athletic"],evening:[3,"full"],seaside:[3,"athletic"],
+    kitsune:[1,"delicate"],punk:[1,"athletic"],maxlewd:[3,"full"],goldenbrunette:[3,"delicate"],silverbraid:[1,"average"],seasidebluehair:[1,"delicate"],lilacsunhat:[1,"delicate"],goldenveil:[1,"average"],
+    serpentrobes:[1,"average"],marisol:[3,"average"],ines:[3,"full"],imani:[5,"average"],shieldmaiden:[1,"athletic"],metalhead:[1,"delicate"],meadowbombshell:[2,"full"],
+    carioca:[3,"full"],surfer:[4,"athletic"],holidayidol:[1,"full"],andaman:[3,"average"],riviera:[3,"average"],calypso:[5,"full"],seasiren:[1,"average"],goasunset:[4,"full"],neoncove:[3,"full"],
+    sunpriestess:[3,"average"],rosestreak:[1,"full"],goldenpup:[3,"athletic"],blackcat:[1,"delicate"],
+    eevee:[0,"average"],vaporblue:[0,"average"],jolteon:[0,"average"],flareon:[0,"average"],espeon:[0,"delicate"],umbreon:[0,"average"],leafeon:[0,"average"],glaceon:[0,"delicate"],sylveon:[0,"average"],
+    tidecaller:[0,"average"],emberdragon:[0,"athletic"],velvetsuccubus:[0,"full"],moonhuntress:[0,"delicate"],pocketimp:[0,"delicate"],onibrawler:[0,"athletic"],palemoth:[0,"delicate"]};
+  /* fantasy colors: [nipple, areola, vagina], and an optional areola type or hair line */
+  const F={eevee:["caramel brown","caramel brown","soft pink"],vaporblue:["pale blue","pale blue","pale blue"],jolteon:["golden","golden","golden"],flareon:["coral","coral","coral"],
+    espeon:["soft lavender","soft lavender","soft lavender"],umbreon:["violet","deep violet","violet"],leafeon:["sea green","sea green","sea green"],glaceon:["ice blue","ice blue","ice blue"],
+    sylveon:["rosy pink","rosy pink","soft pink"],tidecaller:["sea green","pale blue","pearl white"],emberdragon:["coral","coral","crimson"],velvetsuccubus:["dusty rose","deep burgundy","crimson"],
+    moonhuntress:["ash gray","mauve","violet"],pocketimp:["hot pink","rosy pink","hot pink"],onibrawler:["crimson","deep burgundy","crimson"],palemoth:["soft lavender","pearl white","soft lavender"]};
+  const NOHAIR=new Set(["eevee","vaporblue","jolteon","flareon","espeon","umbreon","leafeon","glaceon","sylveon","tidecaller","emberdragon","pocketimp","onibrawler","palemoth","moonhuntress"]);
+  const hash=s=>[...s].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const BAD=[];
+  TEMPLATES.forEach(t=>{
+    const spec=H[t.id];if(!spec)return;
+    const[tn,sn]=spec,st=STY[sn],tc=TONE[tn]||TONE[1],fc=F[t.id];
+    const v={nippleColor:fc?fc[0]:tc.n,nippleType:st.nt,nippleLength:st.nl,areolaColor:fc?fc[1]:tc.a,areolaType:st.at,areolaSize:st.as,vaginaColor:fc?fc[2]:tc.v,vaginaType:st.vt,
+      pubicHair:NOHAIR.has(t.id)?"no pubic hair":st.h[hash(t.id)%st.h.length]};
+    if(t.id==="seasiren"||t.id==="tidecaller"||t.id==="palemoth")v.areolaType="softly blended into the skin";
+    Object.entries(v).forEach(([f,x])=>{if(!(CHAR[f]||[]).some(o=>o[0]===x))BAD.push(t.id+" "+f+": "+x)});
+    t.c=Object.assign({},t.c,v);
+    t.more=t.more||[];
+    if(!t.more.some(o=>o.oname==="Nude"))t.more.push({oname:"Nude",look:"",items:{},details:{},dcol:{}});
+  });
+  if(BAD.length)throw new Error("intimate: "+BAD.join("; "));
+})();
+
+/* ---- v85: ten presets for the intimate details section (adult only, like the adult body presets) ---- */
+const INTIMATE_PRESETS={
+  petitePale:{label:"Petite and pale",adultOnly:true,blurb:"Pale pink, small and perky, flat areolae, smooth, hairless.",v:{nippleColor:"pale pink",nippleType:"small and perky",nippleLength:"short",areolaColor:"soft pink",areolaType:"flat",areolaSize:"small",vaginaColor:"soft pink",vaginaType:"smooth and closed",pubicHair:"no pubic hair"}},
+  softNatural:{label:"Soft and natural",adultOnly:true,blurb:"Rosy pink, soft and rounded, a neatly trimmed patch.",v:{nippleColor:"rosy pink",nippleType:"soft and rounded",nippleLength:"short",areolaColor:"dusty rose",areolaType:"smooth",areolaSize:"medium-sized",vaginaColor:"rosy pink",vaginaType:"neat with minimal labia",pubicHair:"a neatly trimmed patch of pubic hair"}},
+  shyInverted:{label:"Shy and subtle",adultOnly:true,blurb:"Inverted nipples, small flat areolae, smooth and closed.",v:{nippleColor:"pale pink",nippleType:"inverted",nippleLength:"short",areolaColor:"soft pink",areolaType:"flat",areolaSize:"small",vaginaColor:"pale pink",vaginaType:"smooth and closed",pubicHair:"a neatly trimmed patch of pubic hair"}},
+  fullPuffy:{label:"Full and puffy",adultOnly:true,blurb:"Puffy nipples and large puffy areolae, full and plump, natural hair.",v:{nippleColor:"dusty rose",nippleType:"puffy",nippleLength:"medium-length",areolaColor:"mauve",areolaType:"puffy",areolaSize:"large",vaginaColor:"rosy pink",vaginaType:"full and plump",pubicHair:"a soft natural triangle of pubic hair"}},
+  longProminent:{label:"Long and prominent",adultOnly:true,blurb:"Long, prominent nipples, softly raised areolae, prominent inner labia.",v:{nippleColor:"dusty rose",nippleType:"prominent",nippleLength:"long",areolaColor:"mauve",areolaType:"slightly raised",areolaSize:"medium-sized",vaginaColor:"dusty rose",vaginaType:"soft with prominent inner labia",pubicHair:"a narrow landing strip of pubic hair"}},
+  warmBrown:{label:"Warm brown",adultOnly:true,blurb:"Light brown nipples, large caramel areolae, a landing strip.",v:{nippleColor:"light brown",nippleType:"soft and rounded",nippleLength:"medium-length",areolaColor:"caramel brown",areolaType:"smooth",areolaSize:"large",vaginaColor:"dusty rose",vaginaType:"symmetrical",pubicHair:"a narrow landing strip of pubic hair"}},
+  deepRich:{label:"Deep and rich",adultOnly:true,blurb:"Chocolate nipples, wide deep brown areolae, visible inner labia.",v:{nippleColor:"chocolate brown",nippleType:"prominent",nippleLength:"medium-length",areolaColor:"deep brown",areolaType:"smooth",areolaSize:"wide",vaginaColor:"deep brown",vaginaType:"soft with visible inner labia",pubicHair:"a soft natural triangle of pubic hair"}},
+  bareSmooth:{label:"Bare and smooth",adultOnly:true,blurb:"Areolae blended into the skin, smooth and closed, hairless.",v:{nippleColor:"rosy pink",nippleType:"soft and rounded",nippleLength:"short",areolaColor:"rosy pink",areolaType:"softly blended into the skin",areolaSize:"large",vaginaColor:"soft pink",vaginaType:"smooth and closed",pubicHair:"no pubic hair"}},
+  naturalUnshaven:{label:"Natural and unshaven",adultOnly:true,blurb:"Textured mauve areolae, asymmetrical, full natural hair.",v:{nippleColor:"mauve",nippleType:"soft and rounded",nippleLength:"medium-length",areolaColor:"mauve",areolaType:"textured with tiny bumps",areolaSize:"medium-sized",vaginaColor:"mauve",vaginaType:"asymmetrical",pubicHair:"full natural pubic hair"}},
+  pastelFantasy:{label:"Pastel fantasy",adultOnly:true,blurb:"Soft lavender and pearl white, blended and smooth, hairless.",v:{nippleColor:"soft lavender",nippleType:"small and perky",nippleLength:"short",areolaColor:"pearl white",areolaType:"softly blended into the skin",areolaSize:"medium-sized",vaginaColor:"soft lavender",vaginaType:"smooth and closed",pubicHair:"no pubic hair"}}
+};
+PRESET_GROUPS.intimate=[
+  {label:"Light and pink",keys:["petitePale","softNatural","shyInverted","bareSmooth"]},
+  {label:"Fuller and more prominent",keys:["fullPuffy","longProminent"]},
+  {label:"Deeper tones",keys:["warmBrown","deepRich"]},
+  {label:"Natural and fantasy",keys:["naturalUnshaven","pastelFantasy"]}];
+PRESET_HINTS.ipreset="Sets every intimate detail at once. Adult only, and used only when the outfit is nude.";
+(function(){
+  const BAD=[];
+  Object.entries(INTIMATE_PRESETS).forEach(([k,p])=>Object.entries(p.v).forEach(([f,v])=>{if(!(CHAR[f]||[]).some(o=>o[0]===v))BAD.push(k+" "+f+": "+v)}));
+  if(BAD.length)throw new Error("intimate presets: "+BAD.join("; "));
+})();
+
 function stateFromTemplate(t){
   const b=blankState();b.name=t.name;Object.assign(b.pal,t.pal);
   const c={...t.c};const body=c._body;delete c._body;
@@ -4390,7 +4891,7 @@ function stateFromTemplate(t){
   const mk=(sp,nm)=>{const o=newOutfit(sp.oname||nm);o.look=sp.look||"";o.showUnder=!!sp.showUnder;
     Object.entries(sp.items).forEach(([f,[v,col,w,c2]])=>{o.items[f]={v,c:col,...(w?{w}:{}),...(c2?{c2}:{})}});Object.assign(o.details,sp.details||{});o.dcol={...(sp.dcol||{})};return o};
   b.outfits=[mk(t.outfit,t.name.split(" ")[0]+" outfit")].concat((t.more||[]).map((m,i)=>mk(m,"Outfit "+(i+2))));
-  b.out={...S.out,...(t.out||{})};b.layers={...S.layers};b.order=S.order.slice();
+  b.out={...S.out,...(t.out||{})};b.out.palName=(t.out&&t.out.palName)||"";b.out.repeatBody=!!(t.out&&t.out.repeatBody);b.layers={...S.layers};b.order=S.order.slice();if(b.out.style==="narrative")b.order=narrOrder(b.order,true);
   return b;
 }
 function openStarts(){
