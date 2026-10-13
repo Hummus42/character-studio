@@ -1314,12 +1314,13 @@ function rc(v){if(!v)return"";if(v[0]==="@"&&v.includes("+"))return joinNatural(
 const TOK_SPECIAL=new Set(["skinFinish","markings","scleraStyle"]);
 const g=id=>{const v=S.c[id];if(v==null||v==="none")return"";const r=rc(String(v));return(r.indexOf("{c}")>=0&&!TOK_SPECIAL.has(id))?skinTok(r,g(id+"Color")):r};
 const has=id=>!!g(id);
-const AGE_NOUN={"young girl":["girl","young"],"girl":["girl",""],"young woman":["woman","young"],"woman":["woman",""],"mature woman":["woman","mature"],"older woman":["woman","older"]};
-const ageKey=()=>S.c.age||"woman";
+const AGE_NOUN={"young man":["man","young"],"man":["man",""],"mature man":["man","mature"],"older man":["man","older"],"young girl":["girl","young"],"girl":["girl",""],"young woman":["woman","young"],"woman":["woman",""],"mature woman":["woman","mature"],"older woman":["woman","older"]};
+const ageKey=()=>S.c.age||(isMale()?"man":"woman");
 function subjectNoun(){
-  const sp=(S.c.subjectType||"").trim(),[noun,adj]=AGE_NOUN[ageKey()]||["woman",""],pre=adj?adj+" ":"";
+  const sp=(S.c.subjectType||"").trim(),[noun,adj]=AGE_NOUN[ageKey()]||[isMale()?"man":"woman",""],pre=adj?adj+" ":"";
   if(!sp)return pre+noun;
   const type=(SPECIES_INFO[sp]||{type:"word"}).type;
+  if(isMale())return maleSubjectNoun(sp,type,noun,pre);
   if(type==="hyphen")return pre+sp+"-"+noun;
   if(type==="word")return pre+sp+" "+noun;
   return Policy.girlAge()?pre+sp+" girl":pre+sp;
@@ -1336,7 +1337,7 @@ function activeBodyForm(){
   return{...(BODY_FORMS[v]||{s:`Special body form: ${v}.`}),key:v};
 }
 function optionList(field){
-  const base=(CHAR[field]||[]).filter(([v])=>Policy.optionAllowed(field,v)).map(([v,gr])=>({v,g:gr||""}));
+  const base=(CHAR[field]||[]).filter(([v])=>Policy.optionAllowed(field,v)&&sexOk(field,v,isMale())).map(([v,gr])=>({v,g:(isMale()&&MALE_GROUP[gr])||gr||""}));
   const mine=(CUSTOM[field]||[]).filter(v=>!base.some(o=>o.v===v)&&Policy.optionAllowed(field,v)).map(v=>({v,g:"My options"}));
   return base.concat(mine);
 }
@@ -1367,7 +1368,7 @@ function paletteSentence(who){
 function identitySentence(){
   if(!S.c.subjectType&&!S.c.age)return"";const s=cap(subjectPhrase());
   if(CK.compact)return paletteSentence()?"":`${s}.`;
-  if(!S.c.subjectType)return Policy.girlAge()?`${s} is cute, adorable, beautiful, and attractive.`:`${s} is elegant, beautiful, and attractive.`;
+  if(!S.c.subjectType)return Policy.girlAge()?`${s} is cute, adorable, beautiful, and attractive.`:`${s} is ${isMale()?"handsome, well-groomed, and attractive":"elegant, beautiful, and attractive"}.`;
   return `${s} has a distinctive, cohesive appearance that reflects her character type.`;
 }
 function speciesSentence(){
@@ -1413,18 +1414,19 @@ function eyesSentence(){
 }
 function faceSentence(){
   const f=["browShape","noseShape","mouthShape","faceMark"].map(g).map(withArticle).filter(Boolean),out=[];
-  if(CK.compact){return [g("faceShape"),g("expression"),g("impression"),...f].filter(Boolean).join(", ")+(g("faceShape")||g("expression")||g("impression")||f.length?".":"")}
+  if(CK.compact){return [g("faceShape"),g("expression"),g("impression"),...f,facialHairText()].filter(Boolean).join(", ")+(g("faceShape")||g("expression")||g("impression")||f.length||facialHairText()?".":"")}
   if(f.length)out.push(`Her face features ${joinNatural(f)}.`);
   if(g("faceShape"))out.push(`She has ${withArticle(g("faceShape"))}.`);
   if(g("expression"))out.push(`She has ${withArticle(g("expression"))}.`);
   if(g("impression"))out.push(`Her overall impression is ${g("impression")}.`);
+  if(facialHairText())out.push(`She has ${facialHairText()}.`);
   return out.join(" ");
 }
 /* hair rules */
 const lenRank=v=>Object.prototype.hasOwnProperty.call(HAIR_LEN_RANK,v)?HAIR_LEN_RANK[v]:Object.prototype.hasOwnProperty.call(HAIR_LEN_RANK_EXTRA,v)?HAIR_LEN_RANK_EXTRA[v]:null;
 function styleProfile(st){
   const t=(st||"").toLowerCase(),p={};if(!t)return p;const longW=/\blong\b/.test(t.replace(/\bwith long [a-z ]*?(strands|sidelocks|pieces)\b/g,""));
-  if(/\b(pixie|bixie|buzz(ed)?|bowl cut|lob)\b|\bbob\b|\bshort\b/.test(t))p.range=longW?[2,4]:[0,3];
+  if(/\b(pixie|bixie|buzz(ed)?|bowl cut|lob|crop|crew cut|ivy league cut|flat top|high and tight|fade|faux hawk|mohawk|quiff|pompadour|comb-over|spiky|waves haircut|classic side part)\b|\bbob\b|\bshort\b/.test(t))p.range=longW?[2,4]:[0,3];
   else if(longW||/\b(hime|princess)\b/.test(t))p.range=[3,8];
   else if(/\b(bun|buns|updo|chignon|ponytails?|twin tails|twintails|pigtails?|braids?|braided|twist|top knot|odango)\b/.test(t))p.range=[2,8];
   p.tied=/\b(bun|buns|updo|chignon|top knot|odango)\b/.test(t)&&!/half-up|half-down/.test(t);
@@ -1475,12 +1477,12 @@ function bodySentence(){
   const Sx=cap(subjectPhrase()),s=[],size=g("bustSize"),shape=g("bustShape"),weight=g("bustWeight");
   const bf=activeBodyForm(),noLeg=!!(bf&&(bf.noLegs||bf.dropLegs))||fullBeast();
   if(CK.compact){
-    const t=[size,g("heightStature"),withArticle(g("torsoShape")),withArticle(g("armShape")),g("handShape")?g("handShape")+" hands":"",withArticle(g("waistShape")),withArticle(g("stomachShape")),g("hipShape"),noLeg?"":withArticle(g("buttSize")),noLeg?"":g("thighBuild"),withArticle(g("bodySoftness")),g("bodyMarkings")].filter(v=>v&&v!=="a ");
+    const t=[size,g("heightStature"),withArticle(g("torsoShape")),withArticle(g("armShape")),g("handShape")?g("handShape")+" hands":"",withArticle(g("waistShape")),withArticle(g("stomachShape")),g("hipShape"),noLeg?"":withArticle(g("buttSize")),noLeg?"":g("thighBuild"),withArticle(g("bodySoftness")),g("bodyHair"),g("bodyMarkings")].filter(v=>v&&v!=="a ");
     if(bf)t.push(bf.key);return t.length?t.join(", ")+".":"";
   }
   const extra=[shape&&withArticle(shape),weight].filter(Boolean);
   if(size)s.push(`${Sx} has ${withArticle(size)}${extra.length?` with ${joinNatural(extra)}`:""}.`);else if(extra.length)s.push(`${Sx} has ${joinNatural(extra)}.`);
-  const rest=[g("heightStature"),g("shoulderShape"),withArticle(g("torsoShape")),withArticle(g("armShape")),g("handShape")?g("handShape")+" hands":"",withArticle(g("waistShape")),withArticle(g("stomachShape")),g("hipShape"),noLeg?"":withArticle(g("buttSize")),noLeg?"":g("thighBuild"),noLeg?"":g("legShape"),withArticle(g("bodySoftness")),g("posture")].filter(v=>v&&v!=="a ");
+  const rest=[g("heightStature"),g("shoulderShape"),withArticle(g("torsoShape")),withArticle(g("armShape")),g("handShape")?g("handShape")+" hands":"",withArticle(g("waistShape")),withArticle(g("stomachShape")),g("hipShape"),noLeg?"":withArticle(g("buttSize")),noLeg?"":g("thighBuild"),noLeg?"":g("legShape"),withArticle(g("bodySoftness")),g("bodyHair"),g("posture")].filter(v=>v&&v!=="a ");
   if(rest.length)s.push(`She has ${joinNatural(rest)}.`);
   if(bf)s.push(bf.s);
   {const bm=g("bodyMarkings");if(bm)s.push(cap(bm.replace(/[.\s]+$/,""))+".")}
@@ -1592,6 +1594,7 @@ function composeRaw0(){
   };
   if(S.out.repeatBody&&raw.body&&!CK.compact)raw.body=raw.body+" "+raw.body;
   intimateApply(raw);
+  if(isMale())Object.keys(raw).forEach(k=>{if(k!=="extras")raw[k]=maleize(raw[k])});
   if(N&&S.out.mode!=="outfit")narrNotes();
   if(CK.compact&&raw.palette)raw.palette=raw.palette.replace(/^.*? (?:has|uses) /,"").replace(/ color palette/," palette");
   if(CK.compact)Object.keys(raw).forEach(k=>{raw[k]=(raw[k]||"").replace(/[.\s]+$/,"")});
@@ -1633,11 +1636,11 @@ function runChecks(layers,prompt){
   const toks=Math.round(prompt.length/4);
   if(toks>500)note("warn",`The prompt is about ${toks} tokens, which may be cut off. Turn on compact tags or switch off a layer.`,{label:"Compact tags",fn:()=>mut(()=>{S.out.compact=true})});
   else if(toks>420)note("info",`The prompt is about ${toks} tokens, close to NovelAI’s 512 limit. Compact tags make it shorter if you need room.`,{label:"Compact tags",fn:()=>mut(()=>{S.out.compact=true})});
-  if(S.out.mode!=="outfit"&&!S.c.subjectType&&!S.c.age)note("info","No age category or species chosen. The prompt will say “the woman”.");
+  if(S.out.mode!=="outfit"&&!S.c.subjectType&&!S.c.age)note("info","No age category or species chosen. The prompt will say “the "+(isMale()?"man":"woman")+"”.");
   if(!lp.length)note("info","Nothing to write yet. Pick a subject, or choose a starting point.");
 }
 const LABELS={};
-function labelOf(f){return LABELS[f]||f}
+
 
 /* ===== Skin suggestions by species. Each family lists values that already exist in the pickers. ===== */
 const SKIN_FAMILIES={
@@ -1892,8 +1895,8 @@ function sub(title,note){return h("div",{class:"sub"},h("h3",{text:title}),note?
 /* ---------- steps ---------- */
 function stepConcept(){
   const f=document.createDocumentFragment();
-  f.append(fieldRow("age",{forceChips:true,hint:`Reads as “${subjectNoun()}”`}));
-  f.append(fieldRow("subjectType",{forcePick:true,placeholder:"None (human)",hint:"Optional. Combined with the age category, e.g. leopard + woman."}));
+  f.append(sexRow());f.append(fieldRow("age",{forceChips:true,hint:`Reads as “${subjectNoun()}”`}));
+  f.append(fieldRow("subjectType",{forcePick:true,placeholder:"None (human)",hint:"Optional. Combined with the age category, e.g. leopard + "+(isMale()?"man":"woman")+"."}));
   if(Policy.callout("concept"))f.append(h("p",{class:"callout"},Policy.callout("concept")));
   f.append(sub("Creature features","Leave a feature on Auto and it follows the subject. Choose None to remove it."));
   TRAIT_FIELDS.forEach(id=>f.append(fieldRow(id,{auto:"Auto",none:true,forcePick:true})));
@@ -1998,6 +2001,7 @@ function bulkSet(clearList,vals){
   const held=new Set();
   (clearList||[]).forEach(f=>{if(kept(f)){if(S.c[f]!=null&&S.c[f]!=="")held.add(f);return}delete S.c[f]});
   Object.entries(vals||{}).forEach(([f,x])=>{if(kept(f)){if(S.c[f]!==x)held.add(f);return}S.c[f]=x});
+  if(isMale())fixSexChars();
   return held.size;
 }
 function lockable(id){return!/^preset:/.test(id)&&baseField(id)===id&&!!stepOf(id)}
@@ -2056,9 +2060,15 @@ function keptMsg(r){
   return bits.length?` Kept ${joinNatural(bits)}.`:"";
 }
 function loadStart(t){
-  const nb=stateFromTemplate(t),r=carryLocks(S,nb);
+  const wasMale=isMale(),nb=stateFromTemplate(t),r=carryLocks(S,nb);
   replaceState(nb);
-  toast(`Loaded “${t.name}”.${keptMsg(r)} Undo brings back your previous design.`);
+  let sx="";
+  if(wasMale&&!isMale()){
+    const n=UNDO.length;swapSex("male");
+    if(isMale()){if(UNDO.length>n)UNDO.splice(UNDO.length-1,1);sx=" Converted to male to match your current mode. Switch Sex back to female to restore it."}
+    else sx=" It stays female because the age safeguard flags it."
+  }
+  toast(`Loaded “${t.name}”.${sx}${keptMsg(r)} Undo brings back your previous design.`);
 }
 function clearOutfit(){
   if(stepFrozen("outfit")){toast("This outfit is locked. Unlock it to clear it.");return}
@@ -2155,11 +2165,11 @@ function rollOnce(ctx){
   const COMPS={skinFinish:["finishColor"],markings:["markingColor"]};
   const clr=f=>{if(free(f)){delete S.c[f];[f+"Color",...(COMPS[f]||[])].forEach(c=>delete S.c[c])}};
   const assign=v=>{Object.entries(v).forEach(([f,x])=>{if(free(f))S.c[f]=x})};
-  const pool=(f,extra)=>CHAR[f].filter(([v,g])=>!RND_EXOTIC.test(g)&&(!extra||extra(v,g))&&(adult||!/adult/i.test(g))&&Policy.optionAllowed(f,v)).map(x=>x[0]);
+  const pool=(f,extra)=>{const a=CHAR[f].filter(([v,g])=>!RND_EXOTIC.test(g)&&(!extra||extra(v,g))&&(adult||!/adult/i.test(g))&&Policy.optionAllowed(f,v)&&sexOk(f,v,isMale())).map(x=>x[0]);if(isMale()&&MASC_BIAS.has(f)&&Math.random()<.75){const m=a.filter(v=>isMOpt(f,v));if(m.length)return m}return a};
   const nudge=(f,p)=>{if(free(f)&&Math.random()<p){const a=pool(f);if(a.length)S.c[f]=pick1(a)}};
   const nat=f=>pool(f,(v,g)=>!/stylized/i.test(g));
   const presetPick=(P,keys)=>{
-    const avail=Object.keys(P).filter(k=>presetAvailable(P[k]));
+    const avail=Object.keys(P).filter(k=>presetAvailable(P[k])&&presetSexOk(P[k]));
     let ks=avail.filter(k=>!P[k].adultOnly&&(!keys||keys.includes(k)));
     if(!ks.length)ks=avail.filter(k=>!P[k].adultOnly);
     if(adult)ks=ks.concat(avail.filter(k=>P[k].adultOnly));
@@ -2172,7 +2182,7 @@ function rollOnce(ctx){
   const aux=(pref,fancy)=>{for(const k of pref)if(S.pal[k])return"@"+k;return filled().length?null:pick1(fancy?LIT.fancy:LIT.hair)};
   const R={
     concept(){
-      const sp=CHAR.subjectType.filter(([v,g])=>!/Eeveelution/i.test(g)&&Policy.optionAllowed("subjectType",v)).map(x=>x[0]);
+      const sp=CHAR.subjectType.filter(([v,g])=>!/Eeveelution/i.test(g)&&Policy.optionAllowed("subjectType",v)&&sexOk("subjectType",v,isMale())).map(x=>x[0]);
       if(free("subjectType")){if(Math.random()<.15||!sp.length)delete S.c.subjectType;else S.c.subjectType=pick1(sp)}
       [...TRAIT_FIELDS,"animalForm","animalPattern","bodyForm","fantasyAccentColor","noseColor"].forEach(clr);
     },
@@ -2181,9 +2191,10 @@ function rollOnce(ctx){
       STEP_FIELDS.face.forEach(clr);
       [[FACE_PRESETS,vibe.face],[EYE_PRESETS,vibe.eye]].forEach(([P,keys])=>{const p=presetPick(P,keys);if(p)assign(p.v)});
       ["expression","browShape","noseShape","mouthShape","faceShape","impression","eyeShape","irisDetail","lashNatural"].forEach(f=>nudge(f,.22));
-      if(free("faceMark")&&Math.random()<.3)S.c.faceMark=pick1(CHAR.faceMark.map(x=>x[0]));
+      if(free("faceMark")&&Math.random()<.3)S.c.faceMark=pick1(optionList("faceMark").map(x=>x.v));
       /* eye setup and colors */
       const cfgs=["matching","matching","matching","matching","heterochromatic","softly mismatched","gradient-tinted"].filter(v=>CHAR.eyeConfig.some(x=>x[0]===v));
+      if(isMale()&&free("facialHair")&&Math.random()<.55)S.c.facialHair=pick1(CHAR.facialHair.map(x=>x[0]));
       if(free("eyeConfig"))S.c.eyeConfig=pick1(cfgs);
       const cfg=S.c.eyeConfig||"matching",two=cfg!=="matching"&&cfg!=="luminous matching";
       const eyeRef=()=>slotRef({primary:1,secondary:1,third:1.4,accent:2.6,extra:1.4})||pick1(LIT.eye);
@@ -2198,19 +2209,20 @@ function rollOnce(ctx){
         HF.forEach(clr);
         if(free("hairStyle")){
           let st=pool("hairStyle");
+          if(isMale()&&Math.random()<.8){const sh=st.filter(v=>((CHAR.hairStyle.find(x=>x[0]===v)||[0,""])[1])==="Short Styles");if(sh.length)st=sh}
           if(S.c.hairLength){const f=st.filter(v=>lenFits(v,S.c.hairLength));if(f.length)st=f}
           if(st.length)S.c.hairStyle=pick1(st);
         }
         const sty=S.c.hairStyle||"",grp=(CHAR.hairStyle.find(x=>x[0]===sty)||[0,""])[1],short=/short/i.test(grp);
         if(free("hairLength")){
-          const lens=pool("hairLength",v=>{const r=lenRank(v);return r!=null&&(short?r<=3:r>=3&&r<=8)&&(!sty||lenFits(sty,v))});
-          if(lens.length)S.c.hairLength=pick1(lens);
+          const lens=pool("hairLength",v=>{const r=lenRank(v);return r!=null&&(short?(isMale()?SHORT_LEN.has(v):r<=3):r>=3&&r<=(isMale()?3:8))&&(!sty||lenFits(sty,v))});
+          if(lens.length)S.c.hairLength=(isMale()&&lens.includes("short")&&Math.random()<.6)?"short":pick1(lens);
         }
-        nudge("hairTexture",1);nudge("bangs",.8);
+        nudge("hairTexture",1);if(isMale()){if(free("bangs")&&Math.random()<.7)S.c.bangs=pick1(CHAR.bangs.filter(x=>x[1]==="Men’s Bangs").map(x=>x[0]))}else nudge("bangs",.8);
         const lr=lenRank(S.c.hairLength),longHair=lr!=null&&lr>=4;
         if(free("hairMovement")){
           const mv=pool("hairMovement",(v,g)=>!/past|midriff|chest|waist/i.test(v)&&(longHair?/long|dynamic|natural/i.test(g):/short|dynamic|natural/i.test(g)));
-          if(mv.length&&Math.random()<.8)S.c.hairMovement=pick1(mv);
+          if(mv.length&&Math.random()<.8){const mm=isMale()&&!longHair?mv.filter(v=>sexTagOf("hairMovement",v)==="m"):[];S.c.hairMovement=pick1(mm.length&&Math.random()<.75?mm:mv)}
         }
         if(free("hairBase"))S.c.hairBase=S.pal.primary?"@primary":(filled().length?"@"+filled()[0]:pick1(LIT.hair));
         if(free("hairUnderlayer")&&Math.random()<.3){const r=aux(["secondary","third"],true);if(r)S.c.hairUnderlayer=r}
@@ -2222,7 +2234,7 @@ function rollOnce(ctx){
     },
     body(){
       STEP_FIELDS.body.filter(f=>!INTIMATE_FIELDS.includes(f)).forEach(clr);
-      const p=presetPick(BODY_PRESETS,null);if(p)assign(p.v);
+      if(isMale())mascBodyRoll(free,pick1);else{const p=presetPick(BODY_PRESETS,null);if(p)assign(p.v)}
       /* intimate details are never wiped by a roll; with adult options on and a nude outfit they get an adult preset (the safeguard decides what is available) */
       if(adult&&intimateGate().open){const ip=presetPick(INTIMATE_PRESETS,null);if(ip)assign(ip.v)}
       if(free("skinTone")){const a=nat("skinTone");if(a.length)S.c.skinTone=pick1(a)}
@@ -2230,8 +2242,10 @@ function rollOnce(ctx){
       nudge("skinFinish",.8);
       if(Math.random()<.4)nudge("markings",1);
       nudge("posture",.6);
+      if(isMale()&&free("bodyHair")&&Math.random()<.45)S.c.bodyHair=pick1(CHAR.bodyHair.map(x=>x[0]));
     },
     makeup(){
+      if(isMale()){mascMakeupRoll(free,pick1,clr);return}
       STEP_FIELDS.makeup.forEach(clr);
       const p=presetPick(MAKEUP_PRESETS,vibe.makeup);if(p)assign(p.v);
       ["eyelinerStyle","eyeshadowStyle","blushStyle","lipFinish","lashStyle"].forEach(f=>nudge(f,.22));
@@ -2244,7 +2258,7 @@ function rollOnce(ctx){
     outfit(){return rollOutfit(ctx)}
   };
   const charSteps=["concept","face","hair","body","makeup"].some(s=>steps.has(s)&&!stepFrozen(s));
-  if(charSteps&&!S.c.age&&free("age"))S.c.age=pick1(["young woman","young woman","woman","mature woman"]);
+  if(charSteps&&!S.c.age&&free("age"))S.c.age=pick1(isMale()?["young man","young man","man","mature man"]:["young woman","young woman","woman","mature woman"]);
   RND_ORDER.forEach(st=>{
     if(!steps.has(st))return;
     if(stepFrozen(st)){ctx.skipped.push(st);return}
@@ -2252,6 +2266,7 @@ function rollOnce(ctx){
     /* a species can wear its own accent color once the palette exists */
     if(st==="palette"&&steps.has("concept")&&!stepFrozen("concept")&&S.c.subjectType&&free("fantasyAccentColor")&&Math.random()<.35){const r=slotRef({accent:3,extra:2,third:1});if(r)S.c.fantasyAccentColor=r}
   });
+  if(isMale()){fixSexChars();mascRollFields(steps)}
 }
 
 /* ---- outfit: locked pieces stay, the rest is rebuilt around them ---- */
@@ -2267,7 +2282,7 @@ function rollOutfit(ctx){
   const wings=!!traitValue("wingStyle"),hat=!!(traitValue("earStyle")||traitValue("hornStyle"));
   const pool=(field,pred)=>{
     const ok=(OUTFIT[field]||[]).filter(it=>{
-      if(Policy.isYouthText(it.v)||!Policy.itemAllowed(field,it.v))return false;
+      if(Policy.isYouthText(it.v)||!Policy.itemAllowed(field,it.v)||!itemSexOk(field,it.v))return false;
       const t=itemTiers(field,it);
       if(cov?!t.includes(cov):!/[CUS]/.test(t))return false;
       if(sea&&it.s&&it.s!==sea)return false;
@@ -2745,7 +2760,7 @@ function presetRow(id,PRESETS,groups,apply,clearFn,clearLabel,hint,opts){
   opts=opts||{};
   const listed=new Set(groups.flatMap(g=>g.keys));
   const all=groups.concat([{label:"More",keys:Object.keys(PRESETS).filter(k=>!listed.has(k))}]);
-  const sections=()=>all.map(g=>({name:g.label,items:g.keys.filter(k=>PRESETS[k]).map(k=>{const p=PRESETS[k],ok=opts.noCheck?true:presetAvailable(p);
+  const sections=()=>all.map(g=>({name:g.label,items:g.keys.filter(k=>PRESETS[k]&&presetSexOk(PRESETS[k])).map(k=>{const p=PRESETS[k],ok=opts.noCheck?true:presetAvailable(p);
     return{v:k,label:p.label||p.name,sub:p.blurb||"",dis:ok?null:(Policy.presetNote(p)||"Not available for this age category")}})})).filter(sc=>sc.items.length);
   const btn=h("button",{type:"button",class:"pick","aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>openPop(e.currentTarget,{title:opts.title||"Presets",current:null,stack:!!(opts.noCheck||opts.stack),sections:sections(),
     top:[{label:clearLabel,fn:clearFn}],onPick:k=>apply(k,PRESETS[k])})},h("span",{text:"Choose a preset…"}),h("i",{class:"caret","aria-hidden":"true"}));
@@ -2771,6 +2786,7 @@ function stepFace(){
   f.append(presetRow("hpreset",HERITAGE,PRESET_GROUPS.heritage,(k,p)=>applyHeritage(p),()=>{let n=0;mut(()=>{n=bulkSet(HERITAGE_CLEAR,null)});if(n)toast("Heritage cleared."+keptNote(n))},"Clear heritage","Hair style, expression and body proportions are not changed.",{title:"Heritage presets",stack:true}));
   f.append(sub("Face"));
   f.append(narrDim(presetBar(FACE_PRESETS,FACE_FIELDS,"Clear face","fpreset",PRESET_GROUPS.face)));["faceShape","expression","browShape","noseShape","mouthShape","faceMark","impression"].forEach(id=>f.append(fieldRow(id)));
+  if(isMale()||SEXPREF.both){f.append(fieldRow("facialHair"));f.append(colorRow("facialHairColor","Beard or stubble color. Leave empty to match the hair."))}
   f.append(sub("Eyes"));
   f.append(presetBar(EYE_PRESETS,EYE_FIELDS,"Clear eyes","epreset",PRESET_GROUPS.eye));
   ["eyeShape","scleraStyle"].forEach(id=>f.append(fieldRow(id)));f.append(colorRow("scleraColor","Colors the sclera. Leave empty for the default eye whites."));["pupilStyle","irisDetail","lashNatural","eyeConfig"].forEach(id=>f.append(fieldRow(id)));
@@ -3361,13 +3377,14 @@ function stepBody(){
   const f=document.createDocumentFragment();
   f.append(presetRow("preset",BODY_PRESETS,PRESET_GROUPS.body,(k,p)=>{if(stepFrozen("body")){toast("Body and skin is locked. Unlock the step to load a preset.");return}let held=0;mut(()=>{held=bulkSet(STEP_FIELDS.body.slice(0,16),p.v)},"preset");const am=Policy.afterBodyPreset(),m=((am||"")+keptNote(held)).trim();if(m)toast(m)},()=>{if(stepFrozen("body")){toast("Body and skin is locked. Unlock the step to clear it.");return}let held=0;mut(()=>{held=bulkSet(STEP_FIELDS.body.slice(0,16),null)});if(held)toast("Cleared."+keptNote(held))},"Clear body",PRESET_HINTS.preset,{title:"Body presets",stack:true}));
   if(Policy.callout("body"))f.append(h("p",{class:"callout"},Policy.callout("body")));
-  f.append(sub("Bust"));["bustSize","bustShape","bustWeight"].forEach(id=>f.append(fieldRow(id)));
+  f.append(sub(isMale()?"Chest":"Bust"));["bustSize","bustShape","bustWeight"].forEach(id=>f.append(fieldRow(id)));
   f.append(sub("Proportions"));["heightStature","shoulderShape","torsoShape","armShape","handShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture"].forEach(id=>f.append(fieldRow(id,{forcePick:id==="buttSize"})));
   f.append(sub("Skin"));
   f.append(presetBar(SKIN_PRESETS,SKIN_FIELDS,"Clear skin","spreset",PRESET_GROUPS.skin));
   const sb=skinSuggestBox();if(sb)f.append(sb);
   skinRows().forEach(r=>f.append(r));
   f.append(fieldRow("bodyMarkings",{forcePick:true,hint:"Written as its own sentence, e.g. “Light body freckles dust the shoulders…”."}));
+  if(isMale()||SEXPREF.both)f.append(fieldRow("bodyHair"));
   intimateRows(f);
   return f;
 }
@@ -3384,7 +3401,7 @@ function stepMakeup(){
   const f=document.createDocumentFragment();f.append(narrCallout("makeup")||"");
   f.append(narrDim(presetBar(MAKEUP_PRESETS,MAKEUP_FIELDS,"Clear makeup","mpreset",PRESET_GROUPS.makeup)));f.append(sub("Details"));
   ["makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents"].forEach(id=>f.append(fieldRow(id)));
-  f.append(colorRow("makeupColor","Used for “her makeup uses … accents”."));
+  f.append(colorRow("makeupColor","Used for “"+(isMale()?"his":"her")+" makeup uses … accents”."));
   f.append(sub("Nails","Style and polish. Choose several palette colors for a coordinated set."));
   f.append(fieldRow("nailStyle",{forcePick:true}));f.append(nailColorRow());
   return f;
@@ -3397,6 +3414,7 @@ function outfitItems(field){
   (OUTFIT[field]||[]).forEach(it=>{
     const t=itemTiers(field,it);
     if(!Policy.itemAllowed(field,it.v))return;
+    if(!itemSexOk(field,it.v))return;
     if(o.cover&&!t.includes(o.cover))return;
     if(o.season&&it.s&&it.s!==o.season)return;
     const fam=it.f?it.f.split(","):[];
@@ -3454,7 +3472,7 @@ function outfitRow(field){
 }
 function detailRow(field){
   const o=cur(),v=o.details[field]||"";
-  const src=(OUTFIT[field]||[]).filter(i=>(!o.cover||itemTiers(field,i).includes(o.cover))&&Policy.itemAllowed(field,i.v));
+  const src=(OUTFIT[field]||[]).filter(i=>(!o.cover||itemTiers(field,i).includes(o.cover))&&Policy.itemAllowed(field,i.v)&&itemSexOk(field,i.v));
   const custom=(customOutfit(field)).map(v=>({v}));
   /* group by category when the field has categories (Material and finish) */
   const cats=[...new Set(src.filter(i=>i.g).map(i=>i.g))];
@@ -3488,6 +3506,7 @@ function applyOutfitPreset(p){
     });
     if(def)o.name=p.name;
     o.preset=p.id;
+    if(isMale())fixSexOutfit(o);
   });
   toast(`Loaded “${p.name}”. Its colors follow your palette.`+(filled?` Filled ${filled} empty palette slot${filled>1?"s":""} with its colors.`:"")+keptNote(held));
 }
@@ -3543,7 +3562,7 @@ function stepOutfit(){
   const det=h("details",{class:"under"+(Policy.underwearAllowed()?"":" off"),open:(o.items.bra||o.items.panties)?true:null},h("summary",{text:"Underwear"}));
   if(Policy.callout("underwear"))det.append(h("p",{class:"callout"},Policy.callout("underwear")));
   else{
-    det.append(h("p",{class:"muted small",text:"Underwear under covering clothes is left out of the prompt by default, so the generator isn’t told to draw things that shouldn’t show. Turn on “Show anyway” for lingerie looks."}));
+    det.append(h("p",{class:"muted small",text:"Underwear under covering clothes is left out of the prompt by default, so the generator isn’t told to draw things that shouldn’t show. Turn on “Show anyway” for "+(isMale()?"underwear":"lingerie")+" looks."}));
     OUT_GROUPS[2].fields.forEach(id=>det.append(outfitRow(id)));
     det.append(h("label",{class:"chk"},h("input",{type:"checkbox",checked:o.showUnder?true:null,onchange:e=>mut(()=>{cur().showUnder=e.target.checked})})," Show underwear anyway, even under other clothes"));
   }
@@ -4557,6 +4576,7 @@ function narrHair(){
   else if(rest.length)s+=`, featuring ${joinNatural(rest)}`;
   out.push(s+".");
   if(bangs)out.push(`${Sx} also has ${withArticle(bangs)}.`);
+  if(facialHairText())out.push(`${Sx} also has ${facialHairText()}.`);
   return out.join(" ");
 }
 function narrSkin(){
@@ -4570,7 +4590,7 @@ function narrBody(){
   const extra=[shape&&withArticle(shape),weight].filter(Boolean),bust=size?`${withArticle(size)}${extra.length?` with ${joinNatural(extra)}`:""}`:(extra.length?joinNatural(extra):"");
   const height=g("heightStature"),soft=g("bodySoftness"),frame=height&&soft?`${height} with ${withArticle(soft)}`:(height||withArticle(soft));
   const s1=[frame,bust,g("shoulderShape"),withArticle(g("torsoShape")),withArticle(g("waistShape"))].filter(v=>v&&v!=="a ");
-  const s2=[withArticle(g("stomachShape")),g("hipShape"),noLeg?"":g("thighBuild"),noLeg?"":g("legShape"),noLeg?"":withArticle(g("buttSize")),withArticle(g("armShape")),g("posture")].filter(v=>v&&v!=="a ");
+  const s2=[withArticle(g("stomachShape")),g("hipShape"),noLeg?"":g("thighBuild"),noLeg?"":g("legShape"),noLeg?"":withArticle(g("buttSize")),withArticle(g("armShape")),g("bodyHair"),g("posture")].filter(v=>v&&v!=="a ");
   const out=[];
   if(s1.length)out.push(`${Sx} has ${joinNatural(s1)}.`);
   if(s2.length)out.push(`${Sx} has ${joinNatural(s2)}.`);
@@ -4731,7 +4751,7 @@ function narrStyleRows(){
 })();
 
 /* ---- v81: gate for the intimate detail fields (kept outside the safeguard block; it only calls Policy) ---- */
-const INTIMATE_FIELDS=["nippleColor","nippleType","nippleLength","areolaColor","areolaType","areolaSize","vaginaColor","vaginaType","pubicHair"];
+const INTIMATE_FIELDS=["nippleColor","nippleType","nippleLength","areolaColor","areolaType","areolaSize","vaginaColor","vaginaType","penisColor","penisType","penisSize","pubicHair"];
 const INTIMATE_COVERING=["top","bottom","corset","outerwear","bra","panties"];
 const intimateSet=()=>INTIMATE_FIELDS.filter(f=>S.c[f]!=null&&S.c[f]!==""&&S.c[f]!=="none");
 function intimateGate(){
@@ -4755,17 +4775,19 @@ function intimateFix(){return{label:"Remove clothing",fn:()=>{let k=0;mut(()=>{k
 function intimateText(){
   const G=id=>{const v=S.c[id];return v&&v!=="none"?rc(String(v)):""},C=CK.compact;
   const nip=[G("nippleColor"),G("nippleType"),G("nippleLength")].filter(Boolean),are=[G("areolaColor"),G("areolaType"),G("areolaSize")].filter(Boolean);
-  const vc=G("vaginaColor"),vt=G("vaginaType"),ph=G("pubicHair"),out=[];
+  const vc=G("vaginaColor"),vt=G("vaginaType"),ph=G("pubicHair"),pc=G("penisColor"),pt=G("penisType"),ps=G("penisSize"),out=[];
   if(C){
     if(nip.length)out.push(nip.join(", ")+" nipples");
     if(are.length)out.push(are.join(", ")+" areolae");
     if(vc||vt)out.push([vc,vt].filter(Boolean).join(", ")+" vagina");
+    if(pc||pt||ps)out.push([ps,pc,pt].filter(Boolean).join(", ")+" penis");
     if(ph)out.push(ph);
     return out.join(", ");
   }
   if(nip.length)out.push(`Her nipples are ${joinNatural(nip)}.`);
   if(are.length)out.push(`Her areolae are ${joinNatural(are)}.`);
   if(vt)out.push(`Her ${vc?vc+" ":""}vagina is ${vt}.`);else if(vc)out.push(`Her vagina is ${vc}.`);
+  {const pa=[ps,pc].filter(Boolean);if(pt)out.push(`Her ${pa.length?pa.join(", ")+" ":""}penis is ${pt}.`);else if(pa.length)out.push(`Her penis is ${joinNatural(pa)}.`)}
   if(ph)out.push(`She has ${ph}.`);
   return out.join(" ");
 }
@@ -4778,14 +4800,14 @@ function intimateApply(raw){
 }
 function intimateRows(f){
   const gt=intimateGate();
-  f.append(sub("Intimate details","Adult subjects only. Used only when the outfit is nude (no top, bottom, corset, outerwear, bra or panties) or the output mode is Character only. Written after the body paragraph."));
+  f.append(sub("Intimate details","Adult subjects only. Used only when the outfit is nude (no top, bottom, "+(isMale()?"vest or armor layer, outerwear, undershirt or underwear":"corset, outerwear, bra or panties")+") or the output mode is Character only. Written after the body paragraph."));
   if(!gt.open){
     f.append(h("p",{class:"callout warn"},gt.msg));
     if(gt.why==="clothed")f.append(h("div",{class:"btnrow"},h("button",{type:"button",class:"btn sm",onclick:intimateFix().fn,text:"Remove clothing from this outfit"})));
   }
   {const pb=presetBar(INTIMATE_PRESETS,INTIMATE_FIELDS,"Clear intimate details","ipreset",PRESET_GROUPS.intimate);
     if(!gt.open){pb.classList.add("dropped");pb.setAttribute("inert","")}f.append(pb)}
-  [["Nipples",["nippleColor","nippleType","nippleLength"]],["Areolae",["areolaColor","areolaType","areolaSize"]],["Vagina and hair",["vaginaColor","vaginaType","pubicHair"]]].forEach(([t,ids])=>{
+  [["Nipples",["nippleColor","nippleType","nippleLength"]],["Areolae",["areolaColor","areolaType","areolaSize"]],isMale()?["Genitals and hair",["penisColor","penisType","penisSize","pubicHair"]]:["Vagina and hair",["vaginaColor","vaginaType","pubicHair"]]].forEach(([t,ids])=>{
     f.append(h("p",{class:"muted small",text:t}));ids.forEach(id=>f.append(fieldRow(id)));
   });
 }
@@ -5193,6 +5215,875 @@ function composeRaw(){
   const ac=PRESET_GROUPS.start.findIndex(g=>g.label==="Academy");
   PRESET_GROUPS.start.splice(ac+1,0,{label:"Academy Headmistresses",keys:TS.map(t=>t.id)});
 })();
+
+/* ===== v103: male mode — core (sex flag, tagging, filters, pronouns) =====
+   S.c.sex === "male" switches the studio to male mode. Anything else is the original female studio.
+   Options carry an optional sex tag: "m" male only, "f" female only, "b" both (exempt from the female-coded filter).
+   Untagged options are shared, except those matched by the female-coded filters (hidden in male mode). */
+const KEY_SEXPREF="charstudio.sexpref.v1";
+const SEXPREF=Object.assign({both:false},loadJSON(KEY_SEXPREF,{}));
+function isMale(){return !!(S&&S.c&&S.c.sex==="male")}
+const SEXTAG={},FEM_RX={},FEM_ALL={};
+const FEM_RX_ALL=/\b(feminine|femme|girls?|girly|woman|women|lady|ladylike|doll-like|dollish|pretty|cute|cutesy|dainty|princess|bridal|bride|lolita|babydoll|breasts?|busty|cleavage|hourglass|voluptuous|pigtails?|ribbons?|bows?|lipstick)\b/i;
+const sexTagOf=(field,v)=>(SEXTAG[field]||{})[v]||"";
+function sexFits(field,v,male){
+  const t=sexTagOf(field,v);
+  if(t==="m")return !!male;if(t==="f")return !male;if(t==="b")return true;
+  if(!male)return true;
+  if(FEM_ALL[field])return false;
+  const rx=FEM_RX[field];if(rx&&rx.test(v))return false;
+  return !FEM_RX_ALL.test(v);
+}
+const sexOk=(field,v,male)=>SEXPREF.both||sexFits(field,v,male);
+function addM(field,vals,group,front){
+  CHAR[field]=CHAR[field]||[];SEXTAG[field]=SEXTAG[field]||{};
+  const have=new Set(CHAR[field].map(x=>x[0]));
+  const fresh=vals.filter((v,i)=>!have.has(v)&&vals.indexOf(v)===i);
+  fresh.forEach(v=>{SEXTAG[field][v]="m"});
+  const add=fresh.map(v=>[v,group||""]);
+  CHAR[field]=front?add.concat(CHAR[field]):CHAR[field].concat(add);
+  return fresh.length;
+}
+function tagSex(field,vals,t){SEXTAG[field]=SEXTAG[field]||{};vals.forEach(v=>{SEXTAG[field][v]=t})}
+const tagB=(field,vals)=>tagSex(field,vals,"b"),tagF=(field,vals)=>tagSex(field,vals,"f");
+
+/* outfit items use the same idea, keyed by outfit field */
+const OSEX={},OFEM_RX={},OFEM_ALL={};
+function itemSexFits(field,v,male){
+  const t=(OSEX[field]||{})[v]||"";
+  if(t==="m")return !!male;if(t==="f")return !male;if(t==="b")return true;
+  if(!male)return true;
+  if(OFEM_ALL[field])return false;
+  const rx=OFEM_RX[field];return !(rx&&rx.test(v));
+}
+const itemSexOk=(field,v)=>SEXPREF.both||itemSexFits(field,v,isMale());
+function addMO(field,list){
+  OUTFIT[field]=OUTFIT[field]||[];OSEX[field]=OSEX[field]||{};
+  list.forEach(([v,t,fam,s,g])=>{
+    if(OUTFIT[field].some(i=>i.v===v)){OSEX[field][v]="b";return}
+    const it={v,t};if(fam)it.f=fam;if(s)it.s=s;if(g)it.g=g;OUTFIT[field].push(it);OSEX[field][v]="m";
+  });
+}
+/* presets: "m" ones belong to male mode, "f" ones to female mode; untagged presets are shared and are adapted when applied in male mode */
+const FEM_PRESET_RX=/\b(maid|princess|bride|cowgirl|waitress|succubus|queen|mermaid|sorceress|priestess|huntress|empress|goddess|heroine|ballerina|cheerleader|cheer|pin-up|bunny|lolita|babydoll|flirty|hourglass|bombshell|busty|bust|voluptuous|top-heavy|curvy|femme|doll-like|adorable|petite|sugar-sweet|sweet|dreamy|willowy|delicate|seductive|sultry|lustful|afterglow|lewd glam|pastel|shy and blushing|soft and sweet|soft doe|big and adorable|full bust|ideal)\b/i;
+function presetSexOk(p){
+  if(!p||SEXPREF.both)return true;
+  if(p.sex==="m")return isMale();
+  if(p.sex==="f")return !isMale();
+  if(isMale()){const n=String(p.label||p.name||"");if(FEM_PRESET_RX.test(n)||(!p.items&&/\bcute\b/i.test(n)))return false}
+  return true;
+}
+
+/* ---- pronouns: the sentence builders write "She/Her"; male mode converts the finished layer text ---- */
+const OBJ_NEXT=/^(and|or|but|with|in|on|at|to|from|as|while|so|by|for|over|into|under|up|down|out|off|close|tight|apart|together|away|too|is|are|was|were|has|have|that|which|who|when|where|then|than|if|until|after|before)$/i;
+function maleize(t){
+  if(!t)return t;
+  return String(t)
+    .replace(/\bShe\b/g,"He").replace(/\bshe\b/g,"he")
+    .replace(/\bHerself\b/g,"Himself").replace(/\bherself\b/g,"himself")
+    .replace(/\bHers\b/g,"His").replace(/\bhers\b/g,"his")
+    .replace(/\b[Hh]er\b/g,(m,off,str)=>{
+      const after=str.slice(off+3),mm=after.match(/^\s+([^\s.,;:!?)\]}]+)/);
+      const poss=!!mm&&!OBJ_NEXT.test(mm[1].replace(/[^A-Za-z]/g,""));
+      return m[0]==="H"?(poss?"His":"Him"):(poss?"his":"him");
+    });
+}
+
+/* ---- labels that change in male mode ---- */
+const MALE_LABELS={bustSize:"Chest size",bustShape:"Chest shape",bustWeight:"Chest definition",faceMark:"Facial mark",
+  lashNatural:"Eyelashes",penisColor:"Genital color",penisType:"Genital type",penisSize:"Genital size"};
+const MALE_GROUP={"Doll-like and youthful":"Soft and youthful","Cute":"Playful","Small and delicate":"Slim and neat"};
+function labelOf(f){return(isMale()&&MALE_LABELS[f])||LABELS[f]||f}
+Object.defineProperty(OUT_LABEL,"bra",{get(){return isMale()?"Undershirt":"Bra"},configurable:true,enumerable:true});
+Object.defineProperty(OUT_LABEL,"panties",{get(){return isMale()?"Underwear":"Panties"},configurable:true,enumerable:true});
+Object.defineProperty(OUT_LABEL,"corset",{get(){return isMale()?"Vest or armor layer":"Corset or bodice layer"},configurable:true,enumerable:true});
+
+/* ===== v103: male mode — character option data ===== */
+(function(){
+  /* ---- which existing options read as female-coded (hidden in male mode) ---- */
+  FEM_RX.faceShape=/delicate|doll-like|petite face|youthful-looking|pretty|V-shaped|soft heart-shaped|cute|heart-shaped face with soft|woodland-spirit|bunny-like|mouse-like/i;
+  FEM_RX.expression=/puffed-cheek pout|tiny cat-mouth|bubbly/i;
+  FEM_RX.eyeShape=/doll|doe|cute|glossy|sparkling|seductive|very large|large, wide/i;
+  FEM_RX.browShape=/delicate|thin elegant|thin, high-arched|thin brows|short soft|soft, curved|elegantly swept|feathered, upswept|gentle curved/i;
+  FEM_RX.noseShape=/button|petite|delicate|small, delicate|elfin|bunny-like|snub/i;
+  FEM_RX.mouthShape=/plush|heart-shaped|cupid|rosy|pouty|petite|delicate|small|sensual|exceptionally|glossy|softly parted|thin-to-medium/i;
+  FEM_RX.lashNatural=/delicate|feather-like|fluttery|upswept|frosted/i;
+  FEM_RX.impression=/delicate features|beauty|temptress|bombshell|bedroom-ready|adorable|huggable|sparkling|innocent|sweet|cute|pretty|alluring|irresistible|exaggerated figure|plush/i;
+  FEM_RX.hairStyle=/\bbob\b|lob\b|pixie|bixie|princess|hime|jellyfish|twin|pigtail|bridal|chignon|ballerina|beehive|victory rolls|odango|milkmaid|bubble|bunny|bow|ribbon|ornamental|double|space buns|halo|crown braid|butterfly|U-shaped|V-shaped|finger waves|wrapped ponytail|half-up twin|pageboy/i;
+  FEM_RX.bangs=/cute|hime|baby|bottleneck|micro|arched|split|see-through|sidelocks/i;
+  FEM_RX.hairMovement=/\bher\b|past the (waist|chest)|midriff|down the back|around the waist|to the knees|over one shoulder|collarbone|around the neck|spills forward|sheets|plush|long flowing|long face-framing|long and loose|well past|cascad|sweeps around the face|loose strands|soft loose|fans out|fans outward|sways|ethereal|silk|spirals|curled ends|soft layers/i;
+  FEM_RX.hairTexture=/silky|wispy|fluffy|soft curls|ringlet/i;
+  FEM_RX.earStyle=/ribbon|bow/i;
+  FEM_RX.heightStature=/petite|graceful|elegant|statuesque|very short petite/i;
+  FEM_RX.shoulderShape=/delicate|petite|graceful|soft|rounded|elegant/i;
+  FEM_RX.torsoShape=/delicate proportions|softly contoured/i;
+  FEM_RX.armShape=/feminine|delicate|graceful|soft|rounded upper/i;
+  FEM_RX.handShape=/feminine|delicate|dainty|graceful|small, soft/i;
+  FEM_RX.stomachShape=/cute/i;
+  FEM_RX.legShape=/slender|delicate|graceful|soft|petite|shapely|elegant|gently curved|slim ankles/i;
+  FEM_RX.bodySoftness=/feminine|hourglass|voluptuous|petite|doll|curvy|curvaceous|delicate|plush|plus-size|bombshell|lewd|top-heavy|bottom-heavy|pear-shaped|graceful|juicy|balanced curving|gracefully rounded|slender soft/i;
+  FEM_RX.posture=/graceful|soft poised|hip-popped|arched-back|poised dancer|slightly shy|light playful|kneeling with an arched/i;
+  FEM_RX.markings=/lipstick|floral|hip tattoo|beauty mark|dimples|kiss marks|chest and hips|breasts|chest, stomach, hips/i;
+  FEM_RX.bodyMarkings=/chest, stomach, hips|chest and thighs|chest, and hips|hips/i;
+  FEM_RX.faceMark=/beauty mark|dimples/i;
+  FEM_RX.makeupStyle=/bridal|doll-like|sweet pastel|femme fatale|soft glam|glamorous soft/i;
+  FEM_RX.blushStyle=/doll-like|heart-shaped|rosy|rounded blush|nose-tip|aroused/i;
+  FEM_RX.lipFinish=/ombré|dripping|kiss-swollen|smeared|high-shine|seductive|smudged/i;
+  FEM_RX.faceAccents=/gems|pearl|lipstick|kiss/i;
+  FEM_RX.nailStyle=/manicure|heart and flower|nail art/i;
+  FEM_RX.pubicHair=/heart-shaped/i;
+  FEM_RX.tailStyle=/ribbon|bow/i;
+  FEM_RX.skinFinish=/rosy flush|soft opalescent/i;
+  FEM_ALL.bustSize=FEM_ALL.bustShape=FEM_ALL.bustWeight=FEM_ALL.waistShape=FEM_ALL.hipShape=FEM_ALL.buttSize=FEM_ALL.thighBuild=FEM_ALL.lashStyle=true;
+  /* exceptions: values that work for any body */
+  tagB("waistShape",["straight natural waist","straight, athletic waist","long, slim waist"]);
+  tagB("hipShape",["narrow hips","narrow, straight hips","lean, athletic hips","balanced hips"]);
+  tagB("buttSize",["small butt","small round butt","toned butt","medium butt","round butt","natural butt","small, firm butt","firm, round butt","large, firm, athletic butt"]);
+  tagB("thighBuild",["thin thighs","toned thighs","lean, toned thighs","long, lean thighs","strong, muscular thighs","thick, firm, athletic thighs","thick thighs","very thick thighs"]);
+  tagB("legShape",["long legs","thick legs","toned legs","thin legs","long, lean legs","strong, muscular legs","long legs with defined calves","thick, strong legs","proportional legs","smooth proportionate legs"]);
+  tagB("posture",["over-the-shoulder glance","leaning forward posture","reclining posture","hands-behind-the-head posture"]);
+  tagB("lashStyle",["natural lashes"]);
+  tagB("handShape",["strong and capable","long, slender fingers"]);
+  tagB("armShape",["strong forearms and capable hands","strong, muscular arms","toned arms with defined shoulders","softly toned arms"]);
+
+  /* ---- age ---- */
+  addM("age",["young man","man","mature man","older man"]);
+
+  /* ---- face ---- */
+  addM("faceShape",["strong, square-jawed face","chiseled face with a sharp jawline and high cheekbones","angular face with a defined jaw and pronounced cheekbones","rugged, square face with a heavy jaw","long face with a strong chin and a straight jaw","broad face with a wide, firm jaw","lean, hollow-cheeked face with a sharp jaw","oval face with a defined jaw and a cleft chin","diamond-shaped face with a firm chin","sharp-featured, elegant face with a tapered jaw","sculpted, handsome face with high cheekbones and a firm jaw","weathered, strong-featured face with deep-set eyes","narrow, refined face with a pointed chin","heavy-jawed, broad-browed face","round face with a soft jaw and full cheeks"]);
+  addM("expression",["confident smirk","easy, lopsided grin","stoic, unreadable expression","gruff, serious expression","calm, assured gaze","cocky half-smile","brooding expression","intense, steady stare","warm, crinkle-eyed grin","tired but kind expression","roguish grin","cold, piercing glare","gentle, reserved smile","heavy-lidded, lazy smile","furrowed, concentrated expression","mischievous, toothy grin"]);
+  addM("browShape",["strong, straight brows","bold, angular brows","full brows with a slight arch","thick, untamed brows","neat, defined brows","sharp, slanted brows","a scar cutting through one brow"]);
+  addM("noseShape",["strong, straight nose","prominent, Roman nose","slightly crooked nose","wide, sturdy nose","straight nose with a defined tip","sharp, narrow nose","large, prominent nose","broken-bridge nose"]);
+  addM("mouthShape",["firm, defined lips","thin, firm lips","full lips with a strong lip line","wide mouth with a relaxed lip line","slightly chapped lips","narrow lips set in a firm line","lips with a faint scar"]);
+  addM("eyeShape",["sharp, narrow eyes","deep-set eyes","heavy-lidded eyes","stern, narrowed eyes","steady, almond-shaped eyes","calm, slightly drooping eyes","hooded, intense eyes"]);
+  addM("lashNatural",["short, dark eyelashes","thick, understated eyelashes","barely noticeable lashes","dark, heavy-lidded lashes"],"Eyelashes");
+  addM("faceMark",["a faint scar through one eyebrow","a small scar on the chin","a scar across the bridge of the nose","a small mole on the cheek","a thin scar across one cheek"],"Scar or mark");
+  addM("impression",["a handsome, easygoing charm","a rugged, approachable appearance","a friendly, easygoing look","a calm, dependable presence","a warm, reliable presence","a rugged, weathered handsomeness","a striking, strongly masculine appearance","a quietly masculine presence","a chiseled, model-like handsomeness","a gentle, soft-spoken presence"],"Natural and everyday");
+  addM("impression",["a refined, aristocratic presence","a sharp, polished gentleman's presence","a cool, aloof handsomeness","a brooding, magnetic presence","a commanding, authoritative presence","a dashing, confident presence","a scholarly, composed presence","a roguish charm","a charismatic, playful charm"],"Poised and polished");
+  addM("impression",["a smoldering, magnetic allure","a seductive, confident allure","a dangerous, brooding allure"],"Sultry (adult)");
+  addM("impression",["a stoic, battle-hardened presence","a noble, heroic presence"],"Fantasy and mythical");
+
+  /* ---- hair ---- */
+  addM("hairStyle",["short crop","textured crop","crew cut","ivy league cut","classic side part","slicked-back hair","pompadour","quiff","faux hawk","mohawk","low fade with a short top","high fade with a textured top","taper fade","skin fade undercut","disconnected undercut","side-swept undercut","messy short hair","short messy spikes","spiky hair","short curly hair","curly top with tapered sides","flat top","high and tight","comb-over","windswept hair","bedhead hair","short natural coils","waves haircut"],"Short Styles",true);
+  addM("hairStyle",["undercut with a long top","man bun","half-up man bun","samurai topknot","medium-length swept hair","medium wavy hair","layered medium-length hair","mullet","shaggy mullet","middle-part curtains","long hair tied low at the nape","shaved sides with long hair braided back","two-strand twists","slicked-back undercut ponytail","tousled medium-length hair","long swept-back hair"],"Men’s Styles");
+  addM("bangs",["swept-back front","side-swept fringe","textured fringe","messy fringe","short spiky fringe","curtain fringe","front-swept quiff","forehead-baring pushed-back hair","long fringe falling over the forehead","slicked-back hairline"],"Men’s Bangs");
+  addM("hairMovement",["stays crisp and neatly in place","sits tousled and slightly messy","is swept back off the forehead","drops loosely over the forehead","has a rugged, windblown look","stays sharply combed and clean","looks lived-in and casually rumpled","stands up in a textured, spiky mess","is pushed back with a careless hand","stays short and tight to the head"],"Short and cropped",true);
+  addM("hairTexture",["thick and coarse","rough and tousled","neat and combed","sleek and slicked","dry and windswept","wiry and unruly","dense, tight curls","soft and fine"],"Texture");
+
+  /* ---- facial hair and body hair (new fields) ---- */
+  CHAR.facialHair=[].concat(
+    ["clean-shaven"].map(v=>[v,"Clean"]),
+    ["light stubble","heavy stubble","five o'clock shadow","rugged stubble along the jaw","designer stubble"].map(v=>[v,"Stubble"]),
+    ["short boxed beard","neatly trimmed beard","chin-strap beard","circle beard","goatee","van dyke beard","anchor beard","soul patch","short beard with sharp lines"].map(v=>[v,"Short beards"]),
+    ["full beard","thick full beard","long beard","braided beard","forked beard","bushy, untamed beard","salt-and-pepper beard"].map(v=>[v,"Full beards"]),
+    ["neat mustache","pencil mustache","handlebar mustache","walrus mustache","horseshoe mustache","mustache and goatee"].map(v=>[v,"Mustaches"]),
+    ["thin sideburns","long sideburns","mutton chops"].map(v=>[v,"Sideburns"]));
+  CHAR.bodyHair=[
+    "smooth, hairless chest","light chest hair","moderate chest hair","thick, hairy chest","a trail of hair down the stomach","light hair on the forearms","hairy forearms and legs","hairy chest, stomach and arms","lightly haired body","fine, light body hair","smooth, shaved body"].map(v=>[v,"Body hair"]);
+  SEXTAG.facialHair={};CHAR.facialHair.forEach(([v])=>{SEXTAG.facialHair[v]="m"});
+  SEXTAG.bodyHair={};CHAR.bodyHair.forEach(([v])=>{SEXTAG.bodyHair[v]="m"});
+
+  /* ---- body ---- */
+  addM("heightStature",["tall, imposing stature","towering stature","stocky, short stature","tall and lanky stature","broad-shouldered average height","lean, tall stature"],"Height");
+  addM("shoulderShape",["very broad, powerful shoulders","broad shoulders tapering to a lean waist","heavy, muscular shoulders","rounded deltoids","lean, sinewy shoulders","wide, squared-off shoulders","sloped, narrow shoulders"],"Shoulders");
+  addM("torsoShape",["broad V-shaped torso tapering to the waist","thick, barrel-chested torso","lean, wiry torso","athletic, well-defined torso","heavyset, solid torso","long, narrow torso"],"Natural and realistic");
+  addM("armShape",["thick, powerful arms","lean, wiry arms with visible veins","defined biceps and forearms","broad forearms and large hands","heavily muscled arms","lean arms with defined forearms","thick, soft arms","scarred forearms"],"Natural and realistic");
+  addM("handShape",["large and strong","broad and calloused","long-fingered and elegant","rough, with scarred knuckles","big and capable","lean and veined"],"Hands");
+  addM("bustSize",["narrow chest","lean chest","average chest","broad chest","broad, muscular chest","deep, powerful chest","thick, heavy chest","huge, heavily muscled chest","soft, rounded chest"],"Chest size");
+  addM("bustShape",["flat, even pecs","defined pecs","full, rounded pecs","squared, sculpted pecs","soft, relaxed pecs","chiseled pecs with a visible center line","natural chest shape"],"Chest shape");
+  addM("bustWeight",["light definition","soft definition","firm definition","pronounced definition","dense, thick muscle","soft, relaxed fullness","heavy, solid mass"],"Chest definition");
+  addM("waistShape",["narrow, tapered waist","trim waist","lean, defined waist","straight, solid waist","thick, solid waist","broad waist","slim waist with defined obliques","narrow waist with a V-taper","soft, thick waist"],"Waist");
+  addM("stomachShape",["six-pack abs","defined abs and obliques","flat stomach with faint abs","lean, hard stomach","sculpted eight-pack abs","lean stomach with a visible V-line","firm, flat stomach","thick, solid midsection","broad, soft midsection"],"Stomach");
+  addM("hipShape",["lean, narrow hips","slim, straight hips","solid hips","broad hips","narrow hips with a V-taper","thick, solid hips"],"Hips");
+  addM("buttSize",["lean, flat butt","muscular butt","round, muscular butt","broad, powerful butt","soft, round butt"],"Butt");
+  addM("thighBuild",["powerful, muscular thighs","lean, sinewy thighs","thick, solid thighs","long, strong thighs","heavily muscled thighs"],"Thighs");
+  addM("legShape",["long, strong legs","powerful legs with defined calves","lean, wiry legs","thick, sturdy legs","long legs with strong calves"],"Legs");
+  addM("bodySoftness",["lean, wiry build","lean, athletic swimmer's build","broad, muscular build","heavily muscled bodybuilder build","tall, lanky build","stocky, powerfully built frame","broad, heavyset build","soft, burly build","rugged, well-worn build","slim, toned build with defined muscle","wiry, compact build","ripped, lean build","tall, broad-shouldered build with a lean waist","bulky, barrel-chested build","slender, elegant build"],"Overall Build");
+  addM("posture",["squared, confident posture","slouched, relaxed posture","hands-in-pockets stance","arms-crossed stance","wide-legged confident stance","straight-backed military posture","lazy, slouching lean","chin-up proud posture","hunched, brooding posture"],"Posture");
+  addM("markings",["a scar through one eyebrow","a thin scar across one cheek","a long scar across the chest","battle scars across the torso and arms","burn scars along one forearm","claw-mark scars across the torso","laugh lines around the eyes","a sleeve tattoo on one arm","tattooed forearms","a tribal-style shoulder tattoo","a chest tattoo","sun-weathered tan lines at the neck and forearms","freckles across the nose and shoulders"],"Scars and tattoos");
+  addM("skinFinish",["weathered, sun-roughened skin","rough, windburned skin","tanned, sweat-sheened skin","matte skin with faint pores","oiled, glistening skin"],"Men’s skin");
+
+  /* ---- makeup and nails ---- */
+  addM("makeupStyle",["bare-faced natural look","subtle concealer and tinted lip balm","light foundation and defined brows","guyliner smoky eyes","smudged eyeliner rocker look","dramatic stage makeup","glam glitter makeup","gothic black eyeshadow and eyeliner","clean skin-tint look"],"Men’s makeup");
+  addM("nailStyle",["short, clean natural nails","short, blunt nails","short black-painted nails","chipped black nail polish","blunt, calloused nails"],"Nails");
+
+  /* ---- adult details: genital fields and men's pubic hair ---- */
+  CHAR.penisType=["circumcised","uncircumcised","straight","slightly curved","smooth","veined"].map(v=>[v,""]);
+  CHAR.penisSize=["small","average","above-average","large","very large","huge"].map(v=>[v,""]);
+  CHAR.penisColor=["pale pink","soft pink","rosy pink","dusty rose","mauve","tan","light brown","caramel brown","chocolate brown","deep brown"].map(v=>[v,"Natural"]).concat(["pale blue","ice blue","soft lavender","violet","deep violet","deep teal","sea green","ash gray","pearl white","golden","coral","crimson","deep burgundy","hot pink"].map(v=>[v,"Fantasy"]));
+  addM("pubicHair",["a trail of hair rising from the pubic area toward the navel","short, closely trimmed pubic hair","thick, untrimmed pubic hair"]);
+  Object.assign(LABELS,{facialHair:"Facial hair",facialHairColor:"Facial hair color",bodyHair:"Body hair",penisColor:"Genital color",penisType:"Genital type",penisSize:"Genital size"});
+})();
+
+/* ===== v103: male mode — outfit rules and menswear catalog ===== */
+(function(){
+  /* existing items that read as women's wear are hidden in male mode (the "show both" switch brings them back) */
+  OFEM_RX.top=/dress|gown|blouse|cami(sole)?\b|crop|tube|bandeau|halter|strapless|corset|bustier|bralette|bodysuit|babydoll|peplum|ruffle|frill|lace|ribbon|\bbows?\b|bow-|puff|smocked|off-shoulder|off the shoulder|cold-shoulder|one-shoulder|cut-?out|keyhole|sweetheart|plunge|plunging|bikini|swimsuit|one-piece|leotard|negligee|lingerie|\bslip\b|nightgown|chemise|sailor|pinafore|apron|maid|micro|barely|minimal-panel|wrap top|tie-front|knot-front|bandage|bust|heart|floral|flower|sheer|mesh|harness|bra\b|kimono-style|nurse|bunny|witch|princess|lolita|tutu|tulle|belly|midriff|underboob|bolero|shrug|cowl|backless|choli|saree|ao dai|catsuit|bodice|strawberry|pom-pom|square-neck|boat-neck|open-back|knotted at the hem|chain-strap|wrap-front|bishop-sleeve/i;
+  OFEM_RX.bottom=/skirt|skort|dress|bikini|micro|booty|hot pants|string|culotte|bloomers|pumpkin|ruffle|frill|lace|tutu|petticoat|sarong|high-waisted|high-rise|cheeky|thong|bow\b|ribbon|tennis|apron|suspender|pinafore|wrap|pantaloons|capri|palazzo|harem|garter|leggings|ultra-short|extremely short|crochet|high-cut|slit|volleyball/i;
+  OFEM_RX.legwear=/thigh-?high|stocking|pantyhose|garter|fishnet|lace|sheer|ruffle|\bbows?\b|bow-|ribbon|heel|stiletto|pump|mary jane|ballet|lolita|over-the-knee|maid|wedge|strappy|frill|platform|tights|warmer|leggings|harness|strap|chain|knee-high sock|knee sock|ankle sock|slouch|anklet|toe-ring|open gaps|cow-print/i;
+  OFEM_ALL.corset=true;
+  OFEM_RX.outerwear=/shrug|bolero|capelet|shawl|stole|ruffle|frill|lace|\bbows?\b|ribbon|princess|cover-up|kimono|poncho|wrap|sweetheart|corset|sheer|maid|apron|cropped|sarafan|dupatta|chiffon|boa\b|pastel|teddy|fluffy|crochet|opera coat|bunny|bear-ear|bath towel|beach dress/i;
+  OFEM_ALL.bra=true;OFEM_ALL.panties=true;
+  OFEM_RX.belt=/corset|ribbon|\bbows?\b|dainty|heart|pearl|lace|garter|cinch|sash|chain skirt|waist cincher|ruffle|charm/i;
+  OFEM_RX.waistAccessory=/ribbon|\bbows?\b|skirt|apron|lace|heart|pearl|frill|ruffle|garter|cinch|drape|charm|jewel|hip scarf|plume|waist chain|chain waist|tassel|sarong|oversized sweater/i;
+  OFEM_RX.neckAccessory=/choker|ribbon|\bbows?\b|bow-|heart|pearl|lace|locket|flower|floral|charm|ruffle|frill|dainty|jabot|cameo|butterfly|star|moon|crystal|ruby|rosette|daisy/i;
+  OFEM_RX.wristAccessory=/ribbon|\bbows?\b|lace|pearl|charm|heart|flower|floral|dainty|scrunchie|bangle|frill|ruffle|cuffs? with|crystal|delicate|diamond|tennis|jelly|friendship|fuzzy|sparkly|star bracelets|bell bracelets|hair tie|gemstone|slim bracelets/i;
+  OFEM_RX.headwear=/\bbows?\b|bow-|ribbon|tiara|veil|flower|floral|bonnet|hair clip|barrette|scrunchie|lace|pearl|heart|maid|cowgirl|hairband|garland|nurse|witch|bunny|kawaii|princess|halo|clip|pin\b|comb|snap|butterfly|star|hair ornament|hair stick|kanzashi|pillbox|sparkling headband|updo wrap|netting|mini hat|satin hair/i;
+  OFEM_RX.eyewear=/cat-eye|heart|butterfly|oversized round|rhinestone|star-shaped|pearl|cat eye|flower|sparkle|lace|pastel|jeweled|beaded/i;
+  OFEM_RX.gloves=/lace|opera|satin|ruffle|\bbows?\b|ribbon|frill|pearl|elbow|over-the-elbow|evening|arm sleeve|armwear|sleeves|bunny|paw|mitten|heart|sequin|iridescent|ruched|cut-out|arm warmers|cow-print|pastel|crochet|sheer/i;
+  OFEM_RX.tagCharm=/heart|\bbows?\b|ribbon|star|flower|floral|butterfly|cat-paw|bunny|cherry|strawberry|sparkle|rainbow|pearl|candy|kawaii|bell|moon|cloud|daisy|clover|paw|camellia|cupcake|hair pin|plush|gem charm/i;
+  OFEM_RX.hipAccessory=/purse|handbag|clutch|ribbon|\bbows?\b|heart|plush|pearl|lace|frill|ruffle|charm|bell|tote|mini bag|tassel|butterfly|pom|top-handle|mini (shoulder|studded) bag|bunny/i;
+  OFEM_RX.pocketItem=OFEM_RX.loopItem=/ribbon|\bbows?\b|heart|lace|pearl|charm|plush|scrunchie|bell|flower|tassel|pom/i;
+  OFEM_RX.earAccessory=/\bbows?\b|ribbon|heart|pearl|drop|dangle|chandelier|flower|floral|butterfly|star|moon|charm|clip-on|tassel|crystal|cluster|dainty|ruby|gem|jewel|clover|daisy|cherry|strawberry|cameo|leaf-shaped|jhumka/i;
+  OFEM_RX.ringAccessory=/heart|pearl|flower|floral|\bbows?\b|ribbon|dainty|butterfly|cluster|stack|crystal|gem|jewel|moon|star|delicate|midi|cocktail|thin/i;
+  OFEM_RX.thighAccessory=/./;OFEM_RX.kneeAccessory=/ribbon|\bbows?\b|lace|heart|garter/i;
+  OFEM_RX.maskAccessory=/\bbows?\b|ribbon|lace|heart|floral|flower|pearl|butterfly|cat-ear/i;
+  OFEM_RX.shoulderPiece=/\bbows?\b|ribbon|lace|ruffle|frill|flower|floral|capelet|shawl/i;
+  OFEM_RX.tailPiece=OFEM_RX.wingPiece=/\bbows?\b|ribbon|heart/i;
+  const DETAIL_FEM=/lace|ruffle|frill|\bbows?\b|bow-|ribbon|heart|floral|flower|pearl|sheer|babydoll|princess|plunging|bust|cleavage|cinch|corset|puff|petal|scallop|sweetheart|empire|peplum|tiered|cut-?out|keyhole|bralette|crop|mini|micro|high-waist|low-cut|off-the-shoulder|off the shoulder|strapless|halter|cold-shoulder|tutu|tulle|chiffon|sequin|glitter|rhinestone|bejewel|jewel|crystal|cute|dainty|delicate|girly|feminine|waist-cinch|pleated skirt|skirt|dress|gown|lingerie|stocking|bra\b|panty|panties|thigh|garter|hem ruffle|bunny|bows?/i;
+  OFEM_RX.detailOne=OFEM_RX.detailTwo=OFEM_RX.detailThree=DETAIL_FEM;
+
+  /* ---- menswear catalog: [value, tiers (C casual, U cute, S sexy, L lewd), looks, season, group] ---- */
+  addMO("top",[
+    ["plain crew-neck tee","CU","casual,sporty,resort"],["fitted cotton t-shirt","CUS","casual,sporty,edgy"],["V-neck tee","CU","casual"],["oversized cotton tee","CU","casual,edgy"],["graphic band tee","CU","edgy,casual"],
+    ["long-sleeved cotton tee","C","casual","w"],["ribbed henley shirt","CU","casual,cottage"],["long-sleeved henley","CU","casual,cottage","w"],
+    ["button-up shirt","CU","preppy,casual,glam"],["crisp collared button-up shirt","CU","preppy,glam"],["oxford shirt","CU","preppy,casual"],["linen button-up shirt","CU","resort,casual","s"],
+    ["flannel shirt","CU","casual,cottage","w"],["plaid flannel shirt","CU","casual,edgy","w"],["chambray work shirt","CU","casual,cottage"],["denim shirt","CU","casual,edgy"],
+    ["camp-collar short-sleeved shirt","CU","resort,casual","s"],["Hawaiian-print shirt","CU","resort","s"],["open Hawaiian-print shirt","CUS","resort","s"],
+    ["mandarin-collar shirt","CU","costume,glam"],["silk shirt with an open collar","US","glam,boudoir"],["formal shirt with French cuffs","CU","preppy,glam"],["tuxedo shirt with a pleated front","CU","glam,preppy"],
+    ["laced-front pirate shirt","CU","costume"],["polo shirt","CU","preppy,sporty,casual"],["knit polo","CU","preppy","w"],
+    ["cable-knit sweater","CU","preppy,cottage","w"],["fisherman's sweater","CU","cottage,casual","w"],["crew-neck sweater","CU","casual,preppy","w"],["V-neck sweater","CU","preppy,casual","w"],
+    ["turtleneck sweater","CU","preppy,glam,casual","w"],["mock-neck knit sweater","CU","casual,cyber","w"],["chunky knit cardigan","CU","casual,cottage","w"],
+    ["pullover hoodie","CU","casual,sporty,edgy","w"],["zip-up hoodie","CU","casual,sporty","w"],["crewneck sweatshirt","CU","casual,sporty","w"],
+    ["tank top","CUS","casual,sporty","s"],["muscle tank","CUS","sporty,casual","s"],["sleeveless gym shirt","CU","sporty","s"],["athletic compression shirt","CUS","sporty,cyber"],["performance training shirt","CU","sporty"],["numbered sports jersey","CU","sporty"],
+    ["tailored waistcoat over a collared shirt","CU","preppy,glam,costume"],["leather jerkin over a linen shirt","CU","costume,cottage"],["linen tunic","CU","cottage,costume"],["laced-front linen tunic","CU","cottage,costume"],
+    ["embroidered mage's tunic","CU","costume"],["padded gambeson","CU","costume"],["armored breastplate over a padded shirt","CU","costume"],["monastic cotton tunic","C","costume,cottage"],
+    ["fitted mesh long-sleeve shirt","CUS","edgy,cyber"],["netted tank top","US","edgy,cyber"],["leather chest harness","US","edgy,costume,boudoir"],
+    ["open linen shirt worn over a bare chest","US","resort,boudoir","s"],["unbuttoned shirt hanging open","US","boudoir,casual"],["biker leather vest","CU","edgy"],
+    ["zip-front tactical shirt","CU","cyber"],["techwear shirt with strap details","CU","cyber"],["wrap-front kimono shirt","CU","costume"]
+  ]);
+  addMO("bottom",[
+    ["straight-leg jeans","CU","casual,edgy"],["slim-fit jeans","CU","casual,edgy"],["relaxed-fit jeans","C","casual"],["baggy jeans","CU","casual,edgy"],["dark-wash jeans","CU","casual,preppy"],["distressed jeans","CU","edgy,casual"],["ripped skinny jeans","CU","edgy"],["bell-bottom jeans","CU","casual,costume"],
+    ["chino trousers","CU","preppy,casual"],["pleated trousers","CU","preppy,glam"],["tailored suit trousers","CU","preppy,glam"],["slim tailored trousers","CU","preppy,glam"],["wide-leg trousers","CU","casual,glam"],
+    ["linen trousers","CU","resort,casual","s"],["drawstring linen pants","CU","resort,cottage","s"],["corduroy trousers","CU","preppy,cottage","w"],["wool trousers","CU","preppy,cottage","w"],
+    ["cargo pants","CU","casual,edgy,sporty"],["tactical cargo pants","CU","cyber,edgy"],["techwear pants with strap details","CU","cyber"],
+    ["jogger pants","CU","sporty,casual"],["sweatpants","C","casual,sporty","w"],["track pants","CU","sporty"],
+    ["gym shorts","CU","sporty","s"],["running shorts","CU","sporty","s"],["denim shorts","CU","casual","s"],["cargo shorts","CU","casual","s"],["chino shorts","CU","preppy,casual","s"],["bermuda shorts","CU","resort,preppy","s"],["tailored shorts","CU","preppy,glam","s"],
+    ["leather pants","US","edgy,glam"],["coated skinny trousers","US","edgy,glam"],["riding breeches","CU","costume,preppy"],["harem pants","CU","costume,resort"],["hakama trousers","CU","costume"],
+    ["rugged travel trousers","CU","cottage,costume"],["pirate-style breeches","CU","costume"],["padded gambeson trousers","CU","costume"],["kilt","CU","costume,cottage"],
+    ["swim trunks","CU","resort","s"],["board shorts","CU","resort,sporty","s"],["fitted swim briefs","US","resort","s"]
+  ]);
+  addMO("corset",[
+    ["leather chest harness layer","US","edgy,costume,boudoir"],["buckled leather bandolier","CU","costume,edgy"],["fitted waistcoat layer","CU","preppy,glam,costume"],["lace-up leather vest","CU","edgy,costume"],
+    ["brigandine armor vest","CU","costume"],["padded gambeson layer","CU","costume"],["wide leather cummerbund","CU","glam,costume"],["plate-armor chest piece","CU","costume"]
+  ]);
+  addMO("outerwear",[
+    ["tailored blazer","CU","preppy,glam"],["single-breasted suit jacket","CU","preppy,glam"],["double-breasted blazer","CU","preppy,glam"],["tuxedo jacket","CU","glam"],
+    ["leather biker jacket","CU","edgy"],["bomber jacket","CU","casual,sporty,edgy"],["denim jacket","CU","casual,edgy"],["windbreaker","CU","sporty,casual"],["puffer jacket","CU","casual,sporty","w"],
+    ["peacoat","CU","preppy,casual","w"],["long wool overcoat","CU","preppy,glam","w"],["trench coat","CU","preppy,glam"],["duster coat","CU","costume,edgy"],["field jacket","CU","casual,cyber"],
+    ["parka with a fur-trimmed hood","CU","casual,cottage","w"],["shearling-lined jacket","CU","casual,cottage","w"],["track jacket","CU","sporty"],["tech shell jacket","CU","cyber"],
+    ["hooded travel cloak","CU","costume,cottage"],["flowing mage robe","CU","costume"],["long frock coat","CU","costume,glam"],["officer's military coat","CU","costume"],
+    ["tactical vest","CU","cyber,edgy"],["cargo vest","CU","casual,cyber"],["haori jacket","CU","costume"],["happi coat","CU","costume"],["lab coat","CU","costume,preppy"],
+    ["fur-trimmed mantle","CU","costume,glam","w"],["quilted vest","CU","casual,cottage","w"]
+  ]);
+  addMO("legwear",[
+    ["crew socks","C","casual,sporty"],["athletic crew socks","C","sporty"],["ankle socks","C","casual,sporty","s"],["argyle socks","CU","preppy"],["wool socks","C","cottage,casual","w"],
+    ["knee-high sports socks","CU","sporty"],["compression leggings under shorts","CU","sporty"],["thermal base-layer leggings","C","sporty","w"],
+    ["lace-up combat boots","CU","edgy,cyber,casual"],["leather ankle boots","CU","casual,edgy"],["chelsea boots","CU","preppy,glam,casual"],["work boots","CU","casual,cottage"],
+    ["hiking boots","CU","casual,sporty,cottage"],["riding boots","CU","costume,preppy"],["cuffed leather boots","CU","costume,cottage"],["tall armored boots","CU","costume"],
+    ["high-top sneakers","CU","casual,sporty,edgy"],["low-top canvas sneakers","CU","casual"],["running shoes","CU","sporty"],["leather oxford shoes","CU","preppy,glam"],["loafers","CU","preppy,glam"],
+    ["derby shoes","CU","preppy"],["slip-on sneakers","C","casual"],["sandals","C","resort,casual","s"],["flip-flops","C","resort","s"],["tabi socks with geta sandals","CU","costume"]
+  ]);
+  addMO("belt",[
+    ["leather belt with a metal buckle","CU","casual,preppy"],["braided leather belt","CU","preppy,cottage"],["canvas web belt","C","casual,sporty"],["wide leather belt with pouches","CU","costume,cottage"],
+    ["utility belt with pouches","CU","cyber,costume"],["sword belt with a sheath loop","CU","costume"],["studded leather belt","CU","edgy"],["cummerbund","CU","glam"],["rope belt","C","cottage,costume"],["bandolier strap","CU","costume,edgy"]
+  ]);
+  addMO("waistAccessory",[
+    ["folded waist sash","CU","costume,resort"],["pocket watch on a chain","CU","preppy,costume,glam"],["leather pouch on the belt","CU","costume,cottage"],["key ring clipped to the belt","C","casual"],
+    ["holstered multitool","CU","cyber"],["belt-hung lantern","CU","costume"],["cloth obi sash","CU","costume"]
+  ]);
+  addMO("neckAccessory",[
+    ["loosely knotted necktie","CU","preppy,casual"],["slim necktie","CU","preppy,glam"],["bow tie","CU","glam,preppy"],["silk cravat","CU","glam,costume"],["ascot","CU","glam,preppy"],
+    ["dog tag necklace","CU","edgy,sporty"],["leather cord necklace","CU","casual,cottage"],["chunky chain necklace","CU","edgy,glam"],["chain necklace with a pendant","CU","casual,edgy"],
+    ["wooden bead necklace","C","resort,cottage"],["puka shell necklace","C","resort","s"],["knit scarf","CU","casual,preppy","w"],["bandana neckerchief","CU","casual,edgy,costume"],
+    ["studded leather collar","US","edgy"],["fur ruff collar","CU","costume,glam","w"],["silk scarf tied at the throat","CU","glam,resort"]
+  ]);
+  addMO("wristAccessory",[
+    ["analog wristwatch","CU","preppy,casual,glam"],["leather strap watch","CU","preppy,casual"],["smartwatch","CU","casual,cyber,sporty"],["leather cuff bracelet","CU","edgy,casual"],
+    ["beaded bracelet","C","casual,resort"],["braided leather bracelet","C","casual,cottage"],["metal chain bracelet","CU","edgy,glam"],["sports wristband","C","sporty"],
+    ["armored vambrace","CU","costume"],["leather bracer","CU","costume,cottage"],["wrapped hand wraps","C","sporty"]
+  ]);
+  addMO("headwear",[
+    ["baseball cap","CU","casual,sporty"],["flat cap","CU","preppy,cottage"],["newsboy cap","CU","preppy,cottage"],["fedora","CU","glam,preppy"],["trilby","CU","glam,preppy"],
+    ["cowboy hat","CU","costume,casual"],["top hat","CU","costume,glam"],["bowler hat","CU","costume,preppy"],["wide-brimmed hat","CU","resort,cottage"],["straw boater","CU","preppy,resort","s"],
+    ["bucket hat","C","casual,resort"],["knit beanie","C","casual","w"],["sports headband","C","sporty"],["bandana headwrap","CU","casual,edgy,costume"],["military peaked cap","CU","costume"],
+    ["pirate tricorn hat","CU","costume"],["wizard's pointed hat","CU","costume"],["laurel wreath","CU","costume"],["circlet","CU","costume"]
+  ]);
+  addMO("eyewear",[
+    ["aviator sunglasses","CU","casual,edgy"],["wire-rimmed glasses","CU","preppy,casual"],["thick-framed glasses","CU","preppy,casual"],["round wire glasses","CU","preppy,cottage,costume"],
+    ["rectangular glasses","CU","preppy,casual"],["half-rim reading glasses","CU","preppy"],["monocle","CU","costume,glam"],["sport wraparound sunglasses","CU","sporty,cyber"],
+    ["tinted round sunglasses","CU","edgy,casual"],["eyepatch","CU","costume,edgy"]
+  ]);
+  addMO("gloves",[
+    ["leather driving gloves","CU","glam,preppy","w"],["fingerless leather gloves","CU","edgy"],["work gloves","C","casual,cottage"],["tactical gloves","CU","cyber"],
+    ["wool gloves","C","casual","w"],["boxing hand wraps","C","sporty"],["armored gauntlets","CU","costume"],["formal gloves","CU","glam,costume"]
+  ]);
+  addMO("tagCharm",[
+    ["small enamel lapel pin","CU","preppy,glam"],["rank insignia pin","CU","costume"],["dog tag charm","CU","edgy,sporty"],["guild badge","CU","costume"],["compass pin","CU","costume,cottage"],
+    ["feather pin","CU","cottage,costume"],["metal brooch","CU","glam,costume"],["military medal bar","CU","costume"]
+  ]);
+  addMO("hipAccessory",[
+    ["leather messenger bag","CU","preppy,casual"],["canvas satchel","CU","cottage,casual"],["crossbody bag","CU","casual"],["belt pouch","CU","costume,cottage"],["utility holster pouch","CU","cyber"],
+    ["water canteen","C","cottage,costume"],["sword in a scabbard","CU","costume"],["quiver of arrows","CU","costume"],["coin purse on a cord","CU","costume,cottage"],["ring of keys","C","casual,cottage"],
+    ["hip flask","CU","costume,edgy"],["sheathed dagger","CU","costume,edgy"]
+  ]);
+  addMO("pocketItem",[["folded pocket square","CU","glam,preppy"],["folded handkerchief","C","preppy"],["wallet","C","casual"],["pocket watch","CU","preppy,costume"],["small notebook","C","preppy,cottage"],["pen","C","preppy"]]);
+  addMO("loopItem",[["wallet chain","CU","edgy"],["carabiner with keys","C","casual,sporty"],["clipped flashlight","C","cyber"],["hanging towel","C","sporty"],["rope coil","C","costume,cottage"]]);
+  addMO("earAccessory",[
+    ["stud earrings","CU","casual,edgy,glam"],["single hoop earring","CU","edgy,casual"],["ear cuff","CU","edgy,glam"],["small hoop earrings","CU","casual"],["feather earring","CU","cottage,edgy"],
+    ["cross earring","CU","edgy,gothic"],["ear gauges","CU","edgy"]
+  ]);
+  addMO("ringAccessory",[["signet ring","CU","preppy,glam"],["plain band ring","C","casual"],["chunky metal ring","CU","edgy"],["skull ring","CU","edgy,gothic"],["stacked metal rings","CU","edgy"]]);
+  addMO("thighAccessory",[["leg holster strap","CU","cyber,costume"],["thigh holster","CU","cyber,costume"]]);
+  addMO("kneeAccessory",[["knee pads","C","sporty,edgy"],["armored knee guards","CU","costume"],["knee brace","C","sporty"]]);
+  addMO("shoulderPiece",[["armored pauldrons","CU","costume"],["fur-lined shoulder mantle","CU","costume"]]);
+  addMO("bra",[
+    ["ribbed undershirt","C","casual"],["V-neck undershirt","C","casual"],["cotton tank undershirt","C","casual"],["compression undershirt","C","sporty"],["thermal undershirt","C","casual","w"],
+    ["sheer mesh undershirt","S","boudoir,edgy"],["cropped mesh tank","S","edgy,boudoir"]
+  ]);
+  addMO("panties",[
+    ["plain cotton boxer briefs","C","casual"],["cotton boxers","C","casual"],["classic briefs","C","casual"],["compression shorts","C","sporty"],
+    ["plaid boxers","U","casual"],["striped boxers","U","casual"],["boxer briefs with a logo waistband","CU","sporty"],
+    ["low-rise briefs","S","boudoir"],["bikini briefs","S","boudoir,resort"],["mesh briefs","S","boudoir,edgy"],["silk boxers","S","boudoir,glam"],["satin boxers","S","boudoir"],
+    ["jockstrap","SL","boudoir,sporty"],["fundoshi loincloth","S","costume"],["thong briefs","L","boudoir"],["sheer pouch briefs","L","boudoir"],["g-string","L","boudoir"]
+  ]);
+  addMO("detailOne",[
+    ["contrast stitching","CU","casual,preppy"],["rolled sleeves","CU","casual,preppy"],["leather elbow patches","CU","preppy,cottage"],["brass buttons","CU","preppy,costume"],["shoulder epaulettes","CU","costume"],
+    ["double row of buttons","CU","preppy,costume"],["utility straps","CU","cyber,edgy"],["flapped chest pockets","CU","casual,cyber"],["contrast collar","CU","preppy"],["embroidered crest on the chest","CU","preppy,costume"],
+    ["metal zipper details","CU","edgy,cyber"],["studded details","CU","edgy"],["racing stripes","CU","sporty"],["rolled hem cuffs","C","casual"]
+  ]);
+  addMO("detailTwo",[
+    ["slim fit","CU"],["tailored fit","CU"],["relaxed fit","C"],["oversized fit","CU"],["tapered leg","CU"],["cuffed ankle","CU"],["rolled-up cuffs","CU"],["wide-leg cut","CU"],
+    ["cropped at the ankle","CU"],["broad-shouldered cut","CU"],["fitted through the chest and waist","CUS"]
+  ]);
+  addMO("detailThree",[
+    ["brushed cotton finish","C"],["heavy wool texture","C","w"],["washed denim finish","C"],["distressed finish","CU"],["waxed canvas texture","C"],["matte leather finish","CU"],["crisp pressed finish","CU"],
+    ["worn-in leather","CU"],["tweed texture","CU"],["corduroy ribbing","C"],["technical fabric sheen","CU"],["linen texture","C","s"],["raw denim","C"]
+  ]);
+  /* garments the kind rules do not know */
+  KIND_RULES.bottom.unshift(["shorts",/trunks|board shorts/],["pants",/breeches|hakama|harem/],["skirt",/kilt/]);
+  KIND_RULES.top.unshift(["vest",/waistcoat|biker leather vest/]);
+})();
+
+/* ===== v103: male mode — species, conversion engine, Sex control ===== */
+/* male-native species names; creature features still come from the original (legacy) key */
+(function(){
+  SPECIES_INFO.incubus={type:"solo",legacy:["succubus"]};
+  SPECIES_INFO.merman={type:"solo",legacy:["mermaid"]};
+  SPECIES_INFO.god={type:"solo",legacy:["goddess"]};
+  addM("subjectType",["incubus"],"Fantasy Humanoid");
+  addM("subjectType",["merman"],"Aquatic");
+  addM("subjectType",["god"],"Divine / Cosmic");
+  tagF("subjectType",["succubus","mermaid","goddess"]);
+  Object.assign(SPECIES_FAMILY,{incubus:"demon",merman:"aquatic",god:"angel"});
+})();
+/* species with no gendered word of their own get "male" in front so the generator does not default to a woman */
+const MALE_SOLO={incubus:"incubus",merman:"merman",god:"god",siren:"male siren",harpy:"male harpy",valkyrie:"male valkyrie",dryad:"male dryad",naiad:"male naiad",arachne:"male arachne","yuki-onna":"male yuki-onna",nekomata:"male nekomata","fallen angel":"male fallen angel",archangel:"male archangel"};
+function maleSubjectNoun(sp,type,noun,pre){
+  if(type==="hyphen")return pre+sp+"-"+noun;
+  if(type==="word")return pre+sp+" "+noun;
+  return pre+(MALE_SOLO[sp]||"male "+sp);
+}
+
+/* ---- conversion tables: [regex, replacement] in order; null clears the option; "Def" is the fallback ---- */
+const R_=a=>a.map(([rx,v])=>[new RegExp(rx,"i"),v]);
+const SW={
+  age:{f2m:R_([["^young woman$","young man"],["^woman$","man"],["^mature woman$","mature man"],["^older woman$","older man"]]),m2f:R_([["^young man$","young woman"],["^man$","woman"],["^mature man$","mature woman"],["^older man$","older woman"]])},
+  subjectType:{f2m:R_([["^succubus$","incubus"],["^mermaid$","merman"],["^goddess$","god"]]),m2f:R_([["^incubus$","succubus"],["^merman$","mermaid"],["^god$","goddess"]])},
+  faceShape:{f2m:R_([["petite|doll-like|youthful","oval face with balanced features"],["pretty|delicate|feminine","refined face"],["V-shaped","tapered face"],["heart-shaped","heart-shaped face with high cheekbones and a tapered chin"],["cute|bunny|mouse","round face"],["woodland","long narrow face"]]),f2mDef:"oval face with balanced features",
+    m2f:R_([["square|rugged|heavy|broad|strong","balanced face with a softly squared jaw"],["chisel|angular|sculpted|sharp|hollow","elegant angular face"],["diamond","diamond-shaped face"],["long|narrow|refined","long oval face"],["round","round face"]]),m2fDef:"oval face with balanced features"},
+  expression:{f2m:R_([["puffed-cheek","cool aloof expression"],["tiny cat-mouth","subtle smile"],["bubbly","bright cheerful expression"]]),f2mDef:null,
+    m2f:R_([["smirk|cocky|roguish","smirk"],["grin","playful smile"],["stoic|gruff|cold|brooding|intense|furrowed|steady","stern, serious expression"],["smile","gentle smile"]]),m2fDef:"relaxed neutral expression"},
+  browShape:{f2mDef:"full natural brows",m2fDef:"softly arched brows"},
+  noseShape:{f2mDef:"straight nose with a moderate bridge",m2fDef:"small straight nose"},
+  mouthShape:{f2mDef:"full natural lips",m2fDef:"soft lips"},
+  eyeShape:{f2m:R_([["seductive","heavy-lidded sultry eyes"],["sparkling|glossy","large, warm eyes"]]),f2mDef:"almond-shaped eyes",m2fDef:"almond-shaped eyes"},
+  lashNatural:{f2mDef:"thick, understated eyelashes",m2fDef:"long eyelashes"},
+  impression:{f2m:R_([["sultry|alluring|seduc|bedroom|temptress|bombshell|femme","a smoldering, magnetic allure"],["lewd|lustful","a seductive, confident allure"],["sweet|cute|adorable|innocent|doll|plush|huggable|sparkling","a friendly, easygoing look"],["elegant|glamorous|striking|feminine|beauty|pretty|delicate|porcelain","a refined, aristocratic presence"]]),f2mDef:"a handsome, easygoing charm",
+    m2f:R_([["smolder|seductive|dangerous","an alluring, sultry presence"],["aristocratic|gentleman|polished|dashing","an elegant, mature presence"],["masculine|chiseled|model","a striking, feminine appearance"],["stoic|battle|noble|commanding","a noble, stoic presence"]]),m2fDef:"an approachable appearance"},
+  hairStyle:{f2m:R_([["pixie|bixie","textured crop"],["\\bbob\\b|lob\\b|pageboy","layered medium-length hair"],["twin|pigtail|bunny|bow|ribbon|wrapped ponytail","ponytail"],["space buns|double|odango|twin buns|bubble","top knot"],["ballerina|chignon|bridal|beehive|victory|ornamental","man bun"],["braid|milkmaid|halo","single braid"],["princess|hime|jellyfish|butterfly|U-shaped|V-shaped|finger waves","long layered hair"]]),f2mDef:"loose layered hair",
+    m2f:R_([["man bun|topknot|top knot","top knot"],["pompadour|quiff|slicked|side part|swept|windswept|comb-over","swept-back hair"],["curtains","long curtain layers"],["mullet|shaggy|bedhead|tousled|medium","short shag"],["two-strand","twist-out curls"],["tied|braided|ponytail|long","low ponytail"],["crop|crew|ivy|flat top|high and tight|fade|faux hawk|mohawk|spik|short|coils|waves|undercut","pixie cut"]]),m2fDef:"loose layered hair"},
+  bangs:{f2mDef:"side-swept fringe",m2f:R_([["long fringe","long side bangs"]]),m2fDef:"side-swept bangs"},
+  hairTexture:{f2mDef:"softly tousled",m2f:R_([["neat|sleek","silky and smooth"]]),m2fDef:"softly tousled"},
+  heightStature:{f2m:R_([["very short|short|petite","below-average height"],["tall|graceful|elegant|statuesque","tall stature"]]),f2mDef:"average height",m2f:R_([["tower|imposing|lanky|tall","tall stature"],["stocky","short, sturdy stature"]]),m2fDef:"average height"},
+  shoulderShape:{f2mDef:"balanced shoulders",m2f:R_([["broad|heavy|wide|powerful","slightly broad balanced shoulders"]]),m2fDef:"balanced shoulders"},
+  torsoShape:{f2mDef:"compact torso",m2f:R_([["V-shaped|barrel|heavyset","athletic torso with a defined back"],["lean|narrow|wiry|athletic","long, lean torso"]]),m2fDef:null},
+  armShape:{f2m:R_([["soft|full|rounded","thick, soft arms"],["feminine|delicate|slender|graceful|slim","lean arms with defined forearms"]]),f2mDef:"strong forearms and capable hands",
+    m2f:R_([["thick, soft","full, soft arms"],["powerful|heavily|defined|broad","strong, muscular arms"],["lean|wiry","toned arms with defined shoulders"]]),m2fDef:"softly toned arms"},
+  handShape:{f2m:R_([["slender|graceful|elegant","long-fingered and elegant"]]),f2mDef:"strong and capable",m2f:R_([["long-fingered|lean","long, slender fingers"],["large|broad|big|calloused|scarred","strong and capable"]]),m2fDef:"slender and graceful"},
+  bustSize:{f2m:R_([["flat chest|petite chest","narrow chest"],["small breasts","lean chest"],["small-to-medium|^medium breasts","average chest"],["medium-large|full breasts","broad chest"],["^large breasts","broad, muscular chest"],["very large","deep, powerful chest"],["huge|enormous|massive","huge, heavily muscled chest"]]),f2mDef:"average chest",
+    m2f:R_([["narrow|lean","small breasts"],["average","medium breasts"],["^broad chest","full breasts"],["muscular|deep|thick|soft","large breasts"],["huge","very large breasts"]]),m2fDef:"medium breasts"},
+  bustShape:{f2m:R_([["firm, athletic","defined pecs"],["plush|full|heavy|rounded|exaggerat|teardrop|bell|pendulous|perky|sloping|lifted|upper-heavy|gravity|prominent|oval|set","full, rounded pecs"]]),f2mDef:"natural chest shape",
+    m2f:R_([["flat","gently flat shape"],["defined|squared|chiseled","firm, athletic shape"],["full|rounded|soft","soft rounded shape"]]),m2fDef:"natural breast shape"},
+  bustWeight:{f2m:R_([["minimal|light","light definition"],["firm","firm definition"],["heavy|lush|exaggerat|extreme","heavy, solid mass"]]),f2mDef:"soft definition",
+    m2f:R_([["light","light delicate fullness"],["firm|pronounced","firm natural fullness"],["dense|heavy","heavy natural fullness"],["soft","soft natural fullness"]]),m2fDef:"moderate fullness"},
+  waistShape:{f2m:R_([["cinch|hourglass|extremely|pronounced|tiny|substantially","narrow waist with a V-taper"],["soft|rounded|full midsection|curving","soft, thick waist"],["narrow|petite|slender|thin|tapered|defined|high|short|small|long","narrow, tapered waist"]]),f2mDef:"trim waist",
+    m2f:R_([["V-taper|narrow|trim|lean|slim","narrow waist"],["thick|broad|solid|soft","soft, rounded waist"]]),m2fDef:"defined waist"},
+  stomachShape:{f2mDef:"flat stomach",m2f:R_([["six-pack|eight-pack|sculpt","defined abs"],["abs","toned stomach with light definition"],["thick|broad|soft","softly rounded lower belly"]]),m2fDef:"flat stomach"},
+  hipShape:{f2m:R_([["exaggerat|dramatic|extremely|very wide|lewd","broad hips"],["narrow|petite|slender","lean, narrow hips"],["wide|curvy|full|round|pear|flared|thick|soft|high|beautifully|smooth|gently|widen|average|hourglass|pronounced","solid hips"]]),f2mDef:"slim, straight hips",
+    m2f:R_([["lean|slim|narrow","narrow hips"],["solid","balanced hips"],["broad|thick","wide hips"]]),m2fDef:"balanced hips"},
+  buttSize:{f2m:R_([["very large|extremely|enormous|big|substantial|prominent|projecting","broad, powerful butt"],["large|plump|full|round|soft|lifted","round, muscular butt"]]),f2mDef:"muscular butt",
+    m2f:R_([["lean|flat","small butt"],["round, muscular","round butt"],["muscular","toned butt"],["broad","large butt"],["soft, round","plump butt"]]),m2fDef:"medium butt"},
+  thighBuild:{f2m:R_([["extremely|exceptionally|plush|voluptuous|juicy|sexy|wide|very thick|thick|full","thick, solid thighs"]]),f2mDef:"lean, sinewy thighs",
+    m2f:R_([["powerful|heavily","strong, muscular thighs"],["lean|sinewy","lean, toned thighs"],["thick|solid","thick thighs"],["long","long, lean thighs"]]),m2fDef:"toned thighs"},
+  legShape:{f2m:R_([["soft|full|shapely|thick|plush","thick, sturdy legs"],["long","long, strong legs"]]),f2mDef:"lean, wiry legs",
+    m2f:R_([["lean|wiry","slender legs"],["powerful|strong","toned legs"],["thick|sturdy","thick legs"],["long","long legs"]]),m2fDef:"shapely legs"},
+  bodySoftness:{f2m:R_([["petite|delicate|doll|slender|graceful|slim","slender, elegant build"],["bombshell|extremely|exaggerat|top-heavy|lewd|juicy|plus-size","broad, heavyset build"],["tall|statuesque|long-legged","tall, broad-shouldered build with a lean waist"],["plush|thick|soft|full","soft, burly build"],["hourglass|voluptuous|curv","broad, muscular build"]]),f2mDef:"slim, toned build with defined muscle",
+    m2f:R_([["lean|wiry|lanky|swimmer","slim build"],["bodybuilder|muscular|ripped","strong, athletic build with defined muscle"],["heavyset|burly|bulky|barrel","thick build"],["tall","tall, long-legged, slender figure"],["stocky|compact","sturdy, compact build"]]),m2fDef:"toned build"},
+  posture:{f2m:R_([["graceful","squared, confident posture"],["soft poised","calm composed posture"],["hip-popped","wide-legged confident stance"],["dancer","tall, proud posture"],["arched|kneeling","leaning forward posture"],["shy|playful","slouched, relaxed posture"]]),f2mDef:null,
+    m2f:R_([["squared|chin-up","gentle confident posture"],["slouch|lazy","relaxed posture"],["pockets|crossed","standing posture"],["wide-legged","relaxed, weight-shifted stance"],["military","elegant posture"],["hunched","slightly shy posture"]]),m2fDef:"relaxed posture"},
+  markings:{f2m:R_([["light freckles dusting the shoulders","freckles across the nose and shoulders"]])},
+  makeupStyle:{f2mDef:"light foundation and defined brows",m2fDef:"soft natural makeup"},
+  lashStyle:{f2mDef:"natural lashes"},
+  blushStyle:{f2mDef:"subtle blush"},
+  lipFinish:{f2mDef:"matte lips"},
+  nailStyle:{f2mDef:"short, clean natural nails"},
+  pubicHair:{f2m:R_([["heart-shaped","short, closely trimmed pubic hair"]]),m2fDef:"a neatly trimmed patch of pubic hair"}
+};
+/* fields whose male-only values are cleared when going back to female */
+const MALE_ONLY_FIELDS=["facialHair","facialHairColor","bodyHair","penisColor","penisType","penisSize"];
+
+/* returns a replacement string, null (clear the option) or undefined (keep it) */
+function swapChar(field,v,toMale){
+  if(typeof v!=="string"||!v||v[0]==="@"||v==="none"||v==="auto")return undefined;
+  if(!CHAR[field]||!CHAR[field].length)return undefined;
+  if(sexFits(field,v,toMale))return undefined;
+  const t=SW[field];
+  if(t){
+    const rules=toMale?t.f2m:t.m2f;
+    if(rules)for(const [rx,val] of rules)if(rx.test(v))return val;
+    const def=toMale?t.f2mDef:t.m2fDef;
+    if(def!==undefined)return def;
+  }
+  return null;
+}
+const SEX_IDENT=["age","subjectType"];
+const heldField=f=>!SEX_IDENT.includes(f)&&kept(f);
+function convertChars(c,toMale,rep){
+  /* hair the swap leaves alone (locked, or already a style a man wears) keeps its movement line too */
+  const hairHold=toMale&&(kept("hairStyle")||hairAction(c.hairStyle)==="keep");
+  Object.keys(c).forEach(f=>{
+    if(f==="sex"||heldField(f))return;
+    if(hairHold&&f==="hairMovement")return;
+    const r=swapChar(f,c[f],toMale);
+    if(r===undefined)return;
+    if(r===null){delete c[f];rep.cleared++;(rep.names=rep.names||[]).push(labelOf(f).toLowerCase())}
+    else{c[f]=r;rep.changed++}
+  });
+  /* the one cross-field case: anatomy */
+  if(toMale){
+    if(!heldField("vaginaColor")){
+      if(c.vaginaColor&&!c.penisColor&&CHAR.penisColor.some(x=>x[0]===c.vaginaColor))c.penisColor=c.vaginaColor;
+      delete c.vaginaColor;
+    }
+    if(!heldField("vaginaType"))delete c.vaginaType;
+  }else{
+    if(!heldField("penisColor")&&c.penisColor&&!c.vaginaColor&&CHAR.vaginaColor.some(x=>x[0]===c.penisColor)&&!heldField("vaginaColor"))c.vaginaColor=c.penisColor;
+    MALE_ONLY_FIELDS.forEach(f=>{if(!heldField(f))delete c[f]});
+  }
+}
+
+/* ---- outfit conversion ---- */
+const LK=o=>(o&&o.look)||"";
+const byLook=(m,dflt)=>o=>m[LK(o)]!==undefined?m[LK(o)]:dflt;
+const SWO={
+  top:{f2m:R_([["camisole|cami\\b|\\bslip\\b|negligee|chemise|nightgown","tank top"],["sweater|knit|pullover|cardigan","crew-neck sweater"],["crop|tube|bandeau|halter|strapless|bralette|bustier|babydoll|tutu","fitted cotton t-shirt"],["bodysuit|leotard","athletic compression shirt"],["bikini|swimsuit|one-piece|underboob",null],["corset|harness","leather chest harness"],["blouse|ruffle|frill|lace|\\bbow\\b|ribbon|puff|smocked|peplum|sweetheart|plunge|plunging|wrap|tie-front|knot-front|keyhole|cut|sheer|mesh|off-shoulder|off the shoulder|cold-shoulder|one-shoulder|floral|flower|heart|sailor|maid|nurse|bunny|witch|princess|lolita|kimono-style","button-up shirt"]]),f2mDef:"fitted cotton t-shirt"},
+  bottom:{f2m:R_([["leather|latex|vinyl|pvc","leather pants"],["denim","@denim"],["leggings|tights","jogger pants"],["bikini|thong|cheeky|string","swim trunks"],["shorts|hot pants|booty|bloomers|pumpkin|ultra-short|ultra-high","chino shorts"],["tennis|pleated|plaid|sailor|school|kilt","pleated trousers"],["maxi|midi|long|floor|tea-length|knee-length|a-line|wrap|straight|pencil|capri|palazzo|pantaloons|culotte|harem","wide-leg trousers"],["high-waisted|high-rise","slim tailored trousers"],["mini|skort|ruffle|frill|lace|bow|ribbon","chino shorts"]]),f2mDef:"chino trousers"},
+  legwear:{f2m:R_([["boots?\\b","lace-up combat boots"],["knee-high sock|knee sock|ankle sock|sock|slouch|warmer","crew socks"],["heel|stiletto|pump|platform|wedge|strappy|mary jane|ballet|lolita|maid","leather oxford shoes"],["thigh-?high|stocking|pantyhose|garter|fishnet|tights|leggings|lace|sheer",null]]),f2mDef:null},
+  corset:{f2m:R_([["leather|vinyl|latex|buckled|techwear|harness|lace-up","lace-up leather vest"]]),f2mDef:byLook({glam:"fitted waistcoat layer",preppy:"fitted waistcoat layer",costume:"fitted waistcoat layer",gothic:"lace-up leather vest",edgy:"lace-up leather vest",cyber:"lace-up leather vest",boudoir:"lace-up leather vest"},null),m2f:R_([["leather|harness|bandolier|armor|plate","lace-up leather corset"]]),m2fDef:"underbust corset"},
+  outerwear:{f2m:R_([["shrug|bolero","denim jacket"],["kimono","haori jacket"],["robe|negligee|peignoir|sheer|transparent|chiffon","silk robe"],["cover-up|sarong|kaftan|beach|crochet","linen shirt worn open"],["cape|capelet|shawl|stole|poncho|wrap",byLook({glam:"tuxedo jacket",preppy:"tailored blazer",resort:"linen shirt worn open",casual:"denim jacket",sporty:"zip-up track jacket"},"hooded travel cloak")]]),f2mDef:byLook({resort:"linen shirt worn open",sporty:"zip-up track jacket",glam:"tailored blazer",preppy:"tailored blazer",edgy:"leather jacket",gothic:"leather jacket",cyber:"holographic jacket",costume:"hooded travel cloak",boudoir:"silk robe",casual:"denim jacket",cottage:"lightweight cardigan",sweet:"lightweight cardigan"},"tailored blazer")},
+  belt:{f2mDef:"leather belt with a metal buckle"},
+  waistAccessory:{f2mDef:null},
+  neckAccessory:{f2m:R_([["choker","leather cord necklace"],["ribbon|bow|jabot|frill|ruffle|lace",byLook({glam:"bow tie",preppy:"slim necktie"},"leather cord necklace")]]),f2mDef:"chain necklace with a pendant"},
+  wristAccessory:{f2mDef:"leather cuff bracelet"},
+  headwear:{f2m:R_([["tiara|halo|crown","circlet"],["bonnet|cowgirl","cowboy hat"],["witch","wizard's pointed hat"]]),f2mDef:null},
+  eyewear:{f2m:R_([["sun|shade","aviator sunglasses"]]),f2mDef:"thick-framed glasses"},
+  gloves:{f2m:R_([["satin|opera|evening|long|elbow","formal gloves"],["bunny|paw|mitten",null]]),f2mDef:"leather driving gloves"},
+  tagCharm:{f2mDef:"small enamel lapel pin"},
+  hipAccessory:{f2m:R_([["plush|charm|bell|tassel|pom|butterfly",null]]),f2mDef:"leather messenger bag"},
+  pocketItem:{f2mDef:null},loopItem:{f2mDef:null},
+  earAccessory:{f2mDef:"stud earrings"},ringAccessory:{f2mDef:"plain band ring"},
+  thighAccessory:{f2mDef:null},kneeAccessory:{f2mDef:null},maskAccessory:{f2mDef:null},shoulderPiece:{f2mDef:null},tailPiece:{f2mDef:null},wingPiece:{f2mDef:null},
+  bra:{f2m:R_([["sports|athletic|compression","compression undershirt"],["mesh|sheer|lace|strappy|harness|cage|latex|vinyl|micro|bandeau|bikini|triangle",byLook({boudoir:"sheer mesh undershirt",edgy:"cropped mesh tank",cyber:"cropped mesh tank"},"ribbed undershirt")]]),f2mDef:"ribbed undershirt",
+    m2f:R_([["mesh","mesh bralette"],["compression|sports?","sports bralette"]]),m2fDef:"plain cotton bralette"},
+  panties:{f2m:R_([["thong|string|g-string|cheeky","thong briefs"],["sheer|mesh|latex|vinyl|strappy|garter|cage|metallic","mesh briefs"],["lace|satin|silk","silk boxers"],["athletic|sport","compression shorts"],["boyshort","cotton boxers"]]),f2mDef:"plain cotton boxer briefs",
+    m2f:R_([["thong|g-string|sheer pouch","string thong"],["silk|satin","satin panties"],["mesh","mesh briefs"],["compression|boxer|trunks","boyshort panties"],["jockstrap|fundoshi|bikini|low-rise","high-cut panties"]]),m2fDef:"cotton briefs"},
+  detailOne:{f2mDef:null},detailTwo:{f2mDef:null},detailThree:{f2mDef:null}
+};
+function swapItem(field,v,toMale,o){
+  const t=SWO[field];if(!t)return undefined;
+  const res=x=>typeof x==="function"?x(o):x;
+  const rules=toMale?t.f2m:t.m2f;
+  if(rules)for(const [rx,val] of rules)if(rx.test(v)){
+    if(val==="@denim")return/mini|micro|short|skort/i.test(v)?"denim shorts":"slim-fit jeans";
+    return res(val);
+  }
+  const def=toMale?t.f2mDef:t.m2fDef;
+  return def===undefined?undefined:res(def);
+}
+/* a dress becomes a top plus a bottom */
+function swapDress(v,hasBottom){
+  const s=v.toLowerCase();
+  let top="button-up shirt",bot="chino trousers";
+  if(/gown|evening|ball|formal|cocktail|satin|velvet|silk|sequin/.test(s)){top="tuxedo shirt with a pleated front";bot="tailored suit trousers"}
+  else if(/summer|sun|beach|floral|linen|cotton|picnic/.test(s)){top="linen button-up shirt";bot="chino shorts"}
+  else if(/sweater|knit|hoodie|winter|wool/.test(s)){top="crew-neck sweater";bot="chino trousers"}
+  else if(/leather|latex|vinyl|gothic|punk|corset|lace/.test(s)){top="fitted mesh long-sleeve shirt";bot="leather pants"}
+  return{top,bot:hasBottom?null:bot};
+}
+function convertOutfit(o,toMale,rep){
+  const L=o.lock||{};
+  if(L["*"])return;
+  const items=o.items||{},out={},add={};
+  Object.keys(items).forEach(f=>{
+    const it=items[f];
+    if(!it||typeof it.v!=="string"){return}
+    if(L[f]){out[f]=it;return}
+    if(itemSexFits(f,it.v,toMale)){out[f]=it;return}
+    if(toMale&&f==="top"&&kindOf("top",it.v)==="dress"){
+      const d=swapDress(it.v,!!items.bottom);
+      out.top={...it,v:d.top};delete out.top.w;if(!/\{c2\}/.test(d.top))delete out.top.c2;
+      if(d.bot)add.bottom={v:d.bot,c:"auto"};
+      rep.items++;return;
+    }
+    const r=swapItem(f,it.v,toMale,o);
+    if(r===undefined){out[f]=it;return}
+    if(r===null){rep.removed++;if(toMale&&f==="top"&&/bikini|swimsuit|one-piece/i.test(it.v)&&!items.bottom)add.bottom={v:"swim trunks",c:"auto"};return}
+    if(out[f]&&out[f].v===r){rep.removed++;return}
+    const n={...it,v:r};delete n.w;if(!/\{c2\}/.test(r))delete n.c2;
+    out[f]=n;rep.items++;
+  });
+  Object.keys(add).forEach(f=>{if(!out[f]){out[f]=add[f];rep.items++}});
+  if(toMale)Object.keys(out).forEach(f=>{
+    if(L[f]||!MASC_O[f])return;
+    const it=out[f];if(!it||typeof it.v!=="string")return;
+    for(const [rx,val] of MASC_O[f])if(rx.test(it.v)){
+      if(it.v!==val&&(OUTFIT[f]||[]).some(i=>i.v===val)){const n={...it,v:val};delete n.w;if(!/\{c2\}/.test(val))delete n.c2;out[f]=n;rep.items++}
+      break;
+    }
+  });
+  o.items=out;
+  ["detailOne","detailTwo","detailThree"].forEach(f=>{
+    const v=(o.details||{})[f];
+    if(v&&!L["d:"+f]&&!itemSexFits(f,v,toMale)){delete o.details[f];if(o.dcol)delete o.dcol[f];rep.removed++}
+  });
+}
+
+/* ---- hair: converting a design to male gives it a short male cut, unless the hair is locked ---- */
+const SHORT_LEN=new Set(["buzzed","very short","short"]);
+const BANG_KEEP=/^(no bangs|open forehead|forehead-baring pushed-back hair)$/i;
+function hairAction(v){
+  if(!v)return"none";
+  if((SEXTAG.hairStyle||{})[v]==="m")return"keep";              /* already a male style: leave the whole hair block alone */
+  const g=(CHAR.hairStyle.find(x=>x[0]===v)||[0,""])[1];
+  const fem=!!((FEM_RX.hairStyle&&FEM_RX.hairStyle.test(v))||FEM_RX_ALL.test(v));
+  if(g==="Fantasy Hair"&&!fem)return"keep";                      /* effect hair has no short equivalent */
+  if(/^box braids$/i.test(v))return"convert";
+  if(/^(cornrows)$/i.test(v)||(g==="Natural / Textured"&&!fem))return"natural";   /* natural styles stay, length and fringe still follow */
+  if(/\blong\b|very long|waist|hip-length|knee/i.test(v))return"convert";
+  if(g==="Short Styles"&&!fem)return"short";
+  if(!g&&!fem&&/\b(short|cropped|buzz(ed)?|crew|fade|undercut|crop)\b/i.test(v))return"short";
+  return"convert";
+}
+function maleStyleFor(v){
+  const s=String(v).toLowerCase();
+  if(/^box braids$/.test(s))return"cornrows";
+  if(/pixie|bixie/.test(s))return"textured crop";
+  if(/\bbob\b|\blob\b|pageboy/.test(s))return"short wolf cut";
+  if(/swept-back|slicked|pulled back|tied back/.test(s))return"slicked-back hair";
+  if(/\bcurl(y|s)\b|coil|spiral|kinky/.test(s))return"short curly hair";
+  if(/wav/.test(s))return"waves haircut";
+  if(/ponytail|bun|updo|knot|chignon|twist|beehive|ballerina|halo|crown/.test(s))return"side-swept undercut";
+  if(/braid|twin|pigtail|bunny|bow|ribbon|princess|hime|jellyfish|butterfly/.test(s))return"textured crop";
+  if(/layer|shag|wolf|feather|curtain/.test(s))return"short wolf cut";
+  if(/straight|sleek|blunt|glossy|silk|parted/.test(s))return"classic side part";
+  return"textured crop";
+}
+function maleBangsFor(v){
+  const s=String(v).toLowerCase();
+  if(/ahoge/.test(s))return"messy fringe";
+  if(/curtain/.test(s))return"curtain fringe";
+  if(/open forehead|center-parted|neat center part/.test(s))return"swept-back front";
+  if(/side|diagonal|asymmetr/.test(s))return"side-swept fringe";
+  return"textured fringe";
+}
+function maleHair(c,rep){
+  if(kept("hairStyle"))return;                       /* locked style (or locked hair step): leave the hair as it is */
+  const act=hairAction(c.hairStyle);
+  if(act==="keep")return;
+  if(act==="convert"){c.hairStyle=maleStyleFor(c.hairStyle);rep.changed++}
+  if(c.hairLength&&!kept("hairLength")&&!SHORT_LEN.has(c.hairLength)){c.hairLength="short";rep.changed++}
+  if(c.hairMovement&&!kept("hairMovement")&&!/wind|breeze/i.test(c.hairMovement)){delete c.hairMovement;rep.cleared++;(rep.names=rep.names||[]).push("hair movement")}
+  if(c.bangs&&!kept("bangs")&&!BANG_KEEP.test(c.bangs)&&(SEXTAG.bangs||{})[c.bangs]!=="m"){c.bangs=maleBangsFor(c.bangs);rep.changed++}
+}
+
+/* ---- masculinizing step: when a design is converted to male, shared soft options step toward firm, confident male equivalents.
+   Palette, colors, skin tone, hair color and species features are left alone. Locked options are never touched. ---- */
+const hasOpt=(f,v)=>(CHAR[f]||[]).some(x=>x[0]===v);
+const isMOpt=(f,v)=>(SEXTAG[f]||{})[v]==="m";
+const firstRule=(rules,v)=>{for(const [rx,t] of rules)if(rx.test(v))return t;return undefined};
+const MASC={
+  faceShape:{keep:/angular|square|strong|(defined|sharp|heavy|firm|chiseled|wide|prominent|pronounced)[^.]*jaw|jawline|jawed|broad|diamond-shaped face$|elven|fae|ethereal|muzzle|snout|beak|draconic|scale|demon|angelic|celestial/i,
+    rules:[[/round|full-cheeked|doll|chubby|baby|petite|youthful|puffy|cheeks/i,"broad face with high, wide cheekbones and a strong jaw"],[/heart|tapered|v-line|pointed chin|diamond/i,"diamond-shaped face"],[/./,"oval face with a strong, defined jaw and prominent brow"]]},
+  expression:{keep:/snarl|predatory|disdain|otherworldly|fanged|hollow|divine|fox-like|battle|cat-like|perked-up|fierce|wild|haunting|ahegao|focused|determined|stern|confident|cool|aloof|scowl|furrow|intense|stoic|brooding|gruff|cocky|roguish|assured/i,
+    rules:[[/pout|puffed|tongue-out|cute|adorable|innocent|tear|shy|blush|sleepy|dreamy|soft, tired|surprised|wide-eyed/i,"calm, assured gaze"],
+      [/seductive|sultry|come-hither|lustful|breathless|aroused|bedroom|smoldering|biting/i,"heavy-lidded, lazy smile"],
+      [/mischiev|sly|teas|playful|smirk/i,"confident smirk"],
+      [/laugh|cheer|bright|delight|sparkl|happy|excited|radian|sun-drenched|warm|genuine|bubbly|open-mouthed/i,"warm, crinkle-eyed grin"],
+      [/gentle smile|subtle smile|soft smile|half-smile|relaxed smile/i,"gentle, reserved smile"],
+      [/soft|gentle|serene|calm|relaxed|elegant|thoughtful|curious/i,"calm, assured gaze"]]},
+  browShape:{kill:/soft|gentle|delicate|arched/i,keep:/thick|heavy|strong|bold|furrowed|scar|low-set|untamed|devilish|metallic|brooding|angular|full|neat/i,
+    rules:[[/thin|pale|fine|light|delicate|nearly invisible/i,"full natural brows"],[/soft|gentle|arched|sweeping|tapered|raised|defined|straight/i,"strong, straight brows"]]},
+  noseShape:{keep:/broad|aquiline|strong|prominent|crooked|sturdy|roman|beak|broken|large|cat-like|fox-like|wolf|dog-like|bear|flat, nearly|sharp|high|defined|moderate bridge/i,
+    rules:[[/./,"strong, straight nose"]]},
+  mouthShape:{keep:/cat-like|cheshire|scale|metallic|frost|outline|tongue|bitten|dark|firm|thin|scar|chapped|narrow|strong/i,
+    rules:[[/wide/i,"wide mouth with a relaxed lip line"],[/./,"firm, defined lips"]]},
+  eyeShape:{fn:v=>{
+      if(/angelic|celestial|cosmic|demonic|dragon|fae|gem|luminous|moonlit|prismatic|reptilian|star|wolfish|fox|owl|monolid|sharp|narrow|steady|stern|hooded|heavy|deep-set|close-set|downturned|tapered|small/i.test(v)&&!/^large/i.test(v))return undefined;
+      if(/^large,? /i.test(v)){const t=v.replace(/^large,? /i,"");if(hasOpt("eyeShape",t)&&!/round|doe|wide/i.test(t))return t}
+      if(/round|doe|wide|large|big|innocent|sparkl/i.test(v))return"steady, almond-shaped eyes"}},
+  lashNatural:{rules:[[/long|curl|flutter|feather|wisp|dramatic|voluminous/i,"thick, understated eyelashes"]]},
+  impression:{kill:/beautiful|pretty|gorgeous|lovely|glow|cute|sweet|adorable|doll|delicate|feminine/i,keep:/heritage|otherworldly|feral|divine|haunting|ancient|woodland|animal|trickster|predatory|noble|stoic|warrior|haughty|imperious|regal|commanding|mysterious|dangerous|rugged|masculine|handsome|dashing|gentleman|brooding|authoritative|chiseled|charm/i,
+    rules:[[/bombshell|sultry|seductive|alluring|sensual|lustful|femme|allure/i,"a smoldering, magnetic allure"],[/beautiful|pretty|gorgeous|lovely|glow|cute|sweet|adorable|doll|delicate|feminine/i,"a handsome, easygoing charm"],[/fierce|power/i,"a commanding, authoritative presence"],[/cool|aloof|enchant/i,"a cool, aloof handsomeness"],
+      [/beaut|elegan|refined|aristocratic|graceful|poised|sophisticated|polished|mature/i,"a sharp, polished gentleman's presence"],
+      [/playful|mischiev|bubbly|cheerful|radiant|dazzling|warm|welcoming|smile/i,"a charismatic, playful charm"],
+      [/sweet|cute|adorable|innocent|shy|gentle|soft|kind|friendly|approachable|delicate|dainty|pretty|feminine|natural|understated|plain/i,"a handsome, easygoing charm"]]},
+  skinFinish:{keep:/scale|fur|feather|chitin|bark|stone|metal|pearlescent|iridescent|down along|plated|crystal|ember|glowing|spectral|ghost|weathered|windburned|sweat|oiled|pores|tanned/i,
+    rules:[[/dewy|luminous|glow|velvety|satin|downy|supple|fresh|reflective|highlights|sheen|silk|soft|porcelain/i,"natural skin texture with a soft matte finish"]]},
+  hairTexture:{rules:[[/silk|gloss|satin|glass|shiny|wet and glossy/i,"neat and combed"]]},
+  posture:{keep:/squared|strong|military|confident stance|chin-up|arms-crossed|hands-in-pockets|wide-legged|slouch|hunched|lean|reclin|standing|glance|hands-behind|tall, proud/i,
+    rules:[[/elegant|gentle|soft|poised|graceful|calm composed|relaxed|hip-popped|sultry|dancer|demure|ballet|delicate|weight-shifted/i,"squared, confident posture"]]},
+  heightStature:{fn:v=>{
+      if(isMOpt("heightStature",v))return undefined;
+      if(/very short|short|petite|below-average|compact/i.test(v))return"average height";
+      if(/^average height$/i.test(v))return"slightly above-average height";
+      if(/^slightly above/i.test(v))return"above-average height";
+      if(/^above-average/i.test(v))return"tall stature";
+      if(/very tall|statuesque|tall/i.test(v)&&!/broad|imposing|lanky|towering|lean/i.test(v))return"tall, broad-shouldered stature"}},
+  nailStyle:{keep:/claw|short, |blunt|black/i,rules:[[/long|almond|coffin|stiletto|pointed|rounded/i,"short, clean natural nails"]]},
+  nippleType:{rules:[[/perky|puffy|soft and rounded|prominent/i,"flat"]]},
+  areolaType:{rules:[[/puffy|softly blended/i,"flat"]]},
+  nippleLength:{rules:[[/long/i,"short"]]},
+  areolaSize:{rules:[[/wide|large/i,"medium-sized"]]}
+};
+/* three male builds; the female design's own proportions decide which one a conversion uses */
+const MASC_TIERS={
+  lean:{shoulderShape:"broad shoulders tapering to a lean waist",torsoShape:"athletic torso with a defined back",armShape:"lean arms with defined forearms",bustSize:"lean chest",bustShape:"defined pecs",bustWeight:"firm definition",waistShape:"lean, defined waist",stomachShape:"flat stomach with faint abs",hipShape:"slim, straight hips",buttSize:"toned butt",thighBuild:"lean, sinewy thighs",legShape:"long, strong legs",bodySoftness:"lean, athletic swimmer's build"},
+  athletic:{shoulderShape:"broad shoulders tapering to a lean waist",torsoShape:"athletic, well-defined torso",armShape:"defined biceps and forearms",bustSize:"broad chest",bustShape:"defined pecs",bustWeight:"firm definition",waistShape:"narrow waist with a V-taper",stomachShape:"defined abs and obliques",hipShape:"narrow hips with a V-taper",buttSize:"toned butt",thighBuild:"strong, muscular thighs",legShape:"powerful legs with defined calves",bodySoftness:"slim, toned build with defined muscle"},
+  sturdy:{shoulderShape:"broad, strong shoulders",torsoShape:"broad ribcage with a strong back",armShape:"strong, muscular arms",bustSize:"broad, muscular chest",bustShape:"squared, sculpted pecs",bustWeight:"firm definition",waistShape:"straight, athletic waist",stomachShape:"firm, toned stomach",hipShape:"solid hips",buttSize:"muscular butt",thighBuild:"strong, muscular thighs",legShape:"strong, muscular legs",bodySoftness:"strong, athletic build with defined muscle"},
+  powerful:{shoulderShape:"very broad, powerful shoulders",torsoShape:"broad V-shaped torso tapering to the waist",armShape:"thick, powerful arms",bustSize:"broad, muscular chest",bustShape:"squared, sculpted pecs",bustWeight:"dense, thick muscle",waistShape:"trim waist",stomachShape:"defined abs and obliques",hipShape:"solid hips",buttSize:"broad, powerful butt",thighBuild:"powerful, muscular thighs",legShape:"powerful legs with defined calves",bodySoftness:"broad, muscular build"}
+};
+function bodyTier(pre){
+  const vals=["bodySoftness","thighBuild","hipShape","buttSize","bustSize","legShape","waistShape","stomachShape"].map(f=>String((pre&&pre[f])||"")).filter(Boolean).join(" | ");
+  const n=rx=>(vals.match(rx)||[]).length;
+  const s=n(/\b(thick|curvy|full|voluptuous|plush|plump|wide|large|huge|enormous|hourglass|exaggerated|bombshell|heavy|massive)\b/gi)-n(/\b(slender|slim|petite|willowy|delicate|thin|lithe|dancer|narrow|small|flat|lean)\b/gi);
+  return s>=8?"powerful":s>=4?"sturdy":s<=-4?"lean":"athletic";
+}
+const MAKEUP_FIELDS_M=["makeupStyle","eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","faceAccents","makeupColor"];
+function mascPass(c,pre,rep,opts){
+  opts=opts||{};
+  const ok=f=>!opts.only||opts.only.has(f);
+  const set=(f,v)=>{
+    if(heldField(f)||!ok(f)||v===undefined||c[f]===v)return;
+    if(v===null){delete c[f];rep.cleared++}else{c[f]=v;rep.changed++}
+  };
+  Object.keys(MASC).forEach(f=>{
+    const v=c[f];if(typeof v!=="string"||!v||heldField(f)||!ok(f)||isMOpt(f,v))return;
+    const t=MASC[f];if(t.keep&&t.keep.test(v)&&!(t.kill&&t.kill.test(v)))return;
+    const r=t.fn?t.fn(v):firstRule(t.rules||[],v);
+    if(r&&hasOpt(f,r))set(f,r);
+  });
+  /* lip color goes when the lips are re-shaped */
+  if(c.mouthShapeColor&&!heldField("mouthShapeColor")&&/pink|red|rose|coral|peach|berry|plum|nude|cherry|magenta|mauve/i.test(c.mouthShapeColor))set("mouthShapeColor",null);
+  /* proportions */
+  if(opts.tiers!==false){const tier=MASC_TIERS[bodyTier(pre)];
+    Object.keys(tier).forEach(f=>{if(c[f]!=null&&c[f]!==""&&!heldField(f)&&hasOpt(f,tier[f]))set(f,tier[f])})}
+  /* makeup: bare-faced by default; dark and smudged looks become their male equivalents */
+  if(opts.makeup!==false&&(MAKEUP_FIELDS_M.some(f=>c[f])||c.nailColor)){
+    const ms=c.makeupStyle||"";
+    let mm=null;
+    if(/gothic|vampy|punk|dark/i.test(ms))mm="gothic black eyeshadow and eyeliner";
+    else if(/smoky|smudged|afterglow|editorial|cyber|neon/i.test(ms))mm="smudged eyeliner rocker look";
+    if(!heldField("makeupStyle")&&(c.makeupStyle!=null))set("makeupStyle",mm&&hasOpt("makeupStyle",mm)?mm:null);
+    ["eyelinerStyle","eyeshadowStyle","lashStyle","blushStyle","lipFinish","makeupColor"].forEach(f=>{if(c[f]!=null&&!heldField(f))set(f,null)});
+    if(c.faceAccents!=null&&!heldField("faceAccents")&&!/tribal|zinc|paint|scar|smudged mascara/i.test(c.faceAccents))set("faceAccents",null);
+    if(c.nailColor!=null&&!heldField("nailColor")&&!/claw/i.test(c.nailStyle||""))set("nailColor",null);
+  }
+}
+const MASC_O={
+  wristAccessory:[[/bead|charm|pearl|ribbon|heart|flower|friendship|crystal|butterfly|dainty|delicate|gem|bow|lace/i,"leather cuff bracelet"]],
+  earAccessory:[[/dangl|drop|crystal|pearl|flower|heart|chandelier|butterfly|jewel|charm/i,"simple stud earrings"]],
+  ringAccessory:[[/stack|dainty|delicate|gem|pearl|heart|flower|crystal|jewel/i,"plain band ring"]],
+  tagCharm:[[/heart|bow|plush|sparkle|charm|butterfly|ribbon|star/i,"small enamel lapel pin"]]
+};
+
+
+/* free text the design carries (Must include, Notes) gets the same treatment */
+const MALE_WORDS=[[/exaggerated curves/gi,"a strong physique"],[/\bcurvy\b/gi,"muscular"],[/\bcurves\b/gi,"physique"],[/\bcute\b/gi,"handsome"],[/\badorable\b/gi,"rugged"],[/\bsweet\b/gi,"confident"],[/\bbeautiful\b/gi,"charismatic"],[/\bpretty\b/gi,"handsome"],[/\bgorgeous\b/gi,"striking"],[/\bdainty\b/gi,"minimal"],[/\bdelicate\b/gi,"refined"],[/\bfeminine\b/gi,"masculine"],[/\bbombshell\b/gi,"magnetic"],[/\bbreasts?\b|\bbust\b|\bcleavage\b/gi,"chest"]];
+function maleText(t){
+  if(!t)return t;
+  let s=maleize(t);
+  MALE_WORDS.forEach(([rx,v])=>{s=s.replace(rx,v)});
+  return s.replace(/\b(\w+), \1\b/gi,"$1");
+}
+const OUT_TEXT=["must","notes"];
+
+/* make everything the current sex allows (used after a female-designed preset is applied in male mode) */
+function fixSexChars(){
+  if(!isMale())return;
+  const rep={changed:0,cleared:0,items:0,removed:0};
+  convertChars(S.c,true,rep);return rep;
+}
+function fixSexOutfit(o){
+  if(!isMale())return;
+  const rep={changed:0,cleared:0,items:0,removed:0};
+  convertOutfit(o||cur(),true,rep);return rep;
+}
+
+/* ---- the swap itself ---- */
+/* the swap remembers what it replaced, so switching back restores every option you did not change in between */
+const jq=v=>JSON.stringify(v===undefined?null:v);
+function outShape(o){return{items:{...(o.items||{})},details:{...(o.details||{})},dcol:{...(o.dcol||{})}}}
+function swapSex(to){
+  const toMale=to==="male";
+  if(toMale===isMale())return;
+  if(toMale&&(Policy.restricted()||!Policy.explicitAllowed())){
+    const why=Policy.reason()||Policy.banner()||"";
+    toast("The age safeguard flags this design"+(why?" ("+why.replace(/[.\s]+$/,"")+")":"")+", so it can’t be switched to male. Adjust it or start from an adult design.");
+    return;
+  }
+  const rep={changed:0,cleared:0,items:0,removed:0,restored:0};
+  mut(()=>{
+    const memo=S.sexMemo&&S.sexMemo.to===(toMale?"female":"male")?S.sexMemo:null;
+    const cPre={...S.c},oPre=S.outfits.map(outShape),tPre={};OUT_TEXT.forEach(k=>{tPre[k]=S.out[k]});
+    if(toMale)maleHair(S.c,rep);
+    convertChars(S.c,toMale,rep);
+    if(toMale){mascPass(S.c,cPre,rep);OUT_TEXT.forEach(k=>{if(S.out[k]&&!/^\s*$/.test(S.out[k])){const n=maleText(S.out[k]);if(n!==S.out[k]){S.out[k]=n;rep.changed++}}})}
+    if(toMale)S.c.sex="male";else delete S.c.sex;
+    S.outfits.forEach(o=>convertOutfit(o,toMale,rep));
+    if(memo){
+      /* options that still hold exactly what the earlier swap produced go back to the original */
+      Object.keys(memo.c).forEach(k=>{
+        const [was,became]=memo.c[k];
+        if(jq(cPre[k])!==jq(became))return;
+        if(was===null||was===undefined)delete S.c[k];else S.c[k]=was;
+        rep.restored++;
+      });
+      (memo.o||[]).forEach((m,i)=>{
+        const o=S.outfits[i],pre=oPre[i];if(!o||!m)return;
+        ["items","details","dcol"].forEach(part=>{
+          Object.keys(m[part]||{}).forEach(k=>{
+            const [was,became]=m[part][k];
+            if(jq((pre||{})[part]&&pre[part][k])!==jq(became))return;
+            if(was===null||was===undefined)delete o[part][k];else o[part][k]=was;
+            if(part==="items")rep.restored++;
+          });
+        });
+      });
+      if(memo.out)Object.keys(memo.out).forEach(k=>{const [was,became]=memo.out[k];if(S.out[k]===became&&tPre[k]===became){S.out[k]=was;rep.restored++}});
+      delete S.sexMemo;
+    }else{
+      /* first swap of this design: remember the originals */
+      const m={to:toMale?"male":"female",c:{},o:[]};
+      new Set([...Object.keys(cPre),...Object.keys(S.c)]).forEach(k=>{
+        if(k==="sex")return;
+        if(jq(cPre[k])!==jq(S.c[k]))m.c[k]=[cPre[k]===undefined?null:cPre[k],S.c[k]===undefined?null:S.c[k]];
+      });
+      S.outfits.forEach((o,i)=>{
+        const mo={items:{},details:{},dcol:{}},post=outShape(o);
+        ["items","details","dcol"].forEach(part=>{
+          new Set([...Object.keys(oPre[i][part]),...Object.keys(post[part])]).forEach(k=>{
+            if(jq(oPre[i][part][k])!==jq(post[part][k]))mo[part][k]=[oPre[i][part][k]===undefined?null:oPre[i][part][k],post[part][k]===undefined?null:post[part][k]];
+          });
+        });
+        m.o.push(mo);
+      });
+      m.out={};OUT_TEXT.forEach(k=>{if(tPre[k]!==S.out[k])m.out[k]=[tPre[k]===undefined?"":tPre[k],S.out[k]]});
+      S.sexMemo=m;
+    }
+  },"sexswap");
+  const n=rep.changed+rep.items,gone=rep.cleared+rep.removed;
+  toast((toMale?"Switched to male. ":"Switched to female. ")+(rep.restored?`${rep.restored} original option${rep.restored===1?"":"s"} restored. `:"")+(n?`${n} option${n===1?"":"s"} converted`:"Nothing needed converting")+(gone?`, ${gone} cleared because they have no ${toMale?"male":"female"} equivalent`:"")+". Undo restores the previous design.");
+}
+
+/* ---- Sex control (Concept step) ---- */
+function sexRow(){
+  const male=isMale();
+  const seg=(label,val)=>h("button",{type:"button",class:"chip"+((val==="male")===male?" on":""),"aria-pressed":((val==="male")===male)?"true":"false",onclick:()=>swapSex(val),text:label});
+  const lab=h("div",{class:"lab"},h("div",{class:"labtop"},h("label",{text:"Sex"})),h("small",{class:"hint",text:male?"Male options, outfits and wording are active. Switching back converts the design to female.":"Switch to convert this whole design (options and outfits) to a male character."}));
+  const ctl=h("div",{class:"ctl"},h("div",{class:"chips",role:"group","aria-label":"Sex"},seg("Female","female"),seg("Male","male")));
+  const both=h("label",{class:"inline",style:"display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px"},
+    h("input",{type:"checkbox",checked:SEXPREF.both?true:null,onchange:e=>{SEXPREF.both=!!e.target.checked;saveJSON(KEY_SEXPREF,SEXPREF);changed()}}),
+    h("span",{text:"Show options for both sexes"}));
+  ctl.append(both);
+  return h("div",{class:"row","data-field":"sex"},lab,ctl);
+}
+
+/* ---- steps, facial hair and body hair wiring ---- */
+Object.defineProperty(STEPS[0],"blurb",{get(){return isMale()?"Who he is and what he is. Everything else builds on this.":"Who she is and what she is. Everything else builds on this."},enumerable:true,configurable:true});
+if(!STEP_FIELDS.face.includes("facialHair"))STEP_FIELDS.face.push("facialHair","facialHairColor");
+if(!STEP_FIELDS.body.includes("bodyHair"))STEP_FIELDS.body.push("bodyHair");
+function facialHairText(){
+  const v=g("facialHair");if(!v)return"";
+  if(/^clean-shaven$/i.test(v))return"a clean-shaven face";
+  const c=g("facialHairColor"),base=/stubble|sideburns|chops|shadow/i.test(v)?(/shadow/i.test(v)?withArticle(v):v):withArticle(v);
+  return c?`${base} in ${c}`:base;
+}
+/* LABELS itself answers per sex, so every row, pop-up, clear button and lock label follows the current mode */
+Object.keys(MALE_LABELS).forEach(id=>{
+  let base=LABELS[id];
+  Object.defineProperty(LABELS,id,{get(){return(isMale()&&MALE_LABELS[id])||base},set(v){base=v},enumerable:true,configurable:true});
+});
+
+/* look and coverage names that read differently for men */
+{const ML={sweet:"Soft & pastel",boudoir:"Underwear & boudoir"};
+ LOOKS.forEach(l=>{const base=l[1];if(ML[l[0]])Object.defineProperty(l,1,{get(){return isMale()?ML[l[0]]:base},enumerable:true,configurable:true})});
+ const u=COVER.find(x=>x[0]==="U");if(u){const base=u[1];Object.defineProperty(u,1,{get(){return isMale()?"Relaxed":base},enumerable:true,configurable:true})}}
+
+/* randomizer helpers for male mode */
+const MASC_BIAS=new Set(["faceShape","expression","browShape","noseShape","mouthShape","eyeShape","lashNatural","impression","faceMark","heightStature","shoulderShape","torsoShape","armShape","handShape","waistShape","stomachShape","hipShape","buttSize","thighBuild","legShape","bodySoftness","posture","skinFinish","markings","nailStyle"]);
+function mascRollFields(steps){
+  const only=new Set();
+  ["face"].forEach(st=>{if(steps.has(st)&&!stepFrozen(st))STEP_FIELDS[st].forEach(f=>only.add(f))});
+  if(only.size)mascPass(S.c,S.c,{changed:0,cleared:0},{only,tiers:false,makeup:false});
+  if(only.has("faceShape")){
+    ["faceShape","browShape","noseShape","mouthShape","impression"].forEach(f=>{
+      if(heldField(f)||!CHAR[f]||Math.random()>.55)return;
+      const a=CHAR[f].filter(([x])=>isMOpt(f,x)&&Policy.optionAllowed(f,x)).map(x=>x[0]);
+      if(a.length)S.c[f]=a[Math.floor(Math.random()*a.length)];
+    });
+  }
+}
+function mascBodyRoll(free,pick1){
+  const r=Math.random(),tk=r<.25?"lean":r<.65?"athletic":r<.9?"sturdy":"powerful";
+  Object.entries(MASC_TIERS[tk]).forEach(([f,v])=>{
+    if(!hasOpt(f,v)||!free(f))return;
+    S.c[f]=v;
+  });
+  /* one small variation per roll, kept in the same build so the body still reads as one man */
+  const big=tk==="sturdy"||tk==="powerful",skip=big?/lean|wiry|slim|slender|skinny|narrow|soft|gaunt/i:/burly|bulky|massive|heavy|thick|hulking|barrel/i;
+  const wild=["torsoShape","armShape","stomachShape","hipShape","buttSize","handShape"].filter(f=>free(f)&&CHAR[f]);
+  if(wild.length&&Math.random()<.5){
+    const f=pick1(wild),a=CHAR[f].filter(([x])=>isMOpt(f,x)&&Policy.optionAllowed(f,x)&&!skip.test(x)).map(x=>x[0]);
+    if(a.length)S.c[f]=pick1(a);
+  }
+  if(free("heightStature")){const a=CHAR.heightStature.filter(([x])=>isMOpt("heightStature",x)||/^(average|slightly above|above-average|tall)/.test(x)).map(x=>x[0]);if(a.length)S.c.heightStature=pick1(a)}
+}
+function mascMakeupRoll(free,pick1,clr){
+  STEP_FIELDS.makeup.forEach(clr);
+  if(Math.random()<.25){const ms=CHAR.makeupStyle.filter(([v])=>isMOpt("makeupStyle",v)).map(x=>x[0]);if(free("makeupStyle")&&ms.length)S.c.makeupStyle=pick1(ms)}
+  if(free("nailStyle")&&Math.random()<.5){const ns=CHAR.nailStyle.filter(([v])=>isMOpt("nailStyle",v)).map(x=>x[0]);const plain=ns.filter(v=>!/paint|polish/i.test(v));if(ns.length)S.c.nailStyle=pick1(plain.length&&Math.random()<.85?plain:ns)}
+}
 
 function stateFromTemplate(t){
   const b=blankState();b.name=t.name;Object.assign(b.pal,t.pal);
