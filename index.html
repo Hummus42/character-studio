@@ -8398,6 +8398,111 @@ flamingo:{act:"sex, vaginal, suspended congress, standing sex, carrying, leg loc
   bad.forEach(m=>{START.problems.push("scene outfit: "+m);try{console.warn("[scenes] "+m)}catch(e){}});
 })();
 
+/* ---- v136: "Academy Affairs". One explicit single scene per girl (house order): a secret, guilty-but-willing
+   affair with another house's boyfriend. She is plainly willing (pulling her lover in, asking for more); the guilt
+   comes from her absent boyfriend: a call, a text, a photo, a gift, a voice through a door. Built like the
+   Depraved scenes: swappable in the Pair tab (a woman partner is written as a futanari), scene outfits in tones,
+   character 1's pose and expression carried by pair.c1, and held back by the safeguard like every explicit scene. */
+(function(){
+  const cap=s=>s[0].toUpperCase()+s.slice(1);
+  const GX="Explicit (adult)";
+  START.item("ringAccessory","matching couple ring","CU","casual,glam");
+  START.item("heldItem","smartphone pressed to her ear","CU","casual");
+  START.item("legwear","satin pointe shoes with ribbons laced up the ankles","CU","costume");
+  START.item("neckAccessory","initial pendant necklace","CU","casual,glam");
+  START.item("neckAccessory","shark-tooth pendant on a cord","CU","resort,edgy");
+  START.item("maskAccessory","fox-face masquerade mask","CU","costume,glam");
+  START.item("maskAccessory","black domino masquerade mask","CU","costume,glam");
+  const opt=(f,list)=>list.forEach(v=>START.option(f,v,GX));
+  opt("expression",["guilty, flushed, eager expression, biting her lip","guilty, defiant smirk with flushed cheeks","guilty, flushed smile",
+    "flushed, guilty face with her eyes rolling up"]);
+  opt("posture",["standing against a door with one leg hooked high","bending over a kitchen counter, looking back","lying back across a card table, legs wrapped around her lover",
+    "riding on top, hands braced on her lover's chest","lying on her back with her legs over her lover's shoulders, phone to her ear","bending over a dressing table in front of a mirror",
+    "sitting on the edge of a desk, legs locked around her lover","lying back on a velvet chaise, legs wrapped around her lover","being held up against a shower wall, legs locked around her lover",
+    "straddling her lover's lap in a hot tub","leaning against a coat rack, bent forward","lying back on a daybed, ankles hooked behind her lover",
+    "riding on top in a cramped back seat, hands on the fogged window"]);
+
+  const AROUSE={pupilStyle:"heart pupils",blushStyle:"heavy aroused blush",skinFinish:"wet, sweat-glistening skin",lipFinish:"wet glossy lips",
+    nippleType:"hard and flushed with arousal",vaginaType:"flushed, swollen, and dripping wet with arousal"};
+  const RING={ringAccessory:["matching couple ring","@metal"]};
+  const TAIL="cheating (relationship), infidelity, secret affair";
+  /* [key, girl, partner (another house's boyfriend), name, scene] */
+  const AF=[
+["rival","griffin","serpent","The rival's door",{act:"sex, vaginal, standing sex, against door, leg up, creampie",ex:"guilty, flushed, eager expression, biting her lip",
+  pose:"standing against a door with one leg hooked high",pc:"dominant, knowing smirk",w1:{legwear:["thigh-high stockings","@dark"]},
+  blurb:"Pinned against the door of the rival she swore she hated, while her boyfriend calls.",
+  scene:`Just inside the door of a dark apartment, the woman is pressed against the door by {partner}, the rival she swore she hated, her coat and dress dropped on the floor and one leg hooked high around {his} hip. {His} thick, veiny {cock} is buried deep in her vagina, thrusting hard with motion lines, while she clings to {his} shoulders and pulls {him} closer. On the floor her phone lights up with an incoming call from "Babe ♡" over a lock-screen photo of her and her boyfriend. She glances at it with a guilty, flushed face, bites her lip, looks away and gasps "Don't stop... just don't stop♡" in a speech bubble. Cum drips down her inner thigh. Lewd sound effects. ${TAIL}, standing sex, against door, leg up, phone, incoming call, guilty, blush, biting lip, cum in pussy, motion lines, speech bubble, sweat, night`}],
+["kitchen","badger","dragon","Just this once",{act:"sex, vaginal, sex from behind, bent over, ass grab, creampie",ex:"guilty, flushed, eager expression, biting her lip",
+  pose:"bending over a kitchen counter, looking back",pc:"hungry, possessive stare",w1:{neckAccessory:["locket necklace","@metal"]},
+  blurb:"Bent over her own kitchen counter, under the couple photo on the fridge, while her boyfriend texts that he's nearly home.",
+  scene:`In her own cozy kitchen, with a photo of her and her boyfriend stuck to the fridge and his apron hanging on a hook, the woman is bent over the flour-dusted counter by {partner}, her clothes scattered across the floor. {Partner} fucks her from behind, gripping her hips, {his} thick, veiny {cock} buried to the hilt in her vagina with motion lines, her breasts swaying over the counter. She looks back over her shoulder with a guilty, flushed, eager face, biting her lip, and whispers "Just this once... please, harder♡" in a speech bubble, pushing her hips back against {him}. Her phone buzzes beside a half-iced cake with a text from her boyfriend: "home in 20 min ♡". Wet slapping sound effects. ${TAIL}, sex from behind, bent over, kitchen, counter, ass grab, photo (object), phone, text message, looking back, guilty, blush, biting lip, cum in pussy, motion lines, speech bubble, sweat`}],
+["cardtable","raven","fox","The bet",{act:"sex, vaginal, missionary, on table, leg lock, kiss, creampie",ex:"guilty, flushed smile",
+  pose:"lying back across a card table, legs wrapped around her lover",pc:"dominant, knowing smirk",w1:{legwear:["sheer thigh-highs","@dark"]},
+  blurb:"Across a felt card table in a gambling den's back room, paying off a bet her boyfriend will never hear about.",
+  scene:`In the candlelit back room of a gambling den, the woman lies back across a green felt card table among scattered chips and cards, her dress pooled on the floor and her legs wrapped tight around {partner}'s waist. {Partner} leans over her and fucks her on the table, {his} thick, veiny {cock} buried to the hilt in her vagina with motion lines, chips spilling to the floor with every thrust. Beside her head, her phone shows a text from her boyfriend: "where are you?". She turns it face down with a guilty, flushed smile, pulls {partner} down into a kiss and breathes "I lost the bet... so take your prize♡" in a speech bubble. Cum overflows from her vagina onto the felt. Lewd sound effects. ${TAIL}, missionary, on table, leg lock, kiss, poker chip, playing card, phone, text message, guilty, blush, smile, cum in pussy, cum overflow, motion lines, speech bubble, sweat, candlelight`}],
+["portrait","serpent","griffin","He'll never know",{act:"sex, vaginal, cowgirl position, girl on top, grinding, creampie",ex:"guilty, defiant smirk with flushed cheeks",
+  pose:"riding on top, hands braced on her lover's chest",pc:"gritted-teeth grimace of pleasure",w1:{legwear:["garter-strap stockings with lace tops","@dark"]},
+  blurb:"Riding the hero she always sneered at, in her own bed, and turning her boyfriend's portrait face down.",
+  scene:`In her own silk-draped bedroom, beside a framed portrait of her and her boyfriend on the nightstand, the woman rides {partner} cowgirl style, the hero she always sneered at, her hands braced on {his} chest and her boyfriend's suit jacket hanging over a chair. {His} thick, veiny {cock} is buried to the hilt in her vagina as she grinds down on it with motion lines, her breasts bouncing. She looks down at {him} with a flushed, guilty, defiant smirk, reaches over to turn the portrait face down, and purrs "He'll never know... so cum inside♡" in a speech bubble. Cum overflows from her vagina down {his} {cock}. Lewd sound effects. ${TAIL}, cowgirl position, girl on top, grinding, picture frame, photo (object), guilty, smirk, blush, cum in pussy, cum overflow, motion lines, speech bubble, sweat`}],
+["phonecall","wolf","swan","On the phone",{act:"sex, vaginal, missionary, legs over shoulders, deep penetration, creampie",ex:"flushed, guilty face with her eyes rolling up",
+  pose:"lying on her back with her legs over her lover's shoulders, phone to her ear",pc:"dominant, knowing smirk",w1:{heldItem:["smartphone pressed to her ear","-"]},
+  blurb:"Taking her boyfriend's call in a hotel suite and trying to sound normal while she's fucked deep and slow.",
+  scene:`In a white-and-gold luxury hotel suite, the woman lies on her back across the bed with her legs over {partner}'s shoulders while {he} fucks her deep and slow, {his} thick, veiny {cock} buried to the hilt in her vagina with motion lines. She holds her phone to her ear on a call with her boyfriend, trying to sound normal, her other hand clamped over her own mouth to muffle her moans, her face flushed and guilty and her eyes rolling up. The phone's speech bubble says "babe? you sound out of breath..." and she answers in a shaky bubble "j-just got back from a run♡". {Partner} smirks and thrusts harder. Cum leaks from her vagina onto the sheets. Muffled lewd sound effects. ${TAIL}, missionary, legs over shoulders, deep penetration, phone call, holding phone, hand over own mouth, covering own mouth, guilty, blush, rolling eyes, cum in pussy, motion lines, speech bubble, sweat`}],
+["dressingroom","swan","wolf","Dressing room",{act:"sex, vaginal, sex from behind, standing sex, bent over, creampie",ex:"guilty, flushed, eager expression, biting her lip",
+  pose:"bending over a dressing table in front of a mirror",pc:"feral, hungry grin",w1:{legwear:["satin pointe shoes with ribbons laced up the ankles","pale pink"]},
+  blurb:"Bent over her dressing table after the performance, beside her boyfriend's bouquet.",
+  scene:`Backstage in a ballet dressing room after a performance, surrounded by bulb-lit mirrors, the woman is bent over the dressing table by {partner}, her stage costume tossed aside and her pointe shoes still laced on. {Partner} fucks her from behind, {his} thick, veiny {cock} buried to the hilt in her vagina with motion lines, rattling the makeup brushes. On the table sits a huge bouquet of roses from her boyfriend with a card reading "To my prima ♡". She watches herself in the mirror with a flushed, guilty, hungry face, biting her lip, and moans "Not here... no, don't you dare stop♡" in a speech bubble, pushing back against {him}. Cum drips down her thighs. Lewd sound effects. ${TAIL}, sex from behind, standing sex, bent over, dressing room, vanity mirror, reflection, bouquet, rose, pointe shoes, guilty, blush, biting lip, cum in pussy, motion lines, speech bubble, sweat`}],
+["study","dragon","raven","The scholar's desk",{act:"sex, vaginal, sex on desk, leg lock, collar grab, creampie",ex:"guilty, defiant smirk with flushed cheeks",
+  pose:"sitting on the edge of a desk, legs locked around her lover",pc:"gritted-teeth grimace of pleasure",w1:{neckAccessory:["initial pendant necklace","@metal"]},
+  blurb:"On a scholar's cluttered desk, her boyfriend's initial swinging on a pendant between her breasts.",
+  scene:`In a book-lined study lit by a green banker's lamp, the woman sits on the edge of a cluttered desk with her legs locked around {partner}'s waist, papers and open books scattered beneath her, and pulls {him} in by the collar. {Partner} fucks her on the desk, {his} thick, veiny {cock} buried to the hilt in her vagina with motion lines, books tumbling to the floor. A pendant engraved with her boyfriend's initial swings between her bouncing breasts. Her fierce glare has melted into a flushed, guilty, hungry look, and she growls "Shut up and keep going... I chose this♡" in a speech bubble. Cum overflows from her vagina onto the papers. Lewd sound effects. ${TAIL}, sex on desk, sitting on desk, leg lock, collar grab, pendant, book, desk lamp, guilty, blush, cum in pussy, cum overflow, motion lines, speech bubble, sweat`}],
+["photoshoot","stag","peacock","After the shoot",{act:"sex, vaginal, missionary, leg lock, creampie",ex:"guilty, flushed smile",
+  pose:"lying back on a velvet chaise, legs wrapped around her lover",pc:"lustful, half-lidded stare",w1:{legwear:["lace-top stockings","@c1"]},
+  blurb:"On a velvet chaise in a photo studio after hours, the camera still firing on its timer.",
+  scene:`In a photo studio after hours, under softboxes and a seamless backdrop, the woman lies back on a velvet chaise with {partner} between her thighs, a camera on a tripod blinking as it fires on a timer. {Partner} fucks her missionary on the chaise, {his} thick, veiny {cock} buried to the hilt in her vagina with motion lines, flashes going off around them. Her phone on the floor shows a lock-screen photo of her smiling with her boyfriend. She wraps her long legs around {partner} and pulls {him} deeper with a dreamy, guilty, flushed smile, whispering "Just one more shot... inside me♡" in a speech bubble. Cum overflows from her vagina onto the velvet. Camera shutter sound effects. ${TAIL}, missionary, chaise longue, leg lock, photo studio, camera, tripod, camera flash, phone, lock screen, guilty, blush, smile, cum in pussy, cum overflow, motion lines, speech bubble, sweat`}],
+["shower","shark","badger","Beach house shower",{act:"sex, vaginal, standing sex, carrying, against wall, leg lock, kiss, creampie",ex:"guilty, flushed smile",
+  pose:"being held up against a shower wall, legs locked around her lover",pc:"lustful, half-lidded stare",w1:{neckAccessory:["shark-tooth pendant on a cord","-"]},
+  blurb:"Held up against the tiles of a beach-house shower, wearing the necklace her boyfriend gave her.",
+  scene:`In the steamy glass shower of a beach house, water streaming over them, {partner} lifts the woman against the tiled wall and fucks her standing, her legs locked around {his} waist and her arms around {his} neck. {His} thick, veiny {cock} is buried to the hilt in her vagina with motion lines and splashing water. Around her neck swings the shark-tooth pendant her boyfriend gave her, and his towel hangs on the door. She grins guiltily, cheeks flushed, and pants "Bad idea... best idea♡" in a speech bubble, pulling {partner} into a wet kiss. Cum drips down her thighs and swirls into the drain. Splashing sound effects. ${TAIL}, shower, steam, wet, standing sex, carrying, against wall, leg lock, kiss, necklace, guilty, grin, blush, cum in pussy, motion lines, speech bubble`}],
+["hottub","penguin","shark","Hot tub",{act:"sex, vaginal, straddling, sitting on lap, kiss, creampie",ex:"guilty, flushed smile",
+  pose:"straddling her lover's lap in a hot tub",pc:"hungry, possessive stare",w1:{},
+  blurb:"Riding in the lodge hot tub in the snow while her boyfriend sleeps on the couch inside.",
+  scene:`In a steaming outdoor hot tub on the deck of a snowed-in ski lodge at night, the woman sits in {partner}'s lap facing {him}, riding {him} in the bubbling water, her arms around {his} neck and her breasts pressed to {his} chest. {His} thick, veiny {cock} is buried to the hilt in her vagina as she bounces with motion lines and splashing steam. Behind her, a warm-lit lodge window shows her boyfriend asleep on the couch inside. She glances back at the window with a guilty, flushed giggle, then turns and kisses {partner}, whispering "Shh... warm me up quick♡" in a speech bubble. Snow falls into the steam. Splashing sound effects. ${TAIL}, hot tub, steam, snow, night, straddling, sitting on lap, partially submerged, wet, window, kiss, guilty, blush, giggling, cum in pussy, motion lines, speech bubble`}],
+["masquerade","fox","stag","Masquerade coat room",{act:"sex, vaginal, sex from behind, standing sex, creampie",ex:"guilty, defiant smirk with flushed cheeks",
+  pose:"leaning against a coat rack, bent forward",pc:"hungry, possessive stare",w1:{maskAccessory:["fox-face masquerade mask","@c1"]},
+  w2:{maskAccessory:["black domino masquerade mask","black"]},
+  blurb:"In the coat room of a masquerade ball, masked, while her boyfriend calls for her just outside the door.",
+  scene:`In the dim coat room of a masquerade ball, the woman leans against a rack of fur coats in a fox-face masquerade mask, her gown pooled at her ankles, as {partner} fucks her from behind, standing. {His} thick, veiny {cock} is buried to the hilt in her vagina with motion lines, the coats swaying around them. Through the door comes her boyfriend's voice in an off-screen speech bubble: "Has anyone seen my date?". She bites her lip behind the mask with a sly, guilty, flushed grin, reaches back to pull {partner} closer, and whispers "Faster, before he finds us♡" in a speech bubble. Cum drips down her thighs. Muffled music and lewd sound effects. ${TAIL}, sex from behind, standing sex, masquerade mask, fox mask, coat rack, masquerade, off-screen, guilty, smirk, biting lip, blush, cum in pussy, motion lines, speech bubble, sweat`}],
+["cabana","peacock","flamingo","Cabana",{act:"sex, vaginal, missionary, leg lock, creampie",ex:"guilty, flushed smile",
+  pose:"lying back on a daybed, ankles hooked behind her lover",pc:"lustful, half-lidded stare",w1:{thighAccessory:["pearl thigh chain","-"]},
+  blurb:"On a cabana daybed behind billowing curtains while her boyfriend texts from the beach bar.",
+  scene:`Inside a resort cabana with sheer curtains billowing in the sea breeze, the woman lies back on a white daybed with her legs around {partner} as {he} fucks her missionary, {his} thick, veiny {cock} buried to the hilt in her vagina with motion lines. Her phone buzzes on the daybed with a text from her boyfriend at the beach bar: "got you a drink babe ♡". She glances at it with a flushed, guilty, radiant smile while hooking her ankles behind {partner}'s back to pull {him} deeper, and giggles "He's bringing me a drink~ cum before he gets here♡" in a speech bubble. Cum overflows from her vagina onto the daybed. Ocean and lewd sound effects. ${TAIL}, missionary, daybed, cabana, curtains, leg lock, beach, tropical, phone, text message, guilty, smile, blush, cum in pussy, cum overflow, motion lines, speech bubble, sweat`}],
+["backseat","flamingo","penguin","Back seat",{act:"sex, vaginal, cowgirl position, girl on top, creampie",ex:"flushed, guilty face with her eyes rolling up",
+  pose:"riding on top in a cramped back seat, hands on the fogged window",pc:"gritted-teeth grimace of pleasure",w1:{legwear:["sheer stockings","@dark"]},
+  blurb:"Fogging up a car's back seat in a parking garage while her boyfriend's call rings out on the dashboard.",
+  scene:`In the back seat of a car in a dim parking garage, the windows fogged with steam, the woman rides {partner} cowgirl style, her head bowed under the low roof and one hand pressed to the fogged glass, leaving a handprint. {His} thick, veiny {cock} is buried to the hilt in her vagina as she bounces with motion lines, the car rocking. On the dashboard her phone buzzes with a call from "My love ♡", and a little couple charm swings from the mirror. She looks at it with a flushed, guilty face, lets it ring, and moans "Let it ring... cum for me♡" in a speech bubble. Cum overflows from her vagina. Creaking and lewd sound effects. ${TAIL}, car interior, back seat, fogged glass, handprint, cowgirl position, girl on top, phone, incoming call, guilty, blush, cum in pussy, cum overflow, motion lines, speech bubble, sweat`}]
+  ];
+  const ORD=h=>ACAD.HOUSES.indexOf(h);AF.sort((a,b)=>ORD(a[1])-ORD(b[1]));
+  START.add("Academy Affairs",AF.map(([key,h,ph,name,x])=>{
+    const m=ph+"man",mt=TEMPLATES.find(t=>t.id===m),rb=TEMPLATES.find(t=>t.id===h+"robes");
+    const T=PAIR.sceneColors(rb&&rb.pal,rb&&rb.c);
+    const w1i=Object.assign({},RING,x.w1||{});
+    const res=items=>{const o={};Object.entries(items).forEach(([f,a])=>{const b=a.slice();b[1]=PAIR.toneOf(b[1],T);if(b[3])b[3]=PAIR.toneOf(b[3],T);o[f]=b});return o};
+    const c1=Object.assign({},AROUSE,{expression:x.ex,posture:x.pose});
+    const w1={name:"Affair",look:"boudoir",f:w1i},w2={name:"Affair",look:"boudoir",m:x.w2||{},f:x.w2||{}};
+    return{id:"affair"+key,base:h+"robes",name,use:{makeup:"afterglow"},c:Object.assign({age:"woman"},c1),
+      outfit:{oname:"Affair",look:"boudoir",items:res(w1i),details:{},dcol:{}},more:[],nude:true,
+      out:{framing:"full body",explicit:true,lewdtag:true,must:"an anime style with high detail, and particular emphasis on highly detailed skin, hair and eyes",
+        pair:{id:m,outfit:"scene",scene:x.scene,act:x.act,dir:"ba",explicit:true,penis:true,pc:{expression:x.pc,posture:null},c1,w1,w2,compact:false,fit:true}},
+      tags:["affair","cheating","explicit","sex","pair",h,ph],
+      blurb:`${x.blurb} ${cap(h)} with the ${mt?mt.name:cap(ph)+" boyfriend"}; switch either character in the Pair tab and the scene follows.`};
+  }),{after:"Academy Depraved"});
+  const bad=[];
+  AF.forEach(([k,h,ph,n,x])=>{[x.w1,x.w2].forEach(o=>Object.entries(o||{}).forEach(([f,a])=>{if(!(OUTFIT[f]||[]).some(i=>i.v===a[0]))bad.push(k+": "+f+" “"+a[0]+"”")}));
+    [["expression",x.ex],["posture",x.pose],["expression",x.pc]].forEach(([f,v])=>{if(CHAR[f]&&!CHAR[f].some(o=>o[0]===v))bad.push(k+": "+f+" “"+v+"”")})});
+  bad.forEach(m=>{START.problems.push("affair scene: "+m);try{console.warn("[affairs] "+m)}catch(e){}});
+})();
+
 /* ===== Starting points picker (v114) =====
    One searchable list of every starting point and your saves. Tap a row to load it, or open Parts to take
    only some of it (palette, face, hair, body, skin, makeup, intimate details, outfits, age, prompt extras). */
