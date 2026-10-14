@@ -6483,7 +6483,10 @@ const ACAD=(()=>{
    "Scene outfit" choice (pair.outfit "scene"); character 1 gets it when picked with the Character 1 picker.
    pair.c1 now applies to any scene (still not to a man, and not to a held-back design in an explicit scene).
    {lover} becomes "her boyfriend" / "her girlfriend" / "her futanari girlfriend". pair.couple adds "couple"
-   (and "yuri" for two women) to a non-explicit scene. */
+   (and "yuri" for two women) to a non-explicit scene.
+   v135: scene-outfit colors can be written as tones that are picked from each wearer's own palette:
+   @c1 @c2 @c3 (clothing colors: never the hair color or a metal), @dark, @light, @metal and @hair. So the same
+   scene outfit reads right on any character, whichever palette slot holds her hair. */
 (function(){
   const sft=stateFromTemplate;
   stateFromTemplate=function(t){
@@ -6514,7 +6517,7 @@ const ACAD=(()=>{
     const stages=[{compact:!!p.compact,slim:false}];
     if(fit){if(!p.compact)stages.push({compact:true,slim:false});stages.push({compact:true,slim:true})}
     const st=sft(t);
-    const so=p.outfit==="scene"?sceneOutfit(p.w2,st.c&&st.c.sex==="male"):null;
+    const so=p.outfit==="scene"?sceneOutfit(p.w2,st.c&&st.c.sex==="male",st):null;
     if(so){st.outfits.push(so);st.cur=st.outfits.length-1}
     else st.cur=Math.min(Math.max(0,+p.outfit||0),st.outfits.length-1);
     let r=null;
@@ -6522,11 +6525,26 @@ const ACAD=(()=>{
     r.max=max;r.shortened=r.o.slim?"compact tags and fewer details":r.o.compact&&!p.compact?"compact tags":"";
     return r;
   }
-  /* a scene outfit for one character, cut for a man or a woman */
-  function sceneOutfit(w,male){
+  /* tones for scene outfits, picked from the wearer's palette */
+  const SLOTS=["primary","secondary","third","accent","extra"];
+  const METAL=/gold|silver|bronze|copper|metallic|platinum|brass|chrome/i,DARK=/black|charcoal|navy|midnight|gray|grey|brown|chocolate|burgundy|plum|forest|maroon|ebony/i,LIGHT=/white|cream|ivory|pearl|beige|pale|ecru/i;
+  function sceneColors(pal,c){
+    const name=k=>String(pal&&pal[k]||"").trim(),hr=c&&c.hairBase;
+    const hair=(typeof hr==="string"&&hr[0]==="@"?name(hr.slice(1)):String(hr||"")).toLowerCase();
+    const ok=k=>name(k)&&name(k).toLowerCase()!==hair;
+    const cloth=["third","secondary","accent","extra","primary"].filter(k=>ok(k)&&!METAL.test(name(k)));
+    const find=(rx,d)=>{const k=SLOTS.find(k=>ok(k)&&rx.test(name(k)));return k?"@"+k:d};
+    const at=k=>k?"@"+k:"black";
+    return{c1:at(cloth[0]),c2:at(cloth[1]||cloth[0]),c3:at(cloth[2]||cloth[1]||cloth[0]),
+      metal:find(METAL,"gold"),dark:find(DARK,"charcoal gray"),light:find(LIGHT,"white"),hair:typeof hr==="string"&&hr?hr:"black"};
+  }
+  const toneOf=(v,T)=>typeof v==="string"&&v[0]==="@"&&!SLOTS.includes(v.slice(1))&&T[v.slice(1)]!==undefined?T[v.slice(1)]:v;
+  /* a scene outfit for one character, cut for a man or a woman, in that character's palette */
+  function sceneOutfit(w,male,st){
     const items=w&&(male?w.m:w.f);if(!items)return null;
+    const T=sceneColors(st&&st.pal,st&&st.c);
     const o=newOutfit(w.name||"Scene outfit");o.look=w.look||"";
-    Object.entries(items).forEach(([f,a])=>{const[v,col,wn,c2]=a;o.items[f]={v,c:col==null?(f==="heldItem"?"-":""):col,...(wn?{w:wn}:{}),...(c2?{c2}:{})}});
+    Object.entries(items).forEach(([f,a])=>{const[v,col,wn,c2]=a;o.items[f]={v,c:col==null?(f==="heldItem"?"-":""):toneOf(col,T),...(wn?{w:wn}:{}),...(c2?{c2:toneOf(c2,T)}:{})}});
     return o;
   }
   /* words for character 2 in scene text */
@@ -6603,7 +6621,7 @@ const ACAD=(()=>{
     let ok=false;{const keepS=S;try{S=normalize(JSON.parse(JSON.stringify(st)));ok=Policy.explicitAllowed()}finally{S=keepS}}
     if(keep&&(!keep.explicit||ok)){const male=st.c.sex==="male";
       if(keep.c1&&!male)Object.entries(keep.c1).forEach(([k,x])=>{if(x==null)delete st.c[k];else st.c[k]=x});
-      const so=sceneOutfit(keep.w1,male);
+      const so=sceneOutfit(keep.w1,male,st);
       if(so){st.outfits.push(so);st.cur=st.outfits.length-1}
       else if(keep.explicit){const i=outfitNames(t).indexOf("Nude");if(i>=0)st.cur=i}
       if(keep.explicit){st.out.explicit=true;st.out.lewdtag=true}}
@@ -6690,7 +6708,7 @@ const ACAD=(()=>{
     try{const r=pairPrompts();if(r&&r.blocked)return q.replace(/,\s*sexy, lewd/,"")}catch(e){}return q};
   const rs=renderSide;
   renderSide=function(){rs();try{renderPair()}catch(e){try{console.warn("[pair] "+e)}catch(_){}}};
-  window.PAIR={pairPrompts};
+  window.PAIR={pairPrompts,sceneColors,toneOf};
 
   /* ---------- Academy Couples: one design per pair, each carrying its partner ---------- */
   const C=(id,a,b,name,scene,act,blurb)=>({id,base:a,name,out:{pair:{id:b,outfit:0,scene,act,dir:"mutual"}},tags:["couple","pair","two girls"],
@@ -8089,7 +8107,9 @@ flamingo:{act:"sex, vaginal, suspended congress, standing sex, carrying, leg loc
   }),{after:"Academy Men"});
 })();
 
-/* ---- v133/v134: "Academy Sweethearts" and "Academy Depraved", one scene per girl (13 each, in house order).
+/* ---- v133-v135: "Academy Sweethearts" and "Academy Depraved", one scene per girl (13 each, in house order).
+   v135: scene outfits are written in tones (@c1 @c2 @c3 @dark @light @metal @hair, see the Pair code) so they
+   take each wearer's own clothing colors, and the women's cuts are full date outfits with accessories.
    Each is one single scene for the Pair tab, opened with a girl and her Academy Men boyfriend, and written to swap:
    character 1 is "the woman"; character 2 is written with {partner} {lover} {his} {he} {him} {cock}, so any man
    or woman works (in Depraved scenes a woman partner becomes a futanari). Each scene dresses both characters
@@ -8136,14 +8156,16 @@ flamingo:{act:"sex, vaginal, suspended congress, standing sex, carrying, leg loc
   const AROUSE={pupilStyle:"heart pupils",blushStyle:"heavy aroused blush",skinFinish:"wet, sweat-glistening skin",lipFinish:"wet glossy lips",
     nippleType:"hard and flushed with arousal",vaginaType:"flushed, swollen, and dripping wet with arousal"};
   function scene(key,h,name,x,adult){
-    const m=h+"man",mt=TEMPLATES.find(t=>t.id===m);
+    const m=h+"man",mt=TEMPLATES.find(t=>t.id===m),rb=TEMPLATES.find(t=>t.id===h+"robes");
+    const T=PAIR.sceneColors(rb&&rb.pal,rb&&rb.c);
+    const res=items=>{const o={};Object.entries(items||{}).forEach(([f,a])=>{const b=a.slice();b[1]=PAIR.toneOf(b[1],T);if(b[3])b[3]=PAIR.toneOf(b[3],T);o[f]=b});return o};
     const c1=Object.assign({},adult?AROUSE:{},x.c1||{},{expression:x.ex,posture:x.pose});
     const w1={name:x.wname,look:x.look1||(adult?"boudoir":"casual"),f:x.w1};
     const w2={name:x.wname,look:x.look2||(adult?"boudoir":"casual"),m:x.w2m,f:x.w2f};
     const id=(adult?"depraved":"sweet")+key;
     return{id,base:h+"robes",name,use:adult?{makeup:"afterglow"}:undefined,
       c:Object.assign({},adult?{age:"woman"}:{},c1),
-      outfit:{oname:x.wname,look:w1.look,items:x.w1,details:{},dcol:{}},more:[],nude:true,
+      outfit:{oname:x.wname,look:w1.look,items:res(x.w1),details:{},dcol:{}},more:[],nude:true,
       out:{framing:"full body",explicit:!!adult,lewdtag:!!adult,must:"an anime style with high detail, and particular emphasis on highly detailed skin, hair and eyes",
         pair:{id:m,outfit:"scene",scene:x.scene,act:x.act,dir:x.dir||(adult?"ba":"mutual"),couple:!adult,explicit:!!adult,penis:!!adult,
           pc:{expression:x.pc,posture:null},c1,w1,w2,compact:false,fit:true}},
@@ -8310,6 +8332,61 @@ flamingo:{act:"sex, vaginal, suspended congress, standing sex, carrying, leg loc
   scene:`On a thick fur rug in front of a crackling fireplace in a snowed-in ski lodge, the woman is folded completely upside down in a piledriver, her shoulders on the rug, her legs pinned back over her head and her breasts pressed toward her face. {Partner} squats over her and pounds straight down into her. {His} huge, veiny {cock} is buried to the hilt in her vagina with heavy impact lines as {he} cums again and again, and thick white cum overflows from her vagina and runs down her stomach onto her own breasts and face. Upside down, she grins dizzily with her tongue out to catch it, eyes rolled up, drooling, and squeals "It's all running down onto me♡" in a heart-filled speech bubble. Snow falls past the window. Explosive lewd sound effects. piledriver, legs over head, upside-down, deep penetration, creampie, cum overflow, cum on self, cum on breasts, cum on face, ahegao, tongue out, drooling, heart-shaped pupils, motion lines, speech bubble, fireplace, sweat`}]
   ];
 
+  /* ---------- scene outfits, in tones (w1 = character 1, w2m / w2f = character 2 as a man / a woman) ---------- */
+  const WEAR={
+    fireworks:{w1:{top:["yukata with a {c2} firework print and a wide obi","@c1",null,"@metal"],headwear:["flower hair clip","@c2"],legwear:["wooden geta sandals","@dark"],heldItem:["small water bag with a goldfish","-"]},
+      w2m:{top:["dark men's yukata with a slim {c2} obi","@dark",null,"@c1"],legwear:["tabi socks with geta sandals","white"]},
+      w2f:{top:["yukata with a {c2} firework print and a wide obi","@c1",null,"@metal"],headwear:["jeweled hair comb","@metal"],legwear:["wooden geta sandals","@dark"],heldItem:["round paper fan","@c2"]}},
+    baking:{w1:{top:["oversized cotton sweater","@c1"],bottom:["high-waisted jeans","navy blue"],waistAccessory:["bib apron with deep pockets","@c2"],headwear:["scrunchie","@c2"],heldItem:["whisk dripping with batter","-"]},
+      w2m:{top:["fitted henley with the sleeves pushed up","@c1"],bottom:["relaxed-fit jeans","navy blue"],waistAccessory:["canvas work apron","@dark"]},
+      w2f:{top:["off-shoulder knit top","@c1"],bottom:["pleated midi skirt","@dark"],waistAccessory:["frilled apron tied at the waist","@light"],headwear:["ribbon hair bow","@c2"],earAccessory:["small pearl earrings","-"]}},
+    umbrella:{w1:{top:["fuzzy knit sweater","@c1"],outerwear:["trench coat","beige"],bottom:["pleated midi skirt","@c2"],legwear:["opaque tights","@dark"],earAccessory:["small pearl earrings","-"]},
+      w2m:{top:["turtleneck sweater","@c1"],outerwear:["long wool overcoat","@dark"],bottom:["slim tailored trousers","@dark"],legwear:["chelsea boots","@dark"],heldItem:["large clear umbrella","-"]},
+      w2f:{top:["cable-knit sweater","@light"],outerwear:["double-breasted peacoat","@c1"],bottom:["wool a-line skirt","@dark"],legwear:["over-the-knee leather boots","@dark"],neckAccessory:["silk scarf tied loosely","@c2"],heldItem:["large clear umbrella","-"]}},
+    dinner:{w1:{top:["slip dress","@c1"],neckAccessory:["pearl choker","-"],earAccessory:["pearl drop earrings","-"],heldItem:["long-stemmed red rose","-"]},
+      w2m:{top:["crisp collared button-up shirt","@light"],outerwear:["single-breasted suit jacket","@dark"],bottom:["tailored suit trousers","@dark"],neckAccessory:["slim necktie","@c1"]},
+      w2f:{top:["bodycon mini dress","@c1"],outerwear:["cropped blazer","@dark"],earAccessory:["delicate drop earrings","@metal"],neckAccessory:["delicate chain necklace","@metal"],hipAccessory:["mini clutch bag","@c2"]}},
+    movienight:{w1:{top:["oversized graphic sweatshirt","@c1"],bottom:["fleece lounge shorts","@c2"],legwear:["slouchy socks","@light"],heldItem:["bowl of buttered popcorn","-"]},
+      w2m:{top:["pullover hoodie","@c1"],bottom:["sweatpants","@dark"]},
+      w2f:{top:["off-shoulder knit top","@c1"],bottom:["matching pajama shorts","@c2"],legwear:["fuzzy slipper socks","@light"],headwear:["scrunchie","@c3"]}},
+    dance:{w1:{top:["wrap midi dress","@c1"],earAccessory:["pearl drop earrings","-"]},
+      w2m:{top:["crisp collared button-up shirt","@light"],bottom:["slim tailored trousers","@dark"]},
+      w2f:{top:["velvet slip dress","@c1"],neckAccessory:["delicate chain necklace","@metal"],earAccessory:["dangling crystal earrings","-"]}},
+    princesscarry:{w1:{top:["knit sweater dress","@c1"],legwear:["opaque tights","@dark"],headwear:["beret","@c2"]},
+      w2m:{top:["plain crew-neck tee","@light"],outerwear:["worn leather jacket","@dark"],bottom:["dark-wash jeans","navy blue"],legwear:["leather ankle boots","@dark"]},
+      w2f:{top:["boat-neck striped knit top","@light"],outerwear:["long coat","@c1"],bottom:["high-waisted jeans","navy blue"],legwear:["over-the-knee leather boots","@dark"],neckAccessory:["floral scarf","@c2"]}},
+    picnic:{w1:{top:["floral sundress","@c1"],headwear:["wide-brim sun hat","@light"],heldItem:["chocolate-dipped strawberry","-"]},
+      w2m:{top:["linen button-up shirt","@light"],bottom:["chino trousers","@c1"],legwear:["low-top canvas sneakers","@light"]},
+      w2f:{top:["puff-sleeve linen blouse","@light"],bottom:["flowy maxi skirt","@c1"],headwear:["ribbon hair bow","@c2"],legwear:["strappy flat sandals","@dark"],hipAccessory:["wicker basket bag","-"]}},
+    piggyback:{w1:{top:["triangle bikini top","@c1"],bottom:["side-tie bikini bottoms","@c1"]},
+      w2m:{top:["open Hawaiian-print shirt","@c2"],bottom:["swim trunks","@c1"]},
+      w2f:{top:["bandeau bikini top","@c1"],bottom:["sarong-style swim bottoms","@c1"],earAccessory:["flower tucked behind one ear","@c2"]}},
+    skating:{w1:{top:["fuzzy knit sweater","@c1"],bottom:["wool a-line skirt","@c2"],legwear:["white ice skates","white"],neckAccessory:["puffy scarf","@c3"],headwear:["fluffy earmuffs","@light"],gloves:["pastel knit mittens","@c3"]},
+      w2m:{top:["chunky roll-neck fisherman's sweater","@light"],bottom:["dark-wash jeans","navy blue"],legwear:["black ice skates","black"],neckAccessory:["knit scarf","@c1"],headwear:["slouchy knit beanie","@c2"]},
+      w2f:{top:["cable-knit sweater","@light"],outerwear:["double-breasted peacoat","@c1"],bottom:["pleated midi skirt","@dark"],legwear:["white ice skates","white"],neckAccessory:["puffy scarf","@c2"],headwear:["beret","@c2"],gloves:["knit gloves","@c2"]}},
+    ferriswheel:{w1:{top:["cropped cardigan top","@c1"],bottom:["denim mini skirt","navy blue"],heldItem:["smartphone held up for a selfie","-"]},
+      w2m:{top:["plain crew-neck tee","@light"],outerwear:["bomber jacket","@c1"],bottom:["dark-wash jeans","navy blue"]},
+      w2f:{top:["puff-sleeve blouse","@light"],bottom:["satin mini skirt","@c1"],hipAccessory:["mini shoulder bag","@c2"],earAccessory:["heart earrings","@metal"]}},
+    photobooth:{w1:{top:["sequin mini dress","@c1"]},
+      w2m:{top:["fitted black shirt with the sleeves rolled up","black"],bottom:["slim tailored trousers","@dark"]},
+      w2f:{top:["off-shoulder silk blouse","@c1"],bottom:["leather mini skirt","@dark"],earAccessory:["chunky hoop earrings","@metal"],neckAccessory:["layered delicate necklaces","@metal"]}},
+    hammock:{w1:{top:["halter sundress","@c1"],headwear:["flower hair clip","@c2"]},
+      w2m:{top:["linen shirt unbuttoned to the chest","@light"],bottom:["loose drawstring linen trousers","@light"]},
+      w2f:{top:["crochet beach dress","@light"],earAccessory:["flower tucked behind one ear","@c1"],wristAccessory:["woven flower bracelet","@c2"]}},
+    leash:{w1:{headwear:["floppy dog ear headband","@hair"],neckAccessory:["leather collar with a ring","@dark"],legwear:["fishnet thigh-high stockings","@dark"]},w2m:{heldItem:["leather leash","@dark"]},w2f:{heldItem:["leather leash","@dark"]}},
+    bound:{w1:{neckAccessory:["shibari rope harness criss-crossing the chest and torso","red"],wristAccessory:["rope binding her wrists above her head","red"],eyewear:["black silk blindfold over the eyes","black"],thighAccessory:["pink vibrator taped to the inner thigh","hot pink"]}},
+    balcony:{w1:{legwear:["garter-strap stockings with lace tops","@dark"],neckAccessory:["pearl choker","-"]}},
+    cumdrunk:{w1:{legwear:["lace-top stockings","@dark"],neckAccessory:["velvet choker","@c1"]}},
+    breeding:{w1:{legwear:["thigh-high stockings","@dark"]}},
+    milking:{w1:{headwear:["floppy cow ear headband","white"],neckAccessory:["collar with a large bell","@c1"],legwear:["cow-print thigh-high stockings","white"]}},
+    doublestuffed:{w1:{legwear:["fishnet stockings","@dark"]}},
+    dungeon:{w1:{wristAccessory:["leather cuffs chained overhead","black"],legwear:["ankle cuffs locked to a spreader bar","black"],neckAccessory:["leather collar with a ring","black"]},w2m:{heldItem:["riding crop","black"]},w2f:{heldItem:["riding crop","black"]}},
+    throat:{w1:{legwear:["sheer thigh-highs","@dark"]}},
+    filming:{w1:{heldItem:["smartphone held up to record","-"],thighAccessory:["garter strap stuffed with tied-off used condoms","@c1"]}},
+    forest:{w1:{headwear:["flower crown","@c1"]}},
+    piledriver:{w1:{legwear:["sheer seamed thigh-high stockings","@dark"]}}
+  };
+  SW.concat(DP).forEach(r=>{const o=WEAR[r[0]];if(o)Object.assign(r[3],o)});
   const ORD=h=>ACAD.HOUSES.indexOf(h),byHouse=(a,b)=>ORD(a[1])-ORD(b[1]);
   SW.sort(byHouse);DP.sort(byHouse);
   START.add("Academy Sweethearts",SW.map(([k,h,n,x])=>scene(k,h,n,x,false)),{after:"Academy Intimacy"});
