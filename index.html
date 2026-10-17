@@ -7517,7 +7517,15 @@ const ACAD=(()=>{
     if(b.out.pair&&typeof setTab==="function")setTimeout(()=>{try{setTab("pair")}catch(e){}},0);
     return b;
   };
-  const tpl=id=>tplById(id);
+  /* v192: a saved design can be cast as character 1 or 2 ("save:<id>"); it is read from the saves, kept as its own state */
+  let saveCache=[],saveRaw=null;
+  const savesNow=()=>{let raw="";try{raw=localStorage.getItem(KEY_SAVES)||""}catch(e){}
+    if(raw!==saveRaw){saveRaw=raw;try{saveCache=(typeof readSaves==="function"?readSaves():[])||[]}catch(e){saveCache=[]}}return saveCache};
+  function saveTpl(sid){const s=savesNow().find(x=>x.id===sid);if(!s||!s.state)return null;const st=s.state,outs=st.outfits||[];
+    return{id:"save:"+sid,name:s.name||"My save",_state:st,pal:st.pal||{},c:st.c||{},outfit:{oname:(outs[0]&&outs[0].name)||"Outfit 1",items:{}},
+      more:outs.slice(1).map((o,i)=>({oname:o.name||("Outfit "+(i+2)),items:{}})),out:{}}}
+  const tpl=id=>typeof id==="string"&&id.startsWith("save:")?saveTpl(id.slice(5)):tplById(id);
+  const stOf=t=>t&&t._state?normalize(JSON.parse(JSON.stringify(t._state))):sft(t);
   const outfitNames=t=>[t.outfit].concat(t.more||[]).map((o,i)=>o.oname||("Outfit "+(i+1)));
   const SLIM_OFF=["palette","makeup","details","extras"],SLIM_C=["impression","faceAccents","armShape","torsoShape","handShape","bustWeight"];
   /* compose another state without disturbing this design (S, the compose context and the drop notes are restored) */
@@ -7561,7 +7569,7 @@ const ACAD=(()=>{
     const max=naiModel().max,fit=p.fit!==false;
     const stages=[{compact:!!p.compact,slim:false}];
     if(fit){if(!p.compact)stages.push({compact:true,slim:false});stages.push({compact:true,slim:true})}
-    const st=sft(t);
+    const st=stOf(t);
     const so=p.outfit==="scene"?sceneOutfit(p.w2,st.c&&st.c.sex==="male",st):null;
     if(so){st.outfits.push(so);st.cur=st.outfits.length-1}
     else st.cur=Math.min(Math.max(0,+p.outfit||0),st.outfits.length-1);
@@ -7625,7 +7633,7 @@ const ACAD=(()=>{
     return{scene:z.pre+(t?t[0].toUpperCase()+t.slice(1):"")+z.post,tags1:v.t1,tags2:v.t2,ex1:v.ex1,ex2:v.ex2};
   }
   /* the partner's character fields, for the size check */
-  const partnerC=p=>{const t=p&&p.id&&tpl(p.id);return t?sft(t).c:null};
+  const partnerC=p=>{const t=p&&p.id&&tpl(p.id);return t?stOf(t).c:null};
   /* typing into the scene or the tags keeps what is showing: the size version is written out first */
   function freezeSize(p){const v=sizeVersion(p,S.c,partnerC(p));if(v){p.scene=v.scene;p.tags1=v.tags1;p.tags2=v.tags2;p.pc={...(p.pc||{}),expression:v.ex2};
     if(!isMale())S.c.expression=v.ex1}if(p)delete p.sz}
@@ -7690,7 +7698,7 @@ const ACAD=(()=>{
   /* character 1: load a starting point in place of this design, keeping the pair */
   const selfSel=h("select",{id:"pairSelf","aria-label":"Character 1",onchange:e=>{const v=e.target.value;e.target.value="";const t=v&&tpl(v);if(!t)return;
     const keep=S.out.pair?JSON.parse(JSON.stringify(S.out.pair)):null,o={explicit:S.out.explicit,lewdtag:S.out.lewdtag,model:S.out.model};
-    const st=stateFromTemplate(t);st.out={...st.out,...o,pair:keep};
+    const st=t._state?stOf(t):stateFromTemplate(t);st.out={...st.out,...o,pair:keep};
     /* the scene's settings only go onto a design the safeguard allows explicit content for */
     let ok=false;{const keepS=S;try{S=normalize(JSON.parse(JSON.stringify(st)));ok=Policy.explicitAllowed()}finally{S=keepS}}
     if(keep&&(!keep.explicit||ok)){const male=st.c.sex==="male";
@@ -7704,6 +7712,8 @@ const ACAD=(()=>{
   function fillList(sel,first){
     sel.textContent="";sel.append(h("option",{value:"",text:first}));
     const listed=new Set();
+    /* v192: your saved designs first */
+    {const sv=savesNow();if(sv.length){const og=h("optgroup",{label:"My saves"});sv.forEach(x=>og.append(h("option",{value:"save:"+x.id,text:x.name||"My save"})));sel.append(og)}}
     /* v140: the men and the robe girls first, then the other groups */
     const FIRST=["Academy Men","Academy","Academy Headmistresses"];
     const groups=FIRST.map(l=>PRESET_GROUPS.start.find(g=>g.label===l)).filter(Boolean).concat(PRESET_GROUPS.start.filter(g=>!FIRST.includes(g.label)));
@@ -7711,9 +7721,15 @@ const ACAD=(()=>{
       g.keys.forEach(k=>{const t=tpl(k);if(!t||listed.has(k)||(t.out&&t.out.pair))return;listed.add(k);og.append(h("option",{value:k,text:t.name}))});
       if(og.children.length)sel.append(og)});
   }
-  function buildPartners(){   /* built on first render, once every starting point is registered */
-    built=true;fillList(partnerSel,"No partner");fillList(selfSel,"This design");
+  let builtSig="";
+  function buildPartners(){   /* built on first render, once every starting point is registered; rebuilt when the saves change */
+    const v1=partnerSel.value,v2=selfSel.value;
+    built=true;builtSig=savesNow().map(x=>x.id+x.name).join("|");fillList(partnerSel,"No partner");fillList(selfSel,"This design");
+    partnerSel.value=v1;selfSel.value=v2;
   }
+  /* a save made since the lists were built shows up as soon as either list is opened */
+  const freshLists=()=>{if(built&&builtSig!==savesNow().map(x=>x.id+x.name).join("|"))buildPartners()};
+  [partnerSel,selfSel].forEach(x=>{x.addEventListener("focus",freshLists);x.addEventListener("mousedown",freshLists)});
   const outfitSel=h("select",{id:"pairOutfit","aria-label":"Partner outfit",onchange:e=>setP(p=>{const v=e.target.value;p.outfit=v==="scene"?"scene":+v},"pairOutfit")});
   const typed=(key,fn)=>e=>{typing="pair";setP(p=>{if(p.sz)freezeSize(p);fn(p,e.target.value)},key);typing=""};
   const soloNow=p=>!!(p&&!p.id&&p.solo);
@@ -7783,21 +7799,108 @@ const ACAD=(()=>{
   {const stats=document.getElementById("stats");if(stats)stats.after(h("div",{class:"pairrow",style:"margin-top:6px"},h("label",{text:"NovelAI model"}),promptModel))}
   const EMPTY="No partner yet. The Academy Couples and Academy Intimacy starting points come with one, or pick any starting point above.";
   const empty=h("p",{class:"muted small",text:EMPTY});
+  /* ---------- v192: editing the action and the scene ---------- */
+  const editP=(fn,key)=>setP(p=>{if(p.sz)freezeSize(p);fn(p)},key||"pairEdit");
+  const splitTags=s=>String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
+  const css2=document.createElement("style");
+  css2.textContent=".chipedit{display:flex;flex-wrap:wrap;gap:4px;align-items:center;border:1px solid var(--rule);border-radius:8px;padding:4px 6px;min-height:2.2em;background:var(--panel);color:var(--ink)}"+
+    ".chipedit input{flex:1;min-width:7em;border:0;background:transparent;color:var(--ink);font:inherit;padding:2px}.chipedit input:focus{outline:none}"+
+    ".tchip{display:inline-flex;align-items:center;gap:2px;padding:1px 4px 1px 8px;border-radius:999px;background:var(--sel);color:var(--selink);font-size:13px;font-weight:600}"+
+    ".tchip button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 3px;opacity:.8}.tchip button:hover{opacity:1}"+
+    ".scparts{margin:2px 0 10px}.scparts summary{cursor:pointer;font-size:13px}.scpart{display:grid;grid-template-columns:1fr auto auto;gap:4px;margin:4px 0}"+
+    ".scpart textarea{width:100%;font:inherit;resize:vertical;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:6px}.scpart button{padding:0 6px}";
+  document.head.append(css2);
+  const ACT_LIST=h("datalist",{id:"pairActList"});document.body.append(ACT_LIST);
+  let actListBuilt=false;
+  const buildActList=()=>{if(actListBuilt)return;actListBuilt=true;const set=new Set();
+    TEMPLATES.forEach(t=>{const q=t.out&&t.out.pair;if(q&&q.act)splitTags(q.act).forEach(x=>set.add(x.replace(/^(mutual|source|target)#/i,"")))});
+    [...set].sort().forEach(v=>ACT_LIST.append(h("option",{value:v})))};
+  function chipEditor(id,label,get,set,listId){
+    const input=h("input",{type:"text",id,placeholder:"add…","aria-label":label,list:listId||null,autocomplete:"off",
+      onkeydown:e=>{if(e.key==="Enter"||e.key===","){e.preventDefault();add(input.value)}else if(e.key==="Backspace"&&!input.value){editP(p=>{const c=splitTags(get(p));c.pop();set(p,c.join(", "))})}},
+      onchange:()=>{if(input.value.trim())add(input.value)}});
+    const box=h("div",{class:"chipedit"},input);
+    function add(v){const vs=splitTags(v);if(!vs.length)return;editP(p=>{const c=splitTags(get(p));vs.forEach(x=>{if(!c.includes(x))c.push(x)});set(p,c.join(", "))});input.value="";setTimeout(()=>{try{input.focus()}catch(e){}},0)}
+    function render(p,val){box.querySelectorAll(".tchip").forEach(x=>x.remove());input.disabled=!p;
+      splitTags(val!==undefined?val:p?get(p):"").forEach((t,i)=>box.insertBefore(h("span",{class:"tchip"},t,
+        h("button",{type:"button","aria-label":"Remove "+t,title:"Remove",text:"×",onclick:()=>editP(q=>{const c=splitTags(get(q));c.splice(i,1);set(q,c.join(", "))})})),input))}
+    return{el:box,render,input};
+  }
+  const actChips=chipEditor("pairActAdd","Add an action",p=>p.act,(p,v)=>{p.act=v},"pairActList");
+  const t1Chips=chipEditor("pairTags1Add","Add a character 1 tag",p=>p.tags1,(p,v)=>{p.tags1=v});
+  const t2Chips=chipEditor("pairTags2Add","Add a character 2 tag",p=>p.tags2,(p,v)=>{p.tags2=v});
+  /* one-click position: swaps the position's action tags and the position words in the scene text */
+  const POSN=[["missionary","Missionary","sex, vaginal, missionary","missionary position",/\bmissionary(?: position)?\b/gi],
+    ["cowgirl","Cowgirl","sex, vaginal, cowgirl position, girl on top","cowgirl position",/\b(?<!reverse )cowgirl(?: position| style)?\b/gi],
+    ["reverse","Reverse cowgirl","sex, vaginal, reverse cowgirl position","reverse cowgirl position",/\breverse cowgirl(?: position| style)?\b/gi],
+    ["doggy","Doggystyle","sex, vaginal, doggystyle, sex from behind","doggystyle",/\bdoggy ?style\b/gi],
+    ["press","Mating press","sex, vaginal, mating press","mating press",/\bmating press\b/gi],
+    ["prone","Prone bone","sex, vaginal, prone bone","prone bone",/\bprone bone\b/gi],
+    ["spoon","Spooning","sex, vaginal, spooning, sex from behind","spooning position",/\bspooning(?: position)?\b/gi],
+    ["lotus","Lotus (on the lap)","sex, vaginal, upright straddle, sitting on lap","lotus position",/\blotus(?: position)?\b/gi],
+    ["standing","Standing","sex, vaginal, standing sex","standing position",null],
+    ["wall","Against the wall","sex, vaginal, standing sex, against wall","",null],
+    ["nelson","Full nelson","sex, vaginal, full nelson, legs up","full nelson",/\bfull nelson\b/gi],
+    ["blowjob","Blowjob","fellatio","",null,"ab"],["deepthroat","Deepthroat","fellatio, deepthroat","",null,"ab"],["titjob","Titjob","paizuri","",null,"ab"],
+    ["cunni","Cunnilingus","cunnilingus","",null,"ba"],["sixtynine","69","69, cunnilingus","",null,"mutual"],["scissor","Scissoring","scissoring, tribadism","",null,"mutual"],
+    ["finger","Fingering","fingering","",null,"ba"],["handjob","Handjob","handjob","",null,"ab"],["anal","Anal","sex, anal","",null],
+    ["kiss","Kissing","kiss","",null,"mutual"],["hug","Hug","hug","",null,"mutual"],["hands","Holding hands","holding hands","",null,"mutual"],["cuddle","Cuddling","cuddling","",null,"mutual"]];
+  const POS_TAGS=new Set(POSN.flatMap(x=>splitTags(x[2])));
+  const posSel=h("select",{id:"pairPos","aria-label":"Position",onchange:e=>{const k=e.target.value;e.target.value="";if(!k)return;const P0=POSN.find(x=>x[0]===k);if(!P0)return;
+    const sexual=POSN.indexOf(P0)<POSN.findIndex(x=>x[0]==="kiss");
+    if(sexual&&!Policy.explicitAllowed()){toast("Explicit positions are held back for this design.");return}
+    editP(p=>{if(sexual)p.explicit=true;const keep=splitTags(p.act).filter(x=>!POS_TAGS.has(x.replace(/^(mutual|source|target)#/i,"")));
+      p.act=[...new Set(splitTags(P0[2]).concat(keep))].join(", ");if(P0[5])p.dir=P0[5];
+      if(P0[3]){const key=soloNow(p)?"solo":"scene";let t=String(p[key]||"");POSN.forEach(o=>{if(o[4]&&o[0]!==k)t=t.replace(o[4],P0[3])});p[key]=t}},"pairPos");
+    if(sexual&&!(S.out.explicit&&S.out.lewdtag))mut(()=>{S.out.explicit=true;S.out.lewdtag=true},"pairPos2");
+    toast(`Position: ${P0[1]}.`+(P0[3]?" The position words in the scene were swapped too.":" Check the scene text for the old position."))}},
+    h("option",{value:"",text:"Change the position…"}),...POSN.map(x=>h("option",{value:x[0],text:x[1]})));
+  /* the scene, sentence by sentence, with its tag list as chips */
+  function splitScene(text){
+    let t=String(text||"").trim(),tags="";
+    const m=t.match(/^([\s\S]*?[.!?"”♡])\s+([^.!?"”]*,[^.!?"”]*,[^.!?"”]*)$/);
+    if(m){t=m[1];tags=m[2]}else if(!/[.!?]/.test(t)&&(t.match(/,/g)||[]).length>=2){tags=t;t=""}
+    const sents=t?t.split(/(?<=[.!?]["”]?|♡["”]?)\s+(?=["“{A-Z])/).map(x=>x.trim()).filter(Boolean):[];
+    return{sents,tags:splitTags(tags)};
+  }
+  const joinScene=(sents,tags)=>[sents.map(x=>x.trim()).filter(Boolean).join(" "),tags.join(", ")].filter(Boolean).join(" ");
+  const sceneKey=p=>soloNow(p)?"solo":"scene";
+  const partsList=h("div",{class:"scpartlist"});
+  const partTags=chipEditor("pairSceneTagAdd","Add a scene tag",p=>splitScene(p[sceneKey(p)]).tags.join(", "),(p,v)=>{const sp=splitScene(p[sceneKey(p)]);p[sceneKey(p)]=joinScene(sp.sents,splitTags(v))});
+  const parts=h("details",{class:"scparts"},h("summary",{text:"Edit the scene sentence by sentence"}),partsList,
+    h("button",{type:"button",class:"btn sm",text:"+ Add a sentence",onclick:()=>editP(p=>{const sp=splitScene(p[sceneKey(p)]);sp.sents.push("New sentence.");p[sceneKey(p)]=joinScene(sp.sents,sp.tags)})}),
+    h("p",{class:"muted small",text:"Scene tags"}),partTags.el);
+  let partsSig="";
+  function renderParts(p){
+    const text=p?String(p[sceneKey(p)]||""):"";
+    if(partsList.contains(document.activeElement)||text===partsSig)return;partsSig=text;partsList.textContent="";
+    if(!p)return;const sp=splitScene(text);
+    sp.sents.forEach((sen,i)=>{const ta=h("textarea",{rows:String(Math.min(6,Math.max(1,Math.ceil(sen.length/60)))),"aria-label":"Sentence "+(i+1),
+        oninput:e=>{typing="pair";setP(q=>{if(q.sz)freezeSize(q);const s2=splitScene(q[sceneKey(q)]);s2.sents[i]=e.target.value;q[sceneKey(q)]=joinScene(s2.sents,s2.tags);partsSig=q[sceneKey(q)]},"pairPart");typing=""}});ta.value=sen;
+      partsList.append(h("div",{class:"scpart"},ta,
+        h("button",{type:"button",class:"btn sm",title:"Move up","aria-label":"Move sentence up",text:"↑",disabled:i?null:true,onclick:()=>editP(q=>{const s2=splitScene(q[sceneKey(q)]);[s2.sents[i-1],s2.sents[i]]=[s2.sents[i],s2.sents[i-1]];q[sceneKey(q)]=joinScene(s2.sents,s2.tags)})}),
+        h("button",{type:"button",class:"btn sm",title:"Delete","aria-label":"Delete sentence",text:"×",onclick:()=>editP(q=>{const s2=splitScene(q[sceneKey(q)]);s2.sents.splice(i,1);q[sceneKey(q)]=joinScene(s2.sents,s2.tags)})})))});
+  }
   P.append(intro,
     h("div",{class:"pairrow"},h("label",{text:"NovelAI model"}),pairModel),
     h("div",{class:"pairrow"},h("label",{for:"pairSelf",text:"Character 1"}),selfSel),
     h("div",{class:"pairrow"},h("label",{for:"pairPartner",text:"Character 2"}),partnerSel),
     h("div",{class:"pairrow"},h("label",{for:"pairOutfit",text:"Partner outfit"}),outfitSel),
     h("div",{class:"pairrow"},h("label",{for:"pairLib",text:"Scene library"}),h("div",{class:"pickwrap"},libBtn)),libHint,
-    h("div",{class:"pairrow"},h("label",{for:"pairScene",text:"Scene"}),sceneIn),sceneHint,
-    h("div",{class:"pairrow"},h("label",{for:"pairAct",text:"Action"}),h("div",{class:"pairact"},actIn,dirSel)),
-    h("div",{class:"pairrow"},h("label",{for:"pairTags1",text:"Character 1 tags"}),tags1In),
-    h("div",{class:"pairrow",id:"pairTags2Row"},h("label",{for:"pairTags2",text:"Character 2 tags"}),tags2In),
+    h("div",{class:"pairrow"},h("label",{for:"pairScene",text:"Scene"}),sceneIn),sceneHint,parts,
+    h("div",{class:"pairrow"},h("label",{for:"pairPos",text:"Position"}),posSel),
+    h("div",{class:"pairrow"},h("label",{for:"pairActAdd",text:"Action"}),h("div",{class:"pairact"},actChips.el,dirSel)),
+    h("div",{class:"pairrow"},h("label",{for:"pairTags1Add",text:"Character 1 tags"}),t1Chips.el),
+    h("div",{class:"pairrow",id:"pairTags2Row"},h("label",{for:"pairTags2Add",text:"Character 2 tags"}),t2Chips.el),
+    h("details",{class:"scparts",id:"pairRaw"},h("summary",{text:"Edit the action and tags as text"}),
+      h("div",{class:"pairrow"},h("label",{for:"pairAct",text:"Action"}),actIn),
+      h("div",{class:"pairrow"},h("label",{for:"pairTags1",text:"Character 1 tags"}),tags1In),
+      h("div",{class:"pairrow"},h("label",{for:"pairTags2",text:"Character 2 tags"}),tags2In)),
     empty,body);
 
   let lastPartner;
   function renderPair(){
-    if(!built)buildPartners();
+    if(!built||builtSig!==savesNow().map(x=>x.id+x.name).join("|"))buildPartners();
     const mk=NAI_MODELS[S.out.model]?S.out.model:"v5";pairModel.value=mk;promptModel.value=mk;
     const p=S.out.pair,id=p&&p.id||"";
     /* v170: a partner that is not in any picker group (Crow's hidden "crowbody" base, for one) gets its own option, so the
@@ -7826,6 +7929,9 @@ const ACAD=(()=>{
     if(document.activeElement!==sceneIn){sceneIn.value=p?(soloNow(p)?p.solo:zv?zv.scene:p.scene)||"":"";sceneIn.rows=Math.min(10,Math.max(2,Math.ceil((sceneIn.value.length||1)/70)))}
     sceneHint.hidden=!(p&&/\{(partner|his|he|him|cock|lover)\}/i.test(p.scene||""));
     if(document.activeElement!==actIn)actIn.value=p?p.act||"":"";
+    /* v192 editors */
+    buildActList();actChips.render(soloNow(p)?null:p);t1Chips.render(p,zv?zv.tags1:undefined);t2Chips.render(p,zv?zv.tags2:undefined);
+    partTags.render(p);renderParts(p);posSel.disabled=!p;
     compactCb.checked=!!(p&&p.compact);fitCb.checked=!p||p.fit!==false;
     const r=p?pairPrompts():null;
     const ok=!!(r&&!r.missing);empty.hidden=ok;body.hidden=!ok;
@@ -7850,7 +7956,7 @@ const ACAD=(()=>{
     try{const r=pairPrompts();if(r&&r.blocked)return q.replace(/,\s*sexy, lewd/,"")}catch(e){}return q};
   const rs=renderSide;
   renderSide=function(){rs();try{renderPair()}catch(e){try{console.warn("[pair] "+e)}catch(_){}}};
-  window.PAIR={pairPrompts,sceneColors,toneOf};
+  window.PAIR={pairPrompts,sceneColors,toneOf,applyScene:t=>applyScene(t)};
   /* v189: per-scene quality style (pair.qStyle) is read by the Quality and UC tab (quc189.js) */
 
   /* ---------- Academy Couples: one design per pair, each carrying its partner ---------- */
@@ -18195,6 +18301,44 @@ function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.s
     if(!oc.keys.includes("ideal"))oc.keys.unshift("ideal");
     oc.label="OCs";
   }
+})();
+
+/* ---- v192: casting your own characters into the academy scenes.
+   - "Keep my character" switch in the Starting points dialog: with it on, picking a scene puts the current design into the
+     scene (as character 1, keeping any partner you chose) instead of replacing the design. Other starting points load normally.
+   - Each save gets "Use in a scene": it loads the save, turns the switch on and opens the starting points.
+   - The Pair tab's character 1 and 2 lists include My saves (pair151). */
+(function(){
+  const KEY="charstudio.keepchar.v1";
+  let keep=false;try{keep=localStorage.getItem(KEY)==="1"}catch(e){}
+  const setKeep=v=>{keep=!!v;try{localStorage.setItem(KEY,keep?"1":"0")}catch(e){}const cb=document.getElementById("spKeep");if(cb)cb.checked=keep};
+  const cb=h("input",{type:"checkbox",id:"spKeep",onchange:e=>setKeep(e.target.checked)});cb.checked=keep;
+  const sw=h("label",{class:"sp-keep",for:"spKeep",title:"With this on, a scene keeps your current character and puts her in it"},cb,
+    h("span",{text:" Keep my character in scenes"}));
+  const st=document.createElement("style");
+  st.textContent=".sp-keep{display:inline-flex;align-items:center;gap:4px;font-size:13px;white-space:nowrap;cursor:pointer;margin:4px 0}";
+  document.head.append(st);
+  const bar=document.querySelector("#startsDlg .sp-bar");if(bar)bar.append(sw);
+  const isScene=e=>!!(e&&e.t&&e.t.out&&e.t.out.pair);
+  const sp0=spLoad;
+  spLoad=function(e){
+    if(keep&&isScene(e)&&window.PAIR&&PAIR.applyScene){
+      PAIR.applyScene(e.t);noteRecent(e.key);document.getElementById("startsDlg").close();setTab("pair");return;
+    }
+    return sp0(e);
+  };
+  const rs0=renderSaves;
+  renderSaves=function(){
+    rs0();
+    const saves=readSaves(),rows=document.querySelectorAll("#saveList .saved .btnrow");
+    rows.forEach((r,i)=>{const s=saves[i];if(!s)return;
+      r.prepend(h("button",{type:"button",class:"btn sm",title:"Load this design and pick a scene to put her in",text:"Use in a scene",onclick:()=>{
+        replaceState(s.state);document.getElementById("savesDlg").close();setKeep(true);openStarts();
+        const chip=[...document.querySelectorAll("#spGroups .chip")].find(c=>/scene/i.test(c.textContent));if(chip)chip.click();
+        toast(`“${s.name}” is loaded. Pick any scene and she goes into it.`)}}));
+    });
+  };
+  window.CAST={setKeep,get keep(){return keep}};
 })();
 
 /* ---------- init ---------- */
