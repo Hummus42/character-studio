@@ -18321,7 +18321,8 @@ function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.s
     }
     /* third row: the girls (Academy and Scenes) */
     const gr=girlRow();gr.textContent="";gr.hidden=!(s.sec==="academy"||s.sec==="scenes");
-    if(!gr.hidden){gr.append(chip(!s.girl,"All girls",()=>go(s.sec,s.set,"")));HOUSES.forEach(hh=>gr.append(chip(s.girl===hh,(ACAD.HNAME&&ACAD.HNAME[hh])||cap(hh),()=>go(s.sec,s.set,hh))))}
+    if(!gr.hidden){gr.append(chip(!s.girl,"All girls",()=>go(s.sec,s.set,"")));const FAM=ACAD.FAMILY||{};let last="";   /* v213: the girls in families, each family labeled */
+      HOUSES.forEach(hh=>{const f=FAM[hh];if(f&&f!==last){last=f;gr.append(h("span",{class:"sp-fam",text:f}))}gr.append(chip(s.girl===hh,(ACAD.HNAME&&ACAD.HNAME[hh])||cap(hh),()=>go(s.sec,s.set,hh)))})}
     const q=$("#spQ");if(q){const nm={chars:"characters",academy:"the Academy",men:"the men",scenes:"scenes",recent:"recent",saves:"your saves"}[s.sec];
       q.placeholder=nm?`Search ${nm}`:`Search ${data.list.length} starting points`}
   };
@@ -19945,6 +19946,162 @@ narwhal:["Aurora Tide","the dreamer under the northern lights","dreamy, faraway 
 arcticfox:["Snow Kitsune","the snow trickster of the winter shrine","mischievous, sly smirk","peeking out from behind a torii gate with a finger to her lips","a snowy shrine of red torii gates at dusk, paper lanterns glowing on the snow",
   {top:["{c} short silk kimono robe worn off the shoulders","@primary"],waistAccessory:["{c} wide obi sash","@accent"],legwear:["{c} thigh-high stockings","@primary"],headwear:["white fox mask tilted on her head","-"]}]};
 
+/* ---- v213: the Lioness's pack: four feisty cats with short and medium hair (a third wave of the house pass).
+   Jaguar (Dragon's stories), Cheetah (Shark's), Cougar (Wolf's), Caracal (Rat's). In every story the sister shared with her
+   usual partner (Griffin, Salmon, Stag, Owl), the partner is Lioness. */
+const NEWGIRLS3=[
+{k:"jaguar",sis:"dragon",pal:{primary:"amber gold",secondary:"black",third:"emerald green",accent:"gold",extra:"bronze"},
+ man:{primary:"black",secondary:"emerald green",third:"bronze",accent:"gold",extra:"charcoal gray"},
+ room:"a jungle temple tower room hung with jade lanterns, her spears on the wall",pride:"the fiercest little warrior in the jungle",pet:"Kitten",
+ bath:"a jungle temple bathhouse with a carved stone tub",role:"the jungle warrior",acc:"jade lantern light through jungle leaves",
+ c:{age:"young woman",faceShape:"soft heart-shaped face with high cheekbones",eyeConfig:"matching",eyeShape:"large, almond-shaped catlike eyes",pupilStyle:"round pupils",irisDetail:"bright, gold-flecked irises",
+  lashNatural:"thick, dark eyelashes",eyeOne:"@third",browShape:"bold, arched brows",noseShape:"small, cute nose",mouthShape:"full, pouty lips",
+  expression:"feisty, pouty glare",impression:"a fierce, fiery spirit with an adorable pout",faceMark:"a tiny beauty mark beneath one eye",
+  hairStyle:"sleek layered lob",hairLength:"shoulder-length",hairTexture:"thick, glossy and smooth",bangs:"blunt bangs",hairMovement:"swings sharply when she turns her head",
+  hairBase:"@primary",hairUnderlayer:"@secondary",hairInner:"@primary",hairHighlights:"@accent",hairBlend:"black rosette-like lowlights through the golden hair",
+  skinTone:"golden tan",undertone:"warm golden",skinFinish:"smooth, glowing skin with a warm sheen",markings:"no markings",bodyMarkings:"a ring of tiny jaguar-rosette tattoos around one thigh",
+  makeupStyle:"bold glam makeup",eyelinerStyle:"sharp winged eyeliner",eyeshadowStyle:"emerald and gold shimmer eyeshadow",lashStyle:"lifted lashes",blushStyle:"warm bronzed blush",lipFinish:"glossy nude-pink lips",faceAccents:"golden cheekbone highlight",nailStyle:"long pointed fingernails",nailColor:"@accent",
+  heightStature:"slightly above-average height",shoulderShape:"balanced, athletic shoulders",torsoShape:"lean, toned torso",armShape:"toned arms",handShape:"strong and graceful",
+  bustSize:"large, full breasts",bustShape:"round, perky, full shape",bustWeight:"firm fullness",waistShape:"narrow, defined waist",stomachShape:"flat, toned stomach",
+  hipShape:"curvy hips",buttSize:"round, firm, athletic butt",thighBuild:"toned thighs",legShape:"strong, shapely legs",bodySoftness:"lean, athletic hourglass build",
+  posture:"crouched low and ready to pounce, glaring up through her bangs",
+  nippleColor:"caramel pink",nippleType:"small and perky",nippleLength:"medium-length",areolaColor:"caramel pink",areolaType:"smooth",areolaSize:"medium-sized",vaginaColor:"rosy pink",vaginaType:"neat with minimal labia",pubicHair:"a small, neatly trimmed landing strip"},
+ robes:{top:["sweater vest over a collared shirt","@primary"],bottom:["pleated mini skirt","@secondary"],outerwear:["long {c} hooded robe with {c2} lining","@secondary",null,"@primary"],neckAccessory:["{c}-and-{c2} striped necktie","@third",null,"@accent"],
+  legwear:["sheer {c} stockings with {c2} rosette-print tops","@secondary",null,"@primary"],earAccessory:["gold ear cuffs","@accent"],tagCharm:["small jaguar crest badge","@third"]},
+ blurb:"A feisty jungle warrior with a sleek shoulder-length golden lob shot through with black rosette lowlights, blunt bangs, emerald catlike eyes, golden-tan skin and an adorable pouty glare. A black hooded robe lined in gold over a golden vest and black pleated skirt, rosette-print stockings and gold ear cuffs, plus a nude outfit."},
+
+{k:"cheetah",sis:"shark",pal:{primary:"sandy blonde",secondary:"black",third:"cream",accent:"tangerine orange",extra:"white"},
+ man:{primary:"dark brown",secondary:"white",third:"cream",accent:"tangerine orange",extra:"charcoal gray"},
+ room:"a sunny trophy-lined dorm room with a view of the savanna track",pride:"the fastest girl alive",pet:"Zoomies",
+ bath:"a sunlit locker-room shower beside the savanna track",role:"the star sprinter",acc:"golden savanna light",
+ c:{age:"young woman",faceShape:"small, softly rounded face with a pointed chin",eyeConfig:"matching",eyeShape:"large, bright, upturned eyes",pupilStyle:"round pupils",irisDetail:"bright amber irises with a dark limbal ring",
+  lashNatural:"long, dark eyelashes",eyeOne:"amber",browShape:"soft, straight brows",noseShape:"small, upturned nose",mouthShape:"small, cheeky lips",
+  expression:"cocky, sparkling grin",impression:"a bright, cocky, bouncy energy",faceMark:"faint dark tear-line markings from the inner corners of her eyes",
+  hairStyle:"layered bob with wispy face-framing pieces",hairLength:"chin-length",hairTexture:"silky and feathery",bangs:"wispy see-through bangs",hairMovement:"flips out behind her as she runs",
+  hairBase:"@primary",hairUnderlayer:"@primary",hairInner:"@primary",hairHighlights:"@third",hairBlend:"a few black spotted flecks through the golden blonde",
+  skinTone:"light golden tan",undertone:"golden",skinFinish:"smooth, sun-kissed skin with a light sheen",markings:"a sprinkle of dark freckles across her nose, shoulders and back",
+  makeupStyle:"sporty natural makeup",eyelinerStyle:"thin dark eyeliner",eyeshadowStyle:"warm peach shimmer eyeshadow",lashStyle:"natural lashes",blushStyle:"sporty flushed blush",lipFinish:"tinted lip balm",faceAccents:"nose-tip highlight",nailStyle:"short rounded fingernails",nailColor:"@accent",
+  heightStature:"average height",shoulderShape:"narrow, sloped shoulders",torsoShape:"lean, slim torso",armShape:"slim, toned arms",handShape:"slender and quick",
+  bustSize:"medium, perky breasts",bustShape:"perky, round shape",bustWeight:"light, perky fullness",waistShape:"tiny waist",stomachShape:"flat stomach with light ab definition",
+  hipShape:"slim, rounded hips",buttSize:"small, round, toned butt",thighBuild:"lean, toned thighs",legShape:"very long, slender sprinter's legs",bodySoftness:"slim, lean hourglass figure",
+  posture:"bouncing on her toes at the starting line with a cocky grin",
+  nippleColor:"light pink",nippleType:"small and perky",nippleLength:"short",areolaColor:"light pink",areolaType:"smooth",areolaSize:"small",vaginaColor:"pink",vaginaType:"neat with minimal labia",pubicHair:"no pubic hair"},
+ robes:{top:["sweater vest over a collared shirt","@third"],bottom:["pleated mini skirt","@secondary"],outerwear:["long {c} hooded robe with {c2} lining","@primary",null,"@secondary"],neckAccessory:["{c}-and-{c2} striped necktie","@accent",null,"@secondary"],
+  legwear:["{c} knee-high socks with {c2} spotted tops","@third",null,"@secondary"],earAccessory:["small gold stud earrings","-"],tagCharm:["small cheetah crest badge","@accent"]},
+ blurb:"A cocky little sprinter with a chin-length golden-blonde layered bob flecked with black, bright amber eyes with faint tear-line markings, freckled sun-kissed skin and a sparkling grin. A golden hooded robe lined in black over a cream vest and black pleated skirt, spotted knee-high socks and a tangerine tie, plus a nude outfit."},
+
+{k:"cougar",sis:"wolf",pal:{primary:"caramel brown",secondary:"cream",third:"chocolate brown",accent:"sage green",extra:"silver"},
+ man:{primary:"dark brown",secondary:"charcoal gray",third:"forest green",accent:"amber",extra:"black"},
+ room:"a mountain lodge loft above the canyon, a woven blanket on the bed",pride:"the scrappiest mountain lion in the pride",pet:"Cub",
+ bath:"a stone lodge shower, the red-rock canyon outside the window",role:"the mountain lion",acc:"red-rock canyon light at sunset",
+ c:{age:"young woman",faceShape:"oval face with defined cheekbones and soft cheeks",eyeConfig:"matching",eyeShape:"large, upturned, sharp eyes",pupilStyle:"round pupils",irisDetail:"golden-green irises with a bright inner ring",
+  lashNatural:"long, dark eyelashes",eyeOne:"hazel",browShape:"straight, defined brows",noseShape:"straight, slightly upturned nose",mouthShape:"wide, full lips",
+  expression:"smug, challenging smirk",impression:"a scrappy, competitive confidence with a cute, boyish charm",faceMark:"a small scar through the edge of one eyebrow",
+  hairStyle:"sleek layered cut with curtain bangs",hairLength:"shoulder-length",hairTexture:"smooth, straight and glossy",bangs:"curtain bangs",hairMovement:"falls neatly around her shoulders",
+  hairBase:"@primary",hairUnderlayer:"@third",hairInner:"@primary",hairHighlights:"@secondary",hairBlend:"cream highlights through the caramel with darker chocolate roots",
+  skinTone:"warm beige",undertone:"honey",skinFinish:"smooth, healthy skin with a sun-warmed glow",markings:"no markings",bodyMarkings:"a small mountain-and-paw-print tattoo on her ribs",
+  makeupStyle:"natural glam makeup",eyelinerStyle:"smudged brown eyeliner",eyeshadowStyle:"warm bronze eyeshadow",lashStyle:"natural lashes",blushStyle:"soft terracotta blush",lipFinish:"satin rose-brown lips",faceAccents:"soft cheekbone highlight",nailStyle:"short square fingernails",nailColor:"@accent",
+  heightStature:"very tall stature",shoulderShape:"broad, athletic shoulders",torsoShape:"long, lean torso",armShape:"long, toned arms",handShape:"long and strong",
+  bustSize:"very large breasts",bustShape:"full, round, natural shape",bustWeight:"heavy fullness",waistShape:"narrow waist",stomachShape:"flat, toned stomach",
+  hipShape:"wide hips",buttSize:"round, firm, muscular butt",thighBuild:"long, powerful thighs",legShape:"very long, strong legs",bodySoftness:"tall, lean, athletic hourglass build",
+  posture:"leaning against a rock with her arms crossed under her breasts, smirking",
+  nippleColor:"dusky rose",nippleType:"puffy",nippleLength:"medium-length",areolaColor:"dusky rose",areolaType:"smooth",areolaSize:"large",vaginaColor:"rosy pink",vaginaType:"full and plump",pubicHair:"short, closely trimmed pubic hair"},
+ robes:{top:["sweater vest over a collared shirt","@secondary"],bottom:["pleated mini skirt","@third"],outerwear:["long {c} hooded robe with {c2} lining","@primary",null,"@secondary"],neckAccessory:["{c}-and-{c2} striped necktie","@accent",null,"@primary"],
+  legwear:["{c} over-the-knee socks","@third"],earAccessory:["silver hoop earrings","@extra"],tagCharm:["small cougar crest badge","@accent"],wristAccessory:["{c} leather cuff","@third"]},
+ blurb:"A tall, scrappy mountain lion with a sleek shoulder-length caramel cut with cream highlights and curtain bangs, golden-green eyes, a tiny scar through one brow, warm beige skin and a smug, challenging smirk. A caramel hooded robe lined in cream over a cream vest and chocolate pleated skirt, over-the-knee socks and a sage tie, plus a nude outfit."},
+
+{k:"caracal",sis:"rat",pal:{primary:"copper red",secondary:"black",third:"cream",accent:"gold",extra:"turquoise"},
+ man:{primary:"black",secondary:"charcoal gray",third:"copper red",accent:"gold",extra:"cream"},
+ room:"a tiny rooftop room above a desert market, piled with cushions and treasures she bargained for",pride:"the feistiest little hunter in the pride",pet:"Pounce",
+ bath:"a little tiled bathhouse with a copper tub above the desert market",role:"the feisty one",acc:"lantern light over a desert market",
+ c:{age:"young woman",faceShape:"small, heart-shaped face with round cheeks",eyeConfig:"matching",eyeShape:"huge, round, upturned eyes",pupilStyle:"round pupils",irisDetail:"glossy gold irises",
+  lashNatural:"long, dark eyelashes",eyeOne:"amber gold",browShape:"short, expressive brows",noseShape:"small button nose",mouthShape:"small, pouty lips",
+  expression:"feisty, puffed-cheek pout",impression:"a tiny, fiery, adorable feistiness",faceMark:"white highlights above her eyes and on her chin like caracal markings",
+  hairStyle:"sleek pixie cut with long side-swept bangs",hairLength:"short",hairTexture:"silky and smooth",bangs:"long side-swept bangs",hairMovement:"frames her face with two long black-tipped locks that flick like ear tufts",
+  hairBase:"@primary",hairUnderlayer:"@primary",hairInner:"@third",hairHighlights:"@secondary",hairBlend:"black tips on the long locks framing her face",
+  skinTone:"golden beige",undertone:"warm",skinFinish:"smooth, warm skin with a soft glow",markings:"no markings",bodyMarkings:"a tiny gold belly-button piercing",
+  makeupStyle:"cat-eye glam makeup",eyelinerStyle:"bold black cat-eye eyeliner",eyeshadowStyle:"copper shimmer eyeshadow",lashStyle:"fluttery lashes",blushStyle:"rosy flushed blush",lipFinish:"glossy rose lips",faceAccents:"soft under-eye highlight",nailStyle:"short almond fingernails",nailColor:"@accent",
+  heightStature:"a petite frame",shoulderShape:"small, narrow shoulders",torsoShape:"small, slim torso",armShape:"slim arms",handShape:"small and quick",
+  bustSize:"small, perky breasts",bustShape:"perky, round shape",bustWeight:"light fullness",waistShape:"tiny waist",stomachShape:"flat, toned stomach",
+  hipShape:"curvy little hips",buttSize:"round, perky, bubbly butt",thighBuild:"toned thighs",legShape:"short, toned legs",bodySoftness:"petite, lean hourglass figure",
+  posture:"springing up on her toes with her fists balled, ready to fight",
+  nippleColor:"rosy pink",nippleType:"small and perky",nippleLength:"short",areolaColor:"rosy pink",areolaType:"smooth",areolaSize:"small",vaginaColor:"pink",vaginaType:"neat with minimal labia",pubicHair:"no pubic hair"},
+ robes:{top:["sweater vest over a collared shirt","@third"],bottom:["pleated mini skirt","@primary"],outerwear:["long {c} hooded robe with {c2} lining","@secondary",null,"@primary"],neckAccessory:["{c}-and-{c2} striped necktie","@accent",null,"@secondary"],
+  legwear:["{c} thigh-high socks with {c2} tassels","@secondary",null,"@accent"],earAccessory:["little gold tassel earrings","@accent"],tagCharm:["small caracal crest badge","@extra"]},
+ blurb:"A tiny, fiery little hunter with a sleek copper-red pixie cut, long side-swept bangs and black-tipped locks at her temples like ear tufts, huge gold eyes, golden-beige skin and a puffed-cheek pout. A black hooded robe lined in copper over a cream vest and copper pleated skirt, tasseled thigh-highs and gold tassel earrings, plus a nude outfit."}
+];
+
+/* ---- v213: lore for the Lioness's pack (same fields as girls210lore.js) */
+const NEWLORE3={
+jaguar:{touch:"lit by jade lanterns and green jungle light",room:"a jade-draped jungle temple bedroom",roomL:"a jade-draped jungle temple bedroom",out:"a jungle temple stairway at sunset",
+  g:{id:"shoulder-length sleek golden lob with black rosette lowlights and blunt bangs, emerald catlike eyes, golden tan skin, a tiny beauty mark beneath one eye",fig:"lean, athletic hourglass, large breasts",col:"emerald green",
+    out:"a jungle temple stairway at sunset, vines and jade lanterns",light:"warm jungle sunset, dappled light",room:"a bedroom with jade silk drapes",bath:"a carved stone temple bath with jade lanterns"},
+  fx:"drifting jungle leaves, glowing jade lanterns",mot:"jaguar-heart",mot2:"jaguar",tmot:"rosette",emb:"roaring-jaguar",pk:"a Liepard prowling at her side",
+  words:[["dragon scales and claws","jaguar rosettes and claws"],["gold dragon-scale embroidery","gold rosette embroidery"],["dragon-scale trim","rosette-print trim"],["dragon-scale pauldron","jaguar-pelt pauldron"],
+    ["dragon-scale breastplate","jaguar-pelt breastplate"],["cozy dragon-scale hooded onesie with little horns and a tail","cozy jaguar hooded onesie with little round ears and a spotted tail"],["dragon-scale","rosette-print"],["dragon scale","rosette-print"],
+    ["scale embroidery","rosette embroidery"],["scale-edged","rosette-edged"],["small curved horn headband","small round jaguar-ear headband"],["large bat wings (costume)","long spotted jaguar tail (costume)"],["long scaled dragon tail","long spotted jaguar tail"],
+    ["plush spa headband with small horns","plush spa headband with small round ears"],["horn spikes","jade spikes"],["scaled hide shoulder wrap","jaguar-pelt shoulder wrap"],["dragon horns","jaguar ears"],["red-draped tower","jade-draped temple"]],
+  colors:[["crimson red","amber gold"],["Crimson red","Amber gold"],["burgundy","emerald green"],["Burgundy","Emerald green"],["cheeks flushed crimson","cheeks flushed crimson"],["cheeks crimson","cheeks crimson"],["face is crimson","face is crimson"],
+    ["regal crimson","regal emerald"],["crimson backdrop","emerald backdrop"],["crimson silk","emerald silk"],["crimson rope","emerald rope"],["crimson battle crown","gold battle crown"],["Crimson cheer","Emerald cheer"]]},
+cheetah:{touch:"in warm golden savanna light",room:"a sunny dorm room lined with trophies",roomL:"a sunny dorm room lined with trophies, the savanna track outside",out:"a savanna running track at golden hour",
+  g:{id:"chin-length golden-blonde layered bob flecked with black, wispy bangs, bright amber eyes, faint dark tear-line markings, light golden tan skin, freckles",fig:"slim, lean sprinter's hourglass, medium breasts",col:"tangerine orange",
+    out:"a savanna track at golden hour, acacia trees",light:"golden hour, warm backlight, rim light",room:"a sunny dorm room lined with trophies",bath:"a sunlit locker-room shower, golden light"},
+  fx:"speed lines, golden dust",mot:"lightning-bolt",mot2:"spot-and-stripe",tmot:"cheetah-spot",emb:"running-cheetah",pk:"a Boltund racing beside her",
+  words:[["sharp-toothed smirk","cocky smirk"],["sharp-toothed grin","cocky grin"],["toothy grin","cocky grin"],["toothy mouth","open mouth"],["with sharp teeth","with a cocky smile"],["her sharp teeth","her cocky smile"],["sharp teeth","a cocky smile"],
+    ["careful with her sharp teeth","careful with her teeth"],["shark tooth earrings","gold medal earrings"],["shark-tooth necklace","gold medal necklace"],["shark-tooth pendant","cheetah-spot pendant"],["shark-tooth clasp","cheetah-spot clasp"],
+    ["fin-shaped train","spotted train"],["tooth-trimmed hood","spot-trimmed hood"],["jagged tooth-edged neckline","spotted neckline"],["shark fins and cresting waves","cheetah spots and racing stripes"],["shark teeth","gold medals"],
+    ["wave-and-fin","spot-and-stripe"],["sharkskin shoulder wrap","cheetah-print shoulder wrap"],["shark skin stockings","cheetah-print stockings"],["Predator and prey","Cat and mouse"],["I bite♡","I pounce♡"],["Bite?♡","Pounce?♡"],
+    ["sharks and rays","sharks and rays"],["passing shark","passing shark"],["sharks","sharks"],["shark tank","shark tank"]],
+  colors:[["steel blue","sandy blonde"],["steel-blue","sandy-blonde"],["Steel blue","Sandy blonde"],["coral red","tangerine orange"],["coral-red","tangerine-orange"]]},
+cougar:{touch:"with red-rock canyon light at sunset",room:"a mountain lodge loft above the canyon",roomL:"a mountain lodge loft above the canyon, a woven blanket on the bed",out:"a canyon rim trail at sunset",
+  g:{id:"shoulder-length sleek caramel hair with cream highlights and curtain bangs, golden-green eyes, a small scar through one eyebrow, warm beige skin",fig:"very tall, lean athletic hourglass, very large breasts",col:"sage green",
+    out:"a red-rock canyon at sunset, pines on the rim",light:"sunset, warm canyon light, rim light",room:"a mountain lodge loft with a woven blanket",bath:"a stone lodge shower, the canyon outside the window"},
+  fx:"canyon dust, sunset glow",mot:"cougar-paw",mot2:"prowling-cougar",tmot:"canyon-and-pine",emb:"prowling-cougar",pk:"a Persian lounging on a rock beside her",
+  words:[["howling wolf heads","snarling cougar heads"],["howling-wolf","prowling-cougar"],["howling wolf","prowling cougar"],["wolf-fang pendant","cougar-claw pendant"],["wolf-moon","cougar-paw"],["moon-and-pine","canyon-and-pine"],
+    ["wolfish crouches","feline crouches"],["wolfish crouch","feline crouch"],["Pack hunt","Pride hunt"],["howls","growls"],["howling","growling"],["howl","growl"],["a fur rug","a woven rug"],["fur rug","woven rug"],["a fur throw","a woven blanket"],["fur throw","woven blanket"],
+    ["log cabin","mountain lodge"],["cabin fire","lodge fire"]],
+  colors:[["steel gray","caramel brown"],["steel-gray","caramel-brown"],["Steel gray","Caramel brown"],["ice-blue moon-and-pine embroidery","sage canyon-and-pine embroidery"]]},
+caracal:{touch:"in warm lantern light over a desert market",room:"a tiny rooftop room above a desert market",roomL:"a tiny rooftop room above a desert market, piled with cushions and treasures",out:"a lantern-lit desert market alley at night",
+  g:{id:"short sleek copper-red pixie cut with long side-swept bangs and black-tipped locks at the temples, huge gold eyes, white markings above the eyes, golden beige skin",fig:"petite, lean hourglass, small breasts, round butt",col:"copper red",
+    out:"a desert market alley at night, hanging lanterns",light:"warm lantern light, soft ambient light",room:"a rooftop room piled with embroidered cushions",bath:"a tiled bathhouse with a copper tub, lanterns"},
+  fx:"lantern glow, drifting spice dust",mot:"caracal-ear",mot2:"tassel-and-moon",tmot:"crescent-moon",emb:"leaping-caracal",pk:"a Purrloin perched on her shoulder with a stolen ring in its paws",
+  words:[["Squeak squeak","Mrrp mrrp"],["SQUEAK♡","MRRP♡"],["SQUEAK..","MRRP.."],["squeaks","chirps"],["squeak","chirp"],["a stolen wedge of cheese","a stolen pomegranate"],["wedge of cheese","pomegranate"],["cheese stalls","spice stalls"],
+    ["round mouse ears","tall tufted caracal ears"],["long thin rat tail attached at the lower back","short caracal tail attached at the lower back"],["long thin rat tail","short caracal tail"],["rat ears","tufted caracal ears"],["rat-tail charms","tassel charms"],["rat-tail","tassel"],
+    ["treasure-nest set","treasure-cushion set"],["giant nest woven from silver ribbon and twigs","giant pile of embroidered floor cushions"],["the giant nest","the pile of embroidered cushions"],["rose quartz pendant","carnelian pendant"],
+    ["neon-lit city alley","lantern-lit desert market alley"],["a row of rats watches from the branches","a caracal watches from the palm branches"],["arms spread like wings among the rats","arms spread wide under the desert moon"],
+    ["a moonlit city rooftop crowded with rats","a moonlit rooftop above the desert market"],["a pack of rats crouched along the railings around her","a pair of caracals perched on the railings around her"],["among a pack of rats","among the market cats"],["rooftop rats","rooftop cats"]],
+  colors:[["ash gray","copper red"],["ash-gray","copper-red"],["Ash gray","Copper red"],["rose pink","gold"],["rose-pink","gold"],["mustard yellow","cream"]]}};
+
+const NEWHEADS3={
+jaguar:{c:{age:"mature woman",faceShape:"strong heart-shaped face with high cheekbones",expression:"fierce, knowing smile",impression:"a fierce, regal presence",hairStyle:"sleek chin-length bob",bangs:"blunt bangs",makeupStyle:"bold glam makeup",bodySoftness:"tall, athletic, mature hourglass figure"},
+  blurb:"The Jaguar headmistress: a tall, athletic woman with a sleek golden chin-length bob streaked with black, emerald eyes, golden-tan skin and a fierce, knowing smile."},
+cheetah:{c:{age:"mature woman",faceShape:"refined, softly rounded face",expression:"bright, competitive grin",impression:"a quick, energetic, sporty presence",hairStyle:"sleek pixie cut",bangs:"side-swept bangs",makeupStyle:"sporty natural makeup",bodySoftness:"slim, lean, mature figure"},
+  blurb:"The Cheetah headmistress: a slim, long-legged woman with a sleek golden-blonde pixie cut, amber eyes with faint tear-line markings, freckles and a bright, competitive grin."},
+cougar:{c:{age:"mature woman",faceShape:"strong oval face with high cheekbones",expression:"cool, appraising smirk",impression:"a cool, confident, worldly allure",hairStyle:"sleek layered bob",bangs:"curtain bangs",makeupStyle:"glamorous soft smoky makeup",bodySoftness:"very tall, mature hourglass figure"},
+  blurb:"The Cougar headmistress: a very tall, voluptuous woman with a sleek caramel layered bob, golden-green eyes and a cool, appraising smirk."},
+caracal:{c:{age:"mature woman",faceShape:"small heart-shaped face with high cheekbones",expression:"sharp, sly smile",impression:"a sharp, quick-witted charm",hairStyle:"sleek asymmetric bob",bangs:"long side-swept bangs",makeupStyle:"cat-eye glam makeup"},
+  blurb:"The Caracal headmistress: a petite, toned woman with a sleek copper-red asymmetric bob tipped black, huge gold eyes behind a monocle and a sharp, sly smile."}};
+
+const NEWMEN3={
+jaguar:{c:{eyeOne:"emerald green",markings:"a jaguar tattoo coiling down one arm"},
+  blurb:"A warrior fierce enough to win her over: a huge, bronze-skinned fighter with a long black half-up warrior braid, emerald eyes, a short boxed beard and a jaguar tattoo coiling down one arm. She hasn't let him past a kiss yet. Leather and chains, battle armor, or bare."},
+cheetah:{c:{eyeOne:"warm brown",hairStyle:"short textured crop",markings:"a lightning-bolt tattoo along the ribs"},
+  blurb:"Her training partner: a tall, ripped lifeguard and track coach with a short dark brown crop, warm brown eyes, a cocky grin, light stubble and a lightning-bolt tattoo along his ribs; the only one who can keep up with her on the sand. An open Hawaiian shirt and board shorts, beach linen, or just the trunks."},
+cougar:{c:{eyeOne:"amber",markings:"claw-mark scars across the torso"},
+  blurb:"Her wild match: a huge, rugged mountain ranger with a long dark shag, amber eyes, heavy stubble, a hairy chest and claw-mark scars. She makes him earn every inch. Flannel and a shearling jacket, or shirtless in worn jeans."},
+caracal:{c:{eyeOne:"gray",markings:"a caracal-and-key tattoo along one forearm"},
+  blurb:"Her locksmith: a lean, wiry street mechanic with a slicked-back black undercut, sly gray eyes, stubble, a roguish lopsided grin and a caracal-and-key tattoo along one forearm. He can open any door in the market for her. A grease-smudged tank top and tool belt, a battered leather jacket, or nothing."}};
+
+const NEWSIG3={
+jaguar:["Jungle Warrior","the fiercest warrior in the jungle","feisty, pouty glare","crouched on a temple step with a spear, ready to pounce","a jungle temple stairway at sunset, vines and jade lanterns",
+  {top:["{c} rosette-print halter crop top with gold trim","@primary"],bottom:["{c} wrapped loincloth skirt with jade beads","@secondary"],shoulderPiece:["{c} feathered warrior pauldron","@third"],heldItem:["jade-tipped spear","-"],neckAccessory:["gold jaguar-fang collar","@accent"]}],
+cheetah:["Golden Sprint","the fastest girl alive","cocky, sparkling grin","crouched in a sprinter's start on a golden track","a savanna running track at golden hour, acacia trees beyond",
+  {top:["{c} spotted racer-back sports bra","@primary"],bottom:["{c} high-cut running briefs","@secondary"],outerwear:["cropped {c} track jacket worn open","@third"],headwear:["{c} sweatband","@accent"],neckAccessory:["gold medal on a ribbon","-"]}],
+cougar:["Canyon Queen","the scrappiest mountain lion in the pride","smug, challenging smirk","sitting on a red rock ledge with one knee up","a red-rock canyon at sunset, pines on the rim",
+  {top:["{c} plaid flannel shirt tied above the waist","@third"],bra:["{c} lace bralette","@secondary"],bottom:["{c} high-waisted denim shorts","@primary"],legwear:["{c} lace-up hiking boots","@third"],headwear:["{c} wide-brim hat","@primary"]}],
+caracal:["Market Thief","the feistiest little hunter in the pride","feisty, puffed-cheek pout","springing off a market awning with a stolen pomegranate","a lantern-lit desert market at night, rugs and spice stalls below",
+  {top:["{c} cropped silk bolero with gold coin trim","@primary"],bra:["{c} coin-trimmed bandeau","@accent"],bottom:["sheer {c} harem pants","@secondary"],waistAccessory:["gold coin hip chain","-"],heldItem:["stolen pomegranate","-"]}]};
+
 /* ---- v210: eighteen new Academy houses (tail block, after every Academy set is registered, before generic176.js).
    Each new house is the counterpart of an older one (its "sister": Lioness for Griffin, Panda for Badger, Firefly for
    Raven …), chosen so every story the sister has fits her too. Built in four steps:
@@ -19963,7 +20120,9 @@ arcticfox:["Snow Kitsune","the snow trickster of the winter shrine","mischievous
 /* v211: the pass runs once per wave of new houses. The first wave (v210) gives every original house a counterpart; a later
    wave may give a few original houses a second one (Orca for Shark beside Dolphin). A wave's partners from houses outside
    the wave stay as they are, so an Orca copy of a Shark and Raven scene pairs Orca with Raven. */
-function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag){
+/* v213: PMAP sends a partner house outside the wave to a newer girl instead ({stag:"lioness"}: a Cougar copy of a Wolf and
+   Stag scene pairs Cougar with Lioness), with the partner's words, room and lore swapped for that girl's. */
+function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag,PMAP){
   if(typeof ACAD==="undefined"||!START.RAW||!NEWGIRLS||!NEWLORE||typeof SISLORE==="undefined")return;
   const T0=performance.now();
   const R=START.RAW,cap=ACAD.cap,MUST=ACAD.MUST;
@@ -19971,8 +20130,14 @@ function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag){
   const BIJ={},GIRL={};NEWGIRLS.forEach(g=>{BIJ[g.sis]=g.k;GIRL[g.k]=g});
   const SIS=NEWGIRLS.map(g=>g.sis);
   if(!SIS.every(h=>OLD.includes(h)&&SISLORE[h]))return;
+  ACAD.WAVEDATA=ACAD.WAVEDATA||{};NEWGIRLS.forEach(g=>{ACAD.WAVEDATA[g.k]={g,L:NEWLORE[g.k]}});
+  /* partner houses sent to an earlier wave's girl */
+  const PB=Object.assign({},BIJ),PSIS=[];
+  Object.entries(PMAP||{}).forEach(([s,n])=>{if(!BIJ[s]&&OLD.includes(s)&&SISLORE[s]&&ACAD.WAVEDATA[n]){PB[s]=n;PSIS.push(s)}});
+  const ALLS=SIS.concat(PSIS);
+  const GOF=n=>GIRL[n]||(ACAD.WAVEDATA[n]&&ACAD.WAVEDATA[n].g),LOF=n=>NEWLORE[n]||(ACAD.WAVEDATA[n]&&ACAD.WAVEDATA[n].L);
   /* display names: "Arctic Fox" for the arcticfox house */
-  const DISP=n=>(GIRL[n]&&GIRL[n].disp)||cap(n);
+  const DISP=n=>(GIRL[n]&&GIRL[n].disp)||(ACAD.HNAME&&ACAD.HNAME[n])||cap(n);
   ACAD.HNAME=ACAD.HNAME||{};NEWGIRLS.forEach(g=>{ACAD.HNAME[g.k]=DISP(g.k)});
   const VOW=w=>/^[aeiou]/i.test(w)&&!/^(uni|use|eu|one)/i.test(w);
   const NEWH=NEWGIRLS.map(g=>g.k);
@@ -19983,14 +20148,14 @@ function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag){
 
   /* ---------- string translation: one dictionary per sister house, compiled per (owner, partner) pairing ---------- */
   const GLOBAL=[];
-  SIS.forEach(s=>{const n=BIJ[s],d=DISP(n);GLOBAL.push([cap(s),d],[s.toUpperCase(),d.toUpperCase()],[s+"robes",n+"robes"],[s+"head",n+"head"],[s+"man",n+"man"]);
+  ALLS.forEach(s=>{const n=PB[s],d=DISP(n);GLOBAL.push([cap(s),d],[s.toUpperCase(),d.toUpperCase()],[s+"robes",n+"robes"],[s+"head",n+"head"],[s+"man",n+"man"]);
     if(VOW(d)!==VOW(s)){const a=VOW(d)?"an":"a",a0=VOW(s)?"an":"a";GLOBAL.push([a0+" "+cap(s),a+" "+d],[cap(a0)+" "+cap(s),cap(a)+" "+d])}});
   /* capitalized house words that are not the house (scene names) */
   [["Dragon rider","Dragon rider"],["Dragon's rest","Dragon's rest"],["Fox Spirit","Fox Spirit"],["His Stag","His Stag"],["Princess carry","Princess carry"],["Princess Carry","Princess Carry"]].forEach(e=>GLOBAL.unshift(e));
   const PL={wolf:"wolves",fox:"foxes",salmon:"salmon",lioness:"lionesses",firefly:"fireflies",butterfly:"butterflies",phoenix:"phoenixes",lynx:"lynxes",jellyfish:"jellyfish"};
   const DICT={};
-  SIS.forEach(s=>{
-    const n=BIJ[s],g=GIRL[n],L=NEWLORE[n],S=SISLORE[s],HD=(ACAD.HUM&&ACAD.HUM.HD||{})[s]||[],E=[];
+  ALLS.forEach(s=>{
+    const n=PB[s],g=GOF(n),L=LOF(n),S=SISLORE[s],HD=(ACAD.HUM&&ACAD.HUM.HD||{})[s]||[],E=[];
     /* flags: 1 capitalized copy, 2 UPPER copy, 4 Title Case copy */
     const add=(a,b,fl,keep)=>{if(typeof a!=="string"||typeof b!=="string"||!a||a===b&&!keep)return;E.push([a,b]);
       if((fl&1)&&/^[a-z]/.test(a))E.push([capF(a),capF(b)]);if(fl&2)E.push([a.toUpperCase(),b.toUpperCase()]);if(fl&4){const t=titleOf(a);if(t!==a)E.push([t,titleOf(b)])}};
@@ -20034,7 +20199,7 @@ function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag){
     by.forEach(L=>L.sort((x,y)=>y[0].length-x[0].length));
     return by;
   }
-  const BYH={};SIS.forEach(s=>{BYH[s]=compile(DICT[s])});const BYG=compile(GLOBAL);
+  const BYH={};ALLS.forEach(s=>{BYH[s]=compile(DICT[s])});const BYG=compile(GLOBAL);
   const HITS=new Map();
   const STAT={runs:0,chars:0,lookups:0};
   /* the longest entry around a word wins; on a tie the owner's dictionary wins */
@@ -20062,7 +20227,7 @@ function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag){
   function translator(o,p){
     const key=o+"|"+(p||"");let fn=MEMO.get(key);if(fn)return fn;
     const maps=[BYH[o]];if(p&&p!==o&&BYH[p])maps.push(BYH[p]);maps.push(BYG);const memo=new Map();
-    fn=s=>{if(typeof s!=="string"||!s)return s;let r=memo.get(s);if(r===undefined){r=run(s,maps);if(r!==s)r=r.replace(/\b([Aa]) (?=(orca|Orca|arctic|Arctic|owl|Owl)\b)/g,(m,a)=>a+"n ");memo.set(s,r)}return r};
+    fn=s=>{if(typeof s!=="string"||!s)return s;let r=memo.get(s);if(r===undefined){r=run(s,maps);if(r!==s)r=r.replace(/\b([Aa]) (?=(orca|Orca|arctic|Arctic|owl|Owl|emerald|amber|ice|umber)\b)/g,(m,a)=>a+"n ");memo.set(s,r)}return r};
     fn.o=o;MEMO.set(key,fn);return fn;
   }
 
@@ -20186,12 +20351,18 @@ function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag){
     takenIds.add(w);cidMemo.set(id,w);return w;
   }
   jobs.forEach(([,k])=>cloneId(k));
+  /* an earlier wave's copy of a partner entry ("stagbikini" has no Lioness copy, "griffinbikini" does) */
+  const REV=new Map();if(PSIS.length&&ACAD.CLONEOF)Object.entries(ACAD.CLONEOF).forEach(([cid,sid])=>{const t=tplById(cid);if(t&&t._house)REV.set(t._house+"|"+sid,cid)});
+  const pfall=new Set();
   const mapPairId=id=>{
     if(typeof id!=="string"||!id)return id;
     const nr=newRootId(id);if(nr)return nr;
+    {const rr=ROOTOF[id];if(rr&&PB[rr[1]]&&!BIJ[rr[1]])return PB[rr[1]]+rr[0]}
     if(cidMemo.has(id))return cidMemo.get(id);
     const r=rootOf(id);
-    if(r){const h=ROOTOF[r][1];if(!BIJ[h])return id;if(/signature$/.test(id)&&tpl(BIJ[h]+"signature"))return BIJ[h]+"signature";
+    if(r){const h=ROOTOF[r][1];
+      if(!BIJ[h]&&PB[h]){const n=PB[h],c=REV.get(n+"|"+id);if(c)return c;if(/signature$/.test(id)&&tpl(n+"signature"))return n+"signature";pfall.add(id);return n+(ROOTOF[r][0]==="robes"?"robes":ROOTOF[r][0])}
+      if(!BIJ[h])return id;if(/signature$/.test(id)&&tpl(BIJ[h]+"signature"))return BIJ[h]+"signature";
       problems.push(id+": partner has no counterpart copy");}
     return id;
   };
@@ -20231,6 +20402,7 @@ function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag){
     const out=deep(Object.assign({},t.out||{},{pair:null}),tr);delete out.pair;
     if(t.out&&t.out.pair){const p=t.out.pair,q=deep(Object.assign({},p,{id:null,w1:null,w2:null,c1:null,c2:null}),tr);
       q.id=mapPairId(p.id);
+      if(pfall.has(p.id)&&typeof q.outfit==="number")q.outfit=p.explicit?1:0;   /* a fallback partner wears her robes or nothing */
       if(p.w1)q.w1=scene(p.w1,tr);else delete q.w1;if(p.w2)q.w2=scene(p.w2,tr);else delete q.w2;
       if(p.c1){q.c1={};for(const f in p.c1){const v=p.c1[f],w=typeof v==="string"?tr(v):v;if(w!==v)regOpt(f,v,w,false);q.c1[f]=w}}else delete q.c1;
       if(p.c2){q.c2=deep(p.c2,tr)}else delete q.c2;
@@ -20252,7 +20424,7 @@ function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag){
     T.outfit=outfit(t.outfit,tr);if(T.outfit===t.outfit)nShared++;
     T.more=(t.more||[]).map(m=>outfit(m,tr));
     lazy(T,"out",()=>outOf(t,tr));
-    if(t.tags)T.tags=t.tags.map(x=>x===o?n:x===ph&&BIJ[ph]?BIJ[ph]:tr(x));
+    if(t.tags)T.tags=t.tags.map(x=>x===o?n:x===ph&&PB[ph]?PB[ph]:tr(x));
     if(t.adultOnly)T.adultOnly=true;
     Object.defineProperty(T,"_clone",{value:k,enumerable:false});Object.defineProperty(T,"_house",{value:n,enumerable:false});
     made.push(T);
@@ -20275,6 +20447,222 @@ function ACAD_WAVE(NEWGIRLS,NEWLORE,NEWHEADS,NEWMEN,NEWSIG,tag){
 }
 ACAD_WAVE(typeof NEWGIRLS!=="undefined"&&NEWGIRLS,typeof NEWLORE!=="undefined"&&NEWLORE,typeof NEWHEADS!=="undefined"&&NEWHEADS,typeof NEWMEN!=="undefined"&&NEWMEN,typeof NEWSIG!=="undefined"&&NEWSIG,"210");
 if(typeof NEWGIRLS2!=="undefined")ACAD_WAVE(NEWGIRLS2,NEWLORE2,NEWHEADS2,NEWMEN2,NEWSIG2,"211");
+/* v213: the Lioness's pack. Each cat's sister shares most of her scenes with one partner; that partner becomes Lioness. */
+if(typeof NEWGIRLS3!=="undefined")ACAD_WAVE(NEWGIRLS3,NEWLORE3,NEWHEADS3,NEWMEN3,NEWSIG3,"213",{griffin:"lioness",salmon:"lioness",stag:"lioness",owl:"lioness"});
+
+/* ---- v213: "House Regalia" (Robes and faculty): every girl dressed as her house and her animal, as far as it goes.
+   A ceremonial robe with her house's trim and embroidery, a crest corset, a signature piece (wings, a tail, a mantle),
+   a headpiece, boots, a pendant, a prop, her house's familiar at her side and her house's own hall or landscape.
+   Built on each girl's robes, so her face, hair, body and palette carry over. After the house pass, so nothing here
+   is copied: every house has her own line. */
+(function(){
+  if(typeof ACAD==="undefined"||!ACAD.HOUSES)return;
+  const HN=h=>(ACAD.HNAME&&ACAD.HNAME[h])||ACAD.cap(h);
+  /* [trim, hem embroidery, crest, sleeve cuffs, skirt edging, [special field, piece], headpiece, boots/legwear, pendant, prop,
+      expression, posture, setting, familiar] */
+  const R={
+griffin:["griffin-feather","golden talons","a rampant griffin","feathered","gold braid",["shoulderPiece","{c} feathered griffin-wing pauldrons"],"{c} griffin-feather circlet","{c} thigh-high boots with talon-shaped buckles","gold griffin-head pendant","champion's sabre with a griffin-head pommel",
+  "proud, dazzling smile","standing tall with one boot on a step, sabre raised","a castle courtyard hung with crimson-and-gold griffin banners at golden hour","a baby griffin familiar perched on her shoulder"],
+dragon:["dragon-scale","coiling dragons","a fire-breathing dragon","scaled","flame-shaped gold",["tailPiece","long scaled {c} dragon tail"],"{c} curved dragon-horn crown","{c} scale-armored thigh-high boots","gold dragon-heart pendant","curved sword with a dragon-scale hilt",
+  "fierce, confident smirk","standing with her sword resting on her shoulder","a red-lantern castle wall at sunset, embers drifting","a small red dragon familiar coiled around her arm"],
+phoenix:["fire-feather","rising flames","a phoenix rising from flames","flame-tipped","flame-shaped gold",["wingPiece","large fiery {c} feathered wings"],"{c} flame-feather crown","{c} gold-trimmed heeled boots","gold phoenix-feather pendant","staff crowned with a burning feather",
+  "warm, fiery smile","arms spread wide like rising wings","a clifftop at sunset, the sky on fire and embers swirling","a little fire-feathered phoenix chick perched on her wrist"],
+unicorn:["pearl-and-rainbow","stars and moons","a rearing unicorn","pearl-beaded","rainbow ribbon",["headwear","{c} spiral unicorn-horn tiara with a pastel flower crown"],null,"{c} lace-up heeled boots with pearl buckles","pearl unicorn pendant","star-tipped crystal wand",
+  "gentle, dreamy smile","curtsying with her skirt held out","an enchanted meadow at dawn under a rainbow, mist and wildflowers","a tiny white unicorn foal nuzzling her hand"],
+lioness:["golden-mane","roaring lions","a crowned lion","fringed","gold sunburst",["shoulderPiece","{c} faux-fur lion's-mane mantle"],"{c} gold sun crown","{c} gladiator sandals laced to the knee","gold lion-paw collar necklace","golden scepter topped with a lion's head",
+  "proud, regal smile","seated on a carved throne, one leg crossed over the other","a sunlit savanna throne rock at golden hour, the grass glowing","a lion cub curled at her feet"],
+tiger:["tiger-stripe","roaring tigers","a crouching tiger","striped","black tiger-stripe",["tailPiece","long striped {c} tiger tail"],"{c} tiger-ear headband with gold rings","{c} striped thigh-high boots","gold tiger-claw pendant","pair of curved tiger-claw daggers",
+  "fierce, confident grin","crouched low with her daggers drawn","a jungle waterfall at sunset, lush leaves and mist","a tiger cub padding at her heels"],
+jaguar:["rosette-print","prowling jaguars","a jaguar warrior's mask","rosette-trimmed","jade bead",["shoulderPiece","{c} feathered warrior pauldron with jaguar-pelt trim"],"{c} jaguar-head warrior headdress with emerald feathers","{c} rosette-print thigh-high boots","gold jaguar-fang collar","jade-tipped spear",
+  "feisty, pouty glare","crouched on a temple step, spear ready","a jungle temple stairway at sunset, vines and jade lanterns","a jaguar cub snarling cutely at her side"],
+cougar:["tawny-fur","prowling mountain lions","a mountain lion on a canyon rock","fur-trimmed","sage-green suede fringe",["shoulderPiece","{c} faux-fur cougar-pelt mantle"],"{c} wide-brim hat with a cougar-claw band","{c} tall suede boots with fringe","silver cougar-claw pendant","coiled climbing rope and an ice axe",
+  "smug, challenging smirk","standing on a canyon ledge with one boot up","a red-rock canyon rim at sunset, pines on the edge","a cougar cub lounging on a rock beside her"],
+cheetah:["spotted","racing cheetahs","a cheetah mid-sprint","spotted","gold racing-stripe",["outerwear2","{c} spotted cropped track cape"],"{c} winged-sandal circlet","{c} spotted thigh-high socks and running spikes","gold medal on a spotted ribbon","golden relay baton",
+  "cocky, sparkling grin","crouched in a sprinter's start","a savanna running track at golden hour, acacia trees beyond","a cheetah cub bounding beside her"],
+leopard:["snow-rosette","snowflakes and rosettes","a snow leopard on a mountain peak","fluffy faux-fur","silver snowflake",["shoulderPiece","{c} fluffy faux-fur snow leopard stole with a long spotted tail"],"{c} faux-fur hat with little round snow leopard ears","{c} fur-cuffed snow boots","silver snowflake pendant","lantern of glowing ice crystals",
+  "sunny, wide smile","catching snowflakes with her arms spread wide","a snowy mountain ridge at dusk, snowflakes falling and a chalet glowing below","a fluffy snow leopard cub batting at falling snowflakes"],
+panther:["midnight-velvet","prowling panthers and crescent moons","a panther beneath a crescent moon","velvet-trimmed","violet starlight",["tailPiece","long sleek {c} panther tail"],"{c} crescent-moon circlet","{c} velvet thigh-high boots","gold panther-eye pendant","ancient leather-bound grimoire",
+  "wise, sultry smile","leaning against a library ladder with a book open","a moonlit library tower of endless shelves, candles glowing","a sleek black panther cub draped across the books"],
+lynx:["tufted silver-fur","lynx paws and silver moons","a crouching lynx","fur-trimmed","silver birch-leaf",["headwear","{c} tufted lynx-ear hood with silver tassels"],null,"{c} fur-trimmed boots","silver lynx-paw pendant","fan of tarot cards",
+  "sly, knowing smirk","peeking around a paper screen with a card raised","a misty mountain pass at dusk among silver birches, a full moon rising","a fluffy lynx kitten with tufted ears in her lap"],
+caracal:["copper-coin","leaping caracals and crescent moons","a leaping caracal","tasseled","gold coin",["headwear","{c} silk headscarf with tall black-tipped caracal-ear tufts"],null,"{c} curled-toe slippers with gold anklets","gold crescent-moon pendant","stolen pomegranate and a jeweled dagger",
+  "feisty, puffed-cheek pout","springing off a market awning","a lantern-lit desert market at night, rugs and spice stalls below","a caracal kitten perched on her shoulder"],
+wolf:["silver wolf-fur","howling wolves and full moons","a wolf howling at the moon","fur-trimmed","silver moon-and-pine",["shoulderPiece","{c} wolf-pelt mantle with a wolf-head hood"],null,"{c} fur-lined leather boots","silver wolf-fang pendant","hunting bow and a quiver of gray-fletched arrows",
+  "fierce, alpha stare","standing on a rock with her bow in hand","a pine forest under a full moon, mist between the trees","a gray wolf pup howling at her side"],
+fox:["fox-fur","fox tails and foxfire","a nine-tailed fox","fur-trimmed","amber foxfire",["tailPiece","nine fluffy {c} fox tails"],"{c} fox mask tilted on her head","{c} lacquered geta sandals with tabi","gold fox-flame pendant","paper lantern burning with blue foxfire",
+  "sly, fox-like smirk","peeking from behind a torii gate with a finger to her lips","a shrine path of red torii gates at dusk, paper lanterns glowing","a fox kit with a fluffy tail curled around her ankles"],
+arcticfox:["snow-white fox-fur","snowy fox tails and frost flames","a nine-tailed snow fox","fur-trimmed","silver frost",["tailPiece","nine fluffy {c} snow fox tails"],"{c} white fox mask tilted on her head","{c} fur-lined geta boots","silver frost-flame pendant","lantern burning with pale blue frostfire",
+  "mischievous, sly smirk","peeking from behind a snowy torii gate","a snowy shrine of red torii gates at dusk, lanterns glowing on the snow","an arctic fox kit curled in the snow at her feet"],
+coyote:["turquoise-beaded","howling coyotes and desert stars","a coyote howling on a mesa","fringed","turquoise bead",["shoulderPiece","{c} fringed suede poncho"],"{c} flat-brim hat with a turquoise band","{c} worn cowboy boots with silver spurs","turquoise coyote-tooth pendant","guitar slung over her back",
+  "wry, lopsided grin","leaning on a fence post at sunset","a desert highway at sunset, red rocks and a lone cactus","a coyote pup yipping at her side"],
+penguin:["tuxedo-black-and-white","waddling penguins and snowflakes","a penguin in a bow tie","white-cuffed","ice-blue snowflake",["outerwear2","{c} tailcoat with a white satin front"],"{c} knit beanie with a pom-pom","{c} fur-cuffed snow boots","chunky orange knit scarf","snow globe with a tiny penguin inside",
+  "cheerful, beaming smile","waddling happily with her arms out for balance","a frozen lake at dusk, snow falling and lanterns on the ice","a little penguin chick waddling at her heels"],
+harpseal:["snow-white faux-fur","sleeping seal pups and snowflakes","a harp seal pup on the ice","fluffy faux-fur","pearl snowflake",["outerwear2","{c} fluffy hooded cape with little seal-pup eyes on the hood"],"fluffy {c} earmuffs","{c} fluffy snow boots","pearl snowflake pendant","plush harp seal pillow",
+  "sleepy, contented smile","curled up on a pile of white furs, hugging her pillow","a sunlit ice floe on a frozen bay, snow sparkling","a fluffy white harp seal pup snuggled against her"],
+orca:["black-and-white","breaching orcas and cresting waves","an orca breaching through a wave","white-cuffed","black-and-white wave",["outerwear2","{c} high-collared captain's cape with a white orca-patch lining"],"{c} captain's cap with an orca badge","{c} knee-high boots","silver orca-tail pendant","silver trident",
+  "confident, dimpled grin","standing on a rock with her trident planted, cape snapping","a rocky northern shore at sunset, orcas breaching in the bay","a baby orca leaping in the surf beside her"],
+narwhal:["pearl-and-aurora","spiraling narwhal tusks and stars","a narwhal under the northern lights","pearl-beaded","aurora silk",["headwear","{c} spiral narwhal-horn tiara with pearls"],null,"{c} pearl-strapped heeled sandals","pearl narwhal pendant","glowing spiral-horn staff",
+  "dreamy, faraway smile","drifting with one arm raised gracefully overhead","a moonlit fjord under swirling northern lights, ice glittering","a little narwhal calf surfacing beside her"],
+kraken:["tentacle-curl","coiling tentacles and pearls","a kraken rising from the deep","scalloped","pearl and teal",["tailPiece","long curling {c} tentacle train"],"{c} pearl-and-shell crown","{c} lace-up heeled boots","black pearl pendant","ship's lantern glowing blue",
+  "cool, mysterious smile","sitting on a ship's rail with her legs crossed","a moonlit lighthouse pier, waves crashing and blue light glowing beneath the water","a little octopus familiar draped over her shoulder"],
+shark:["fin-and-tooth","shark fins and cresting waves","a great white shark","jagged","steel-blue wave",["tailPiece","{c} shark tail with a dorsal fin"],"{c} shark-hood cap with a fin","{c} neoprene thigh-high boots","shark-tooth necklace","surfboard tucked under one arm",
+  "cocky, sharp-toothed grin","standing with her surfboard, one hand on her hip","a beach at sunset, waves crashing and sea spray","a baby shark circling in the shallows at her feet"],
+dolphin:["wave-and-dolphin","leaping dolphins and waves","a leaping dolphin","scalloped","seafoam wave",["outerwear2","{c} sheer wave-hemmed beach cape"],"{c} seashell circlet","{c} strappy sandals with shell charms","dolphin pendant necklace","seashell horn",
+  "playful, cheeky grin","sitting on a pier with her feet splashing in the water","a turquoise lagoon at sunset, dolphins leaping offshore","a baby dolphin leaping beside the pier"],
+jellyfish:["glowing tentacle-hem","drifting jellyfish","a glowing jellyfish","translucent","neon-pink bioluminescent",["outerwear2","{c} sheer layered cape with long trailing tentacle-like ribbons"],"{c} translucent jellyfish-bell hat with glowing tendrils","{c} clear heeled sandals","glowing pearl choker","glass orb of glowing water",
+  "slow, dreamy smile","floating weightlessly with her ribbons drifting","an underwater cavern full of glowing jellyfish","a tiny glowing jellyfish drifting beside her face"],
+salmon:["leaping-salmon","leaping salmon and cherry blossoms","a leaping salmon","cherry-wood-buttoned","rose-gold wave",["outerwear2","{c} silk haori with a leaping-salmon print"],"{c} cherry-blossom kanzashi","{c} lacquered zori sandals","rose-gold koi pendant","calligraphy brush and scroll",
+  "composed, perfect smile","kneeling by the river with her scroll unrolled","a riverside at golden hour under cherry trees, salmon leaping the rapids","a little koi swimming in a bowl beside her"],
+raven:["black-feather","flying ravens and constellations","a raven on a crescent moon","feather-trimmed","silver star",["wingPiece","large black {c} raven wings"],"{c} raven-feather crown","{c} feather-trimmed thigh-high boots","silver raven-skull pendant","brass telescope",
+  "knowing, clever smile","standing on an observatory balcony with her telescope","an observatory balcony under a starry twilight sky","a raven perched on her telescope"],
+crow:["glinting-trinket","crows and stolen keys","a crow clutching a key","feather-trimmed","silver chain",["wingPiece","ragged black {c} crow wings"],"{c} feathered half-mask","{c} buckled thigh-high boots","necklace of stolen keys and rings","velvet pouch spilling stolen jewels",
+  "mischievous, giggling smirk","crouched on a rooftop ledge, jewels in hand","a moonlit city rooftop among a flock of crows","a crow perched on her wrist with a ring in its beak"],
+owl:["owl-feather","wise owls and open books","an owl on a stack of books","feather-trimmed","gold scholar's",["shoulderPiece","{c} feathered owl capelet"],"{c} feathered scholar's cap with round spectacles","{c} buttoned heeled boots","gold owl pendant","stack of ancient tomes and a quill",
+  "wise, gentle smile","perched on a library ladder reading","a candlelit library tower at night, a full moon in the window","a little barn owl perched on her shoulder"],
+swan:["white-feather","gliding swans and lotus flowers","a crowned swan","feather-trimmed","pearl",["wingPiece","delicate white {c} swan wings"],"{c} swan-feather tiara","{c} satin pointe shoes with ribbons","pearl swan pendant","single white lotus",
+  "serene, graceful smile","en pointe with her arms raised like wings","a misty lakeside at dawn, white feathers drifting","a white swan gliding beside her on the lake"],
+crane:["red-crown","flying cranes and clouds","a red-crowned crane in flight","silk-bound","vermilion cloud",["outerwear2","{c} silk kimono robe with crane embroidery"],"{c} red silk kanzashi with a crane charm","{c} lacquered geta sandals","gold crane pendant","folding fan painted with cranes",
+  "serene, composed smile","standing poised on one foot with her fan open","a misty marsh at dawn, cranes dancing in the reeds","a red-crowned crane chick beside her"],
+flamingo:["pink-feather","flamingos and palm leaves","a flamingo on one leg","feather-trimmed","gold palm-leaf",["outerwear2","{c} feather boa capelet"],"{c} feathered fascinator","{c} heeled sandals with pink feathers","gold flamingo pendant","pink cocktail with a paper umbrella",
+  "pampered, haughty smile","balanced on one long leg with a cocktail","a tropical lagoon at sunset, flamingos wading","a fluffy pink flamingo chick at her feet"],
+peacock:["peacock-feather","peacock eyes and jewels","a peacock in full display","jeweled","gold-and-teal jewel",["tailPiece","grand fanned {c} peacock-feather train"],"{c} jeweled peacock-feather crown","{c} jeweled heeled sandals","gold peacock pendant","jeweled hand mirror",
+  "proud, haughty smile","admiring herself in her hand mirror","a palace garden with a jeweled pool, peacocks strutting","a peacock fanning its tail behind her"],
+lovebird:["heart-and-feather","kissing lovebirds and hearts","two lovebirds in a heart","ruffled","pastel heart",["wingPiece","small fluffy pastel {c} lovebird wings"],"{c} heart-and-feather hair clips","{c} ribbon-laced heeled shoes","gold heart locket","bouquet of pink roses",
+  "dreamy, love-struck smile","hugging her bouquet with a happy sigh","a rose garden full of heart balloons, petals falling","two lovebirds snuggled on her shoulder"],
+hummingbird:["iridescent-feather","hovering hummingbirds and hibiscus","a hummingbird sipping a hibiscus","feather-trimmed","emerald-and-ruby",["wingPiece","small iridescent {c} hummingbird wings"],"{c} hibiscus hair flower","{c} strappy heeled sandals","ruby hummingbird pendant","bouquet of hibiscus",
+  "flirty, warm smile","twirling mid-step with her flowers","a tropical flower garden at noon, hibiscus everywhere","a hummingbird hovering at her lips"],
+stag:["oak-leaf-and-antler","oak leaves and antlers","a crowned stag","leaf-trimmed","ivy",["headwear","{c} antler crown woven with ivy and wildflowers"],null,"{c} leaf-laced boots","gold acorn pendant","wooden staff wrapped in ivy",
+  "gentle, warm smile","standing in a sunbeam with her staff","a forest glade in dappled sunlight, ivy and wildflowers","a spotted fawn nuzzling her hand"],
+badger:["honey-gold","honeycombs and badgers","a badger on a honeycomb","quilted","honeycomb",["outerwear2","{c} quilted honeycomb-stitched cloak"],"{c} badger-striped knit beret","{c} cozy fur-lined boots","gold honeycomb pendant","honey pot with a dipper",
+  "sweet, beaming smile","holding her honey pot with a happy hop","a cozy honey-gold kitchen with jars of honey glowing in the window","a little honey badger cub sniffing at her honey pot"],
+panda:["bamboo-and-cloud","pandas and bamboo","a panda hugging bamboo","jade-buttoned","bamboo-leaf",["outerwear2","{c} silk qipao robe with bamboo embroidery"],"{c} silk ribbons tied around twin hair buns","{c} embroidered slippers","jade bamboo pendant","steaming bamboo basket of buns",
+  "sleepy, contented smile","yawning with a basket of buns in her arms","a misty bamboo grove with a little tea house, paper lanterns glowing","a fluffy panda cub hugging her leg"],
+raccoon:["masked-bandit","raccoon masks and stolen trinkets","a masked raccoon","patched","ringed-tail stripe",["tailPiece","fluffy ringed {c} raccoon tail"],"{c} bandit eye-mask","{c} scuffed buckled boots","necklace of stolen trinkets","sack of shiny loot",
+  "sneaky, mischievous smirk","tiptoeing with her sack over one shoulder","a moonlit alley behind a jewelry shop, trash cans and fairy lights","a raccoon kit peeking out of her loot sack"],
+rat:["rat-tail","rats and keys","a rat holding a key","patched","silver key",["tailPiece","long thin {c} rat tail"],"{c} newsboy cap with round mouse-ear pins","{c} ripped fishnets and combat boots","ring of brass keys","lockpick set and a stolen wedge of cheese",
+  "scrappy, cocky grin","crouched on a fire escape picking a lock","a neon-lit city alley after rain, string lights","a little white rat peeking out of her pocket"],
+serpent:["snake-scale","coiling serpents","a crowned serpent","scale-trimmed","emerald scale",["outerwear2","{c} high-collared serpent-scale cape"],"{c} coiled-serpent crown","{c} snakeskin thigh-high boots","emerald serpent choker","serpent-headed scepter",
+  "haughty, cold smirk","lounging on a velvet chaise with her scepter","a moody emerald drawing room with green candlelight","a little green snake coiled around her wrist"],
+scorpion:["scorpion-segment","scorpions and desert stars","a scorpion with its stinger raised","segmented","crimson-and-gold",["tailPiece","segmented {c} scorpion-stinger tail"],"{c} scorpion-claw crown","{c} gold-armored heeled boots","gold scorpion pendant","poisoned goblet",
+  "venomous, imperious smirk","lounging on a desert throne with her goblet","a desert palace at night under the stars, gold and crimson silks","a little black scorpion perched on her shoulder"],
+firefly:["glowing-firefly","fireflies and constellations","a glowing firefly","glow-trimmed","chartreuse glow",["wingPiece","delicate glowing {c} firefly wings"],"{c} glowing antenna headband","{c} glow-trimmed boots","glowing jar pendant","glass jar full of fireflies",
+  "bright, sparkling smile","releasing a cloud of fireflies from her jar","a summer meadow at night full of fireflies","a little glowing firefly resting on her fingertip"],
+butterfly:["butterfly-wing","butterflies and flowers","a blue morpho butterfly","petal-trimmed","electric-blue wing",["wingPiece","large shimmering {c} butterfly wings"],"{c} butterfly-wing tiara","{c} satin pointe shoes with ribbons","sapphire butterfly pendant","garland of wildflowers",
+  "graceful, serene smile","pirouetting with her wings spread","a sunlit butterfly garden, butterflies everywhere","a blue butterfly landing on her outstretched hand"]};
+  const T=["outerwear","corset","top","bottom","headwear","legwear","neckAccessory","heldItem"];
+  /* register the pieces */
+  const add=(f,v,t,fam)=>{if(v)START.item(f,v,t,fam)};
+  Object.values(R).forEach(r=>{
+    add("outerwear",`long {c} ceremonial hooded robe with {c2} ${r[0]} trim and ${r[1]} embroidered along the hem`,"CU","costume,glam");
+    add("corset",`{c} brocade corset embroidered with ${r[2]}`,"US","costume,glam");
+    add("top",`{c} silk blouse with ${r[3]} cuffs`,"CU","costume,glam");
+    add("bottom",`{c} pleated skirt edged in ${r[4]} trim`,"CU","costume,glam");
+    if(r[5]){const f=r[5][0]==="outerwear2"?"shoulderPiece":r[5][0];add(f,r[5][1],"CU","costume,fantasy")}
+    add("headwear",r[6],"CU","costume,fantasy");add("legwear",r[7],"CU","costume");add("neckAccessory",r[8],"CU","costume,glam");add("heldItem",r[9],"CU","costume");
+    START.option("expression",r[10],"Academy");START.option("posture",r[11],"Academy");
+  });
+  const must=(s,p)=>`an anime style with high detail, ${s}, ${p}, and particular emphasis on highly detailed skin, hair and eyes`;
+  const rows=ACAD.HOUSES.filter(h=>R[h]&&tplById(ACAD.robes(h))).map(h=>{
+    const r=R[h],it={
+      outerwear:[`long {c} ceremonial hooded robe with {c2} ${r[0]} trim and ${r[1]} embroidered along the hem`,"@primary",null,"@accent"],
+      corset:[`{c} brocade corset embroidered with ${r[2]}`,"@secondary"],
+      top:[`{c} silk blouse with ${r[3]} cuffs`,"@third"],
+      bottom:[`{c} pleated skirt edged in ${r[4]} trim`,"@primary"],
+      legwear:[r[7],"@extra"],neckAccessory:[r[8],"@accent"],heldItem:[r[9],"-"]};
+    if(r[6])it.headwear=[r[6],"@accent"];
+    if(r[5]){const f=r[5][0]==="outerwear2"?"shoulderPiece":r[5][0];it[f]=[r[5][1],f==="headwear"?"@accent":"@primary"]}
+    return {id:h+"regalia",base:ACAD.robes(h),name:HN(h)+" regalia",
+      blurb:`${HN(h)} in full house regalia: a ceremonial robe with ${r[0]} trim and ${r[1]} at the hem, a corset embroidered with ${r[2]}, ${r[5]?r[5][1].replace(/\{c2?\}\s?/g,"")+", ":""}${r[6]?r[6].replace(/\{c2?\}\s?/g,"")+", ":""}${r[9]}, with ${r[13]}. Face and build come from the ${HN(h)} robes.`,
+      c:{expression:r[10],posture:r[11]},
+      outfit:{oname:"House regalia",look:"costume",items:it,details:{},dcol:{}},more:[],nude:true,
+      tags:["academy","house regalia","costume",h],out:{framing:"full body",must:must(r[12],r[13])}};
+  });
+  START.add("Academy House Regalia",rows,{after:"Academy Signature"});
+  /* filed under Robes and faculty, after Signature */
+  if(ACAD.CATS){const c=ACAD.CATS.find(x=>x[0]==="Robes and faculty");if(c&&!c[1].includes("Academy House Regalia"))c[1].splice(c[1].indexOf("Academy Signature")+1,0,"Academy House Regalia")}
+  window.REGALIA213={n:rows.length};
+})();
+
+/* ---- v213: Academy Fuckbuddies. Every girl's yuri fuckbuddy (her biography's "Yuri fuckbuddy" line) as character 2,
+   in four sets: Booty Call · Study Break · Steamy Shower · Same Time Next Week. Each girl's own room and bathroom.
+   Adult women; consensual and casual; explicit, so held back by the safeguard like every explicit scene.
+   Penguin has none: she doesn't know what one is. */
+(function(){
+  if(typeof ACAD==="undefined"||!ACAD.HUM||typeof PAIR==="undefined")return;
+  const BUD={griffin:"serpent",serpent:"griffin",raven:"crow",crow:"raven",wolf:"stag",stag:"wolf",swan:"butterfly",butterfly:"swan",dragon:"kraken",kraken:"dragon",
+    shark:"salmon",salmon:"shark",badger:"fox",fox:"badger",arcticfox:"fox",lovebird:"flamingo",flamingo:"lovebird",owl:"rat",rat:"owl",lioness:"scorpion",scorpion:"lioness",
+    tiger:"unicorn",unicorn:"tiger",phoenix:"jellyfish",jellyfish:"phoenix",panda:"lynx",lynx:"panda",hummingbird:"peacock",peacock:"hummingbird",dolphin:"crane",crane:"dolphin",
+    panther:"coyote",coyote:"panther",firefly:"raccoon",raccoon:"firefly",orca:"narwhal",narwhal:"orca",harpseal:"leopard",leopard:"harpseal",jaguar:"cougar",cougar:"jaguar",
+    cheetah:"caracal",caracal:"cheetah"};
+  ACAD.BUDDY=BUD;
+  const HN=h=>(ACAD.HNAME&&ACAD.HNAME[h])||ACAD.cap(h);
+  const dd=s=>[...new Set(String(s).split(",").map(x=>x.trim()).filter(Boolean))].join(", ");
+  const ACCOF=h=>(ACAD.WAVEDATA&&ACAD.WAVEDATA[h]&&ACAD.WAVEDATA[h].g.acc)||(typeof SISLORE!=="undefined"&&SISLORE[h]&&SISLORE[h].acc)||"soft warm light";
+  const EX={love:"flushed, loving, half-lidded expression",quiet:"biting her lip to stay quiet, eyes rolling back",cover:"covering her mouth to stay quiet, eyes rolled up in bliss",
+    smug:"smug, breathless smirk",adore:"breathless, heart-eyed, adoring gaze",lost:"dazed, overwhelmed, drooling expression",tease:"teasing, sultry smile"};
+  Object.values(EX).forEach(v=>START.option("expression",v,"Explicit (adult)"));
+  const POS={
+    scissor:{pose:"lying with her legs scissored with her lover's",act:"scissoring, tribadism",t:"scissoring, tribadism, legs entwined, pussy to pussy, yuri",
+      text:"lie with their legs scissored together, grinding their wet pussies against each other with motion lines, fingers laced together"},
+    oral:{pose:"leaning against the wall with one leg over her lover's shoulder",act:"cunnilingus",t:"cunnilingus, licking pussy, head between thighs, spread legs, yuri",
+      text:"leans back against the wall with one leg over {partner}'s shoulder as {partner} kneels and licks her pussy, her hands buried in {partner}'s hair"},
+    finger:{pose:"lying tangled with her lover, fingering each other",act:"fingering, mutual masturbation, kissing",t:"mutual masturbation, fingering, kissing, french kiss, tongue, saliva trail, yuri",
+      text:"press together, kissing deeply with their tongues entwined, each with her fingers buried inside the other, wet sounds and motion lines"},
+    sixtynine:{pose:"lying in a 69 with her lover",act:"69, cunnilingus",t:"69, cunnilingus, licking pussy, yuri, girl on top",
+      text:"lie in a 69, {partner} on top, each with her face buried between the other's thighs, licking hungrily"}};
+  Object.values(POS).forEach(p=>START.option("posture",p.pose,"Explicit (adult)"));
+  const AROUSE={blushStyle:"heavy aroused blush",skinFinish:"wet, sweat-glistening skin",lipFinish:"wet glossy lips",nippleType:"hard and flushed with arousal",vaginaType:"flushed, swollen, and dripping wet with arousal"};
+  const MUST="an anime style with high detail, a blurry background, a detailed foreground outlined in black, and particular emphasis on both women's faces and expressions, highly detailed skin, hair and eyes";
+  [["top","{c} academy robe hanging open off the shoulders","L","costume,boudoir"],["top","{c} oversized hoodie pushed up over her breasts","L","casual,boudoir"]].forEach(([f,v,t,fam])=>START.item(f,v,t,fam));
+  const ROBE={top:["{c} academy robe hanging open off the shoulders","@c1"],bottom:["skirt hiked up around the waist","@c2"],panties:["lace panties pulled aside","@c2"]};
+  const HOOD={top:["{c} oversized hoodie pushed up over her breasts","@c1"],panties:["lace panties pulled down around one ankle","@c2"]};
+  const face=(who,e)=>/^(covering|biting)/.test(e)?`${who} is ${e}`:`${who} has ${/^[aeiou]/i.test(e)?"an":"a"} ${e}`;
+  const SC={
+    "Academy Fuckbuddies: Booty Call":{pre:"fb1",head:"\"u up?\"",pos:"scissor",ex1:"lost",ex2:"smug",
+      place:h=>`${ACAD.HUM.HD[h][0]}, late at night, a single lamp glowing`,narr:["11:47 p.m. — \"u up?\"","She didn't even say hi."],
+      detail:"Her phone lies face-up on the pillow with the text \"u up?\" glowing on the screen, and their clothes trail from the door to the bed.",
+      g1:"Took you long enough♡",g2:"Missed this♡",t1:"spread legs, arched back",t2:"smirk, grinding",tags:"bedroom, night, phone, text message, clothes on floor, friends with benefits",w1:HOOD,w2:{}},
+    "Academy Fuckbuddies: Study Break":{pre:"fb2",head:"\"Study Break?\"",pos:"finger",ex1:"quiet",ex2:"tease",
+      place:()=>"a secluded corner of the Academy library after hours, between towering shelves, a single green lamp glowing",narr:["\"Study break?\"","We never actually study."],
+      detail:"Textbooks and notes lie abandoned on the table beside them, their academy robes hanging open, a stack of books toppled to the floor.",
+      g1:"Someone's going to hear...♡",g2:"Then be quiet♡",t1:"against bookshelf, hand over own mouth",t2:"hand between legs, kissing neck",tags:"library, bookshelf, night, lamp, academy robes, open clothes, friends with benefits",w1:ROBE,w2:ROBE},
+    "Academy Fuckbuddies: Steamy Shower":{pre:"fb3",head:"Just a Quick Shower",pos:"oral",ex1:"cover",ex2:"adore",
+      place:h=>`${ACAD.HUM.HD[h][3]}, steam everywhere`,narr:["\"Just a quick shower after practice.\"","It was not quick."],
+      detail:"Hot water streams over them and steam fogs the glass, a little heart drawn in the condensation.",
+      g1:"Don't stop... ahh♡",g2:"Mmh♡ you taste so good♡",t1:"wet hair, leg over shoulder, hand in another's hair",t2:"kneeling, licking, wet hair",tags:"shower, steam, wet, water, bathroom, nude, friends with benefits",w1:{},w2:{}},
+    "Academy Fuckbuddies: Same Time Next Week":{pre:"fb4",head:"Same Time Next Week",pos:"sixtynine",ex1:"lost",ex2:"love",
+      place:h=>`${ACAD.HUM.HD[h][0]}, morning sunlight through the curtains`,narr:["\"This doesn't mean anything, right?\"","\"Right.\" ...Same time next week."],
+      detail:"Morning sun pours over the tangled sheets, two coffee mugs going cold on the nightstand.",
+      g1:"Mmh♡ ...this means nothing♡",g2:"Nothing at all♡",t1:"licking, face between thighs",t2:"licking, face between thighs",tags:"bedroom, morning, sunlight, bed, messy sheets, friends with benefits",w1:{},w2:{}}};
+  let after=PRESET_GROUPS.start.some(g=>g.label==="Academy Secret Girlfriends: Dear Diary")?"Academy Secret Girlfriends: Dear Diary":"Academy Yuri";
+  const labels=[];
+  Object.entries(SC).forEach(([label,s])=>{
+    const P=POS[s.pos],e1=EX[s.ex1],e2=EX[s.ex2];
+    const rows=ACAD.HOUSES.filter(h=>BUD[h]).map(h=>{
+      const fr=BUD[h],frId=(tplById(ACAD.robes(fr))||{}).id,rb=tplById(ACAD.robes(h));if(!frId||!rb||!ACAD.HUM.HD[h])return null;
+      const T=PAIR.sceneColors(rb.pal,rb.c);
+      const res=items=>{const o={};Object.entries(items).forEach(([f,a])=>{const b=a.slice();b[1]=PAIR.toneOf(b[1],T);if(b[3])b[3]=PAIR.toneOf(b[3],T);o[f]=b});return o};
+      const both=/^(lie|press) /.test(P.text);
+      const act=both?`The woman and {partner}, her fuckbuddy, ${P.text}.`:`The woman ${P.text}; {partner} is her fuckbuddy.`;
+      const scene=`Narration caption boxes tell the story across the image: ${s.narr.map(n=>`"${n.replace(/"/g,"'")}"`).join(", ")}. Setting: ${s.place(h)}, blurry background, detailed foreground outlined in black. ${act} ${s.detail} ${face("The woman",e1)}; ${face("{partner}",e2)}. Two small speech bubbles: from the woman, "${s.g1}"; from {partner}, "${s.g2}". `+
+        dd(`yuri, 2girls, friends with benefits, narration, caption, text box, english text, black outline, blurry background, ${P.t}, ${s.tags}, blush, sweat, pussy juice, moaning, speech bubble, heart`);
+      const c1=Object.assign({},AROUSE,{expression:e1,posture:P.pose});
+      return{id:s.pre+h,base:ACAD.robes(h),name:s.head,c:Object.assign({age:"woman"},c1),
+        outfit:{oname:"Fuckbuddies",look:"boudoir",items:res(s.w1),details:{},dcol:{}},more:[],nude:true,
+        out:{framing:"full body",explicit:true,lewdtag:true,must:MUST,
+          pair:{id:frId,outfit:"scene",scene,act:P.act,dir:"mutual",explicit:true,penis:false,couple:true,
+            tags1:dd(`${s.t1}, looking at another`),tags2:dd(`${s.t2}, looking at another`),
+            pc:{expression:e2,posture:null},c1,w1:{name:"Fuckbuddies",look:"boudoir",f:s.w1},w2:{name:"Fuckbuddies",look:"boudoir",f:s.w2||{},m:{}},compact:false,fit:true}},
+        tags:["yuri","fuckbuddies","friends with benefits","narrated","duo","pair","explicit",h,fr],
+        blurb:`“${s.head.replace(/"/g,"")}.” ${HN(h)} and her yuri fuckbuddy ${HN(fr)} (character 2).`};
+    }).filter(Boolean);
+    START.add(label,rows,{after});after=label;labels.push(label);
+  });
+  /* the scene lists: right after the secret girlfriends */
+  if(ACAD.SCENE_ORDER){const O=ACAD.SCENE_ORDER;labels.forEach(l=>{const i=O.indexOf(l);if(i>=0)O.splice(i,1)});
+    let at=-1;O.forEach((l,i)=>{if(/^Academy Secret Girlfriends/.test(l)||l==="Academy Yuri Strap-on")at=i});O.splice(at<0?O.length:at+1,0,...labels)}
+  window.BUDDIES213={sets:labels.length,each:Object.keys(BUD).length};
+})();
 
 /* ---- v176: everything the Academy uses, made available to any character (tail block, runs last).
    The Academy sets and scenes were built from the same fields as every other design, so every option and outfit item they use
@@ -21350,6 +21738,140 @@ arcticfox:{fullName:"Yuki Shirogane",nickname:"Arctic Fox, Yuki, Frosty",age:"22
   notes:"Has been banned from three card tables on campus."}
 });
 
+/* ---- v213: biographies for the Lioness's pack, Penguin rewritten, and every girl's yuri fuckbuddy */
+Object.assign(BIOS,{
+jaguar:{fullName:"Itzel Balam",nickname:"Jaguar, Itzi, Kitten",age:"21",dob:"2005-06-21",birthplace:"A jungle town beside ancient temple ruins",occupation:"Third year, Jaguar House: archaeology; fencing team",languages:"Spanish, Yucatec Maya, English",
+  height:"170 cm (5′7″)",weight:"60 kg (132 lb)",bust:"94 cm (37″)",cup:"E",waist:"60 cm (23½″)",hips:"94 cm (37″)",butt:"Round, firm and athletic",shoe:"US 7½",bloodType:"O",hand:"Right",
+  summary:"The fiercest little warrior in the jungle: hot-tempered, fiercely loyal and always ready for a fight, with a pout so cute nobody takes her threats seriously, which makes her angrier. Lioness's right hand, and she'll fight anyone who says otherwise.",
+  traits:"Fierce, loyal, hot-tempered, pouty",strengths:"Fearless; protective of her pack; brilliant with a blade",flaws:"Picks fights; sulks when she loses; can't take a compliment",
+  likes:"Fencing, temple ruins, spicy food, Lioness's approval, winning arguments",dislikes:"Being called cute, losing, Cougar acting like she's second-in-command",hobbies:"Fencing, ruin-climbing, spear training, cooking her grandmother's recipes",
+  habits:"Crosses her arms and pouts when she's wrong; flicks her bangs out of her eyes before a fight",fears:"Letting her pack down; being seen as a kitten",dreams:"Lead a dig in the lost temples back home",catchphrase:"\"Say that again. I dare you.\"",
+  favColor:"Gold and emerald",favFood:"Cochinita pibil",favDrink:"Spicy hot chocolate",favDessert:"Mango with chili",favSubject:"Archaeology",favMusic:"Cumbia and metal",favBook:"Apocalypto",favSeason:"The rainy season",favFlower:"Orchids",favAnimal:"Jaguars",favPlace:"A temple stairway at sunset",favScent:"Rain on jungle leaves",
+  backstory:"Grew up in a jungle town beside temple ruins, the daughter of a tour guide and a fencing coach, listening to stories of the jaguar warriors. She followed Lioness into the pride on her first day and never left.",
+  mother:"Citlali Balam, a fencing coach",father:"Mateo Balam, a jungle tour guide",siblings:"Three older brothers who taught her to fight",family:"A grandmother who calls her her little jaguar",
+  status:"Dating",partner:"A warrior fierce enough to win her over (she hasn't let him past a kiss yet)",bestFriends:"Lioness",friends:"Caracal, Cheetah, Tiger, Phoenix",rivals:"Cougar (for the spot at Lioness's right hand)",exes:"None",pets:"A green parrot named Chilo",
+  experience:"Virgin",orientation:"Straight (Cougar doesn't count, she says)",bodyCount:"0",firstTime:"Not yet: he'll have to earn it",turnOns:"Being beaten fairly, strength, being pinned, praise from someone she respects",turnOffs:"Being called kitten (secretly a turn-on)",favPosition:"Doesn't know yet (on top, she assumes)",kinks:"Wrestling for control; being overpowered by someone who earned it",limits:"Anyone who hasn't earned it",
+  notes:"Keeps a list of everyone who has called her cute. It is very long."},
+cheetah:{fullName:"Zuri Kasi",nickname:"Cheetah, Zu, Zoomies",age:"20",dob:"2006-04-09",birthplace:"A highland town above the savanna",occupation:"Second year, Cheetah House: sports science; sprint team",languages:"Swahili, English",
+  height:"165 cm (5′5″)",weight:"50 kg (110 lb)",bust:"84 cm (33″)",cup:"C",waist:"56 cm (22″)",hips:"86 cm (34″)",butt:"Small, round and toned",shoe:"US 7",bloodType:"B",hand:"Right",
+  summary:"The fastest girl alive, and she'll tell you so: cocky, chatty and impossible to keep still, a bundle of nerves before every race and a show-off after. She runs at Lioness's side and is very proud of it.",
+  traits:"Cocky, bubbly, impatient, competitive",strengths:"Fastest on campus; infectious energy; never quits a race",flaws:"Braggart; terrible attention span; sulks when she loses",
+  likes:"Sprinting, gold medals, sunny mornings, energy drinks, being first",dislikes:"Waiting in line, losing, Shark's swagger",hobbies:"Sprinting, long jump, dancing, racing anyone who'll race",
+  habits:"Bounces on her toes when she's excited; talks a mile a minute",fears:"Getting injured; being slow",dreams:"Olympic gold in the hundred meters",catchphrase:"\"Race you!\"",
+  favColor:"Gold and tangerine",favFood:"Ugali and grilled chicken",favDrink:"Mango juice",favDessert:"Mandazi",favSubject:"Sports science",favMusic:"Afrobeats",favBook:"Born to Run",favSeason:"Dry season",favFlower:"Sunflowers",favAnimal:"Cheetahs",favPlace:"A savanna track at golden hour",favScent:"Fresh-cut grass",
+  backstory:"Grew up running barefoot on red-dirt roads above the savanna, the youngest of six. A scout saw her outrun the boys' team at fourteen; she came to the Academy on a sprint scholarship and joined Lioness's pride in her first week.",
+  mother:"Neema Kasi, a nurse",father:"Daudi Kasi, a running coach",siblings:"Five older siblings, all runners",family:"A grandfather who timed her first race with a sundial",
+  status:"In a relationship",partner:"Her training partner, a lifeguard and track coach",bestFriends:"Lioness",friends:"Caracal, Jaguar, Dolphin",rivals:"Shark (the other cocky star athlete)",exes:"None",pets:"A greyhound named Bolt",
+  experience:"Virgin",orientation:"Straight, a little curious",bodyCount:"0",firstTime:"Not yet: she's waiting until after nationals",turnOns:"Confidence, being caught, being the center of attention, cheering",turnOffs:"Slow people, boredom",favPosition:"Doesn't know yet",kinks:"Being chased and caught; praise",limits:"Anything that slows her down",
+  notes:"Has never once walked anywhere she could run."},
+cougar:{fullName:"Dakota Rhodes",nickname:"Cougar, Kota, Cub",age:"22",dob:"2004-08-30",birthplace:"A ranch town on the rim of a red-rock canyon",occupation:"Fourth year, Cougar House: geology; climbing team",languages:"English, some Spanish",
+  height:"182 cm (6′0″)",weight:"70 kg (154 lb)",bust:"102 cm (40″)",cup:"G",waist:"66 cm (26″)",hips:"102 cm (40″)",butt:"Round, firm and muscular",shoe:"US 10",bloodType:"A",hand:"Left",
+  summary:"The scrappiest mountain lion in the pride: tall, cocky and competitive, with a tomboyish grin and a habit of challenging Lioness to everything. She'd still take a bullet for her pack, and Lioness knows it.",
+  traits:"Scrappy, competitive, tomboyish, loyal",strengths:"Fearless climber; never backs down; tough as canyon rock",flaws:"Stubborn; picks fights with the pack leader; terrible loser",
+  likes:"Rock climbing, campfires, bourbon, arm wrestling, open skies",dislikes:"Being told what to do, losing to Lioness, Jaguar's pouting",hobbies:"Climbing, trail running, horseback riding, arm wrestling",
+  habits:"Leans against things with her arms crossed; cracks her knuckles before a challenge",fears:"Being tied down; heights she can't climb back from",dreams:"Free-solo a canyon wall nobody has climbed",catchphrase:"\"Bet.\"",
+  favColor:"Caramel and sage",favFood:"Brisket",favDrink:"Bourbon on the rocks",favDessert:"Peach cobbler",favSubject:"Geology",favMusic:"Outlaw country",favBook:"Wild",favSeason:"Fall",favFlower:"Desert marigold",favAnimal:"Mountain lions",favPlace:"A canyon rim at sunset",favScent:"Sage and campfire smoke",
+  backstory:"Grew up on a ranch at the edge of a red-rock canyon, climbing walls her parents told her not to. She came to the Academy on a climbing scholarship, challenged Lioness to a race on day one, lost, and has been in the pride ever since.",
+  mother:"June Rhodes, a park ranger",father:"Cole Rhodes, a rancher",siblings:"A twin brother, Cody",family:"An uncle who taught her to ride",
+  status:"In a relationship",partner:"Her wild match, a rugged mountain ranger (she makes him earn every inch)",bestFriends:"Cheetah",friends:"Caracal, Lioness (on good days), Tiger",rivals:"Lioness (she'll beat her someday) and Jaguar",exes:"None",pets:"A quarter horse named Dusty Rose",
+  experience:"Virgin",orientation:"Bisexual",bodyCount:"0",firstTime:"Not yet: she says she's too busy; really, she's nervous",turnOns:"Competition, being pinned after a fight, strong hands, someone who doesn't back down",turnOffs:"Pushovers",favPosition:"Doesn't know yet (on top, obviously)",kinks:"Wrestling; hate-kissing Jaguar",limits:"Being told she lost",
+  notes:"Has a tally of wins against Lioness on her bedroom wall. It reads 0 to 31."},
+caracal:{fullName:"Samira Haddad",nickname:"Caracal, Sami, Pounce",age:"20",dob:"2006-09-14",birthplace:"A desert market town at the edge of the dunes",occupation:"Second year, Caracal House: languages and acrobatics",languages:"Arabic, French, English",
+  height:"150 cm (4′11″)",weight:"45 kg (99 lb)",bust:"80 cm (31½″)",cup:"B",waist:"54 cm (21″)",hips:"84 cm (33″)",butt:"Round, perky and bubbly",shoe:"US 5",bloodType:"AB",hand:"Right",
+  summary:"The feistiest little hunter in the pride: tiny, fiery and fearless, she picks fights with girls twice her size and springs at anything that moves. Lioness found her picking pockets in the market and adopted her on the spot.",
+  traits:"Feisty, fearless, jumpy, fiercely loyal",strengths:"Lightning reflexes; incredible jumper; never gives up",flaws:"Hot-headed; sticky fingers; can't sit still",
+  likes:"Climbing rooftops, pomegranates, haggling, shiny things, Lioness",dislikes:"Being picked up, being called tiny, Lynx (they're nothing alike!)",hobbies:"Acrobatics, parkour, haggling in the market, collecting trinkets",
+  habits:"Flicks the long locks at her temples when she's annoyed; pounces on people from behind",fears:"Being left behind; cages",dreams:"Join a traveling acrobatic troupe",catchphrase:"\"Say that to my face! ...I'll climb up there.\"",
+  favColor:"Copper and gold",favFood:"Lamb tagine",favDrink:"Mint tea",favDessert:"Baklava",favSubject:"Languages",favMusic:"Arabic pop",favBook:"Aladdin",favSeason:"Spring",favFlower:"Desert rose",favAnimal:"Caracals",favPlace:"A rooftop above the desert market at dusk",favScent:"Mint and cardamom",
+  backstory:"Grew up running the rooftops of a desert market town, the youngest daughter of a spice merchant. Lioness caught her lifting her purse on a trip abroad, laughed, and brought her home to the pride.",
+  mother:"Leila Haddad, a weaver",father:"Karim Haddad, a spice merchant",siblings:"Four older sisters",family:"A grandmother who taught her every market trick",
+  status:"In a relationship",partner:"Her locksmith, a street mechanic",bestFriends:"Lioness",friends:"Cheetah, Coyote, Raccoon, Jaguar",rivals:"Lynx (the other tufted cat, and she won't be confused with her)",exes:"None",pets:"A desert hedgehog named Fennel",
+  experience:"Virgin",orientation:"Straight, a little curious",bodyCount:"0",firstTime:"Not yet: she gets flustered and bites him",turnOns:"Being lifted up (only by the right person), playful teasing, rooftops at night",turnOffs:"Being treated like she's fragile",favPosition:"Doesn't know yet",kinks:"Being caught after a chase; being pinned down by someone bigger",limits:"Being called tiny during it",
+  notes:"Has stolen Lioness's hair tie eleven times. Lioness lets her."}
+});
+/* Penguin: truly innocent, with dreams she can't explain */
+Object.assign(BIOS.penguin,{
+  summary:"The cheerful sweetheart who loves winter more than anyone alive: warm, bubbly and honest to a fault, and so sheltered she still blushes at the word \"kiss.\" She has no idea what half of the Academy's jokes are about.",
+  traits:"Cheerful, honest, warm, innocent",flaws:"Hopelessly naive; clumsy on ice (and off it); can't keep a secret",
+  backstory:"Grew up in a tiny town where it snows nine months a year, the daughter of a fisherman and a very strict schoolteacher who skipped that chapter of every book. Her grandmother knitted her the orange scarf she still wears every day.",
+  status:"In a relationship",partner:"Her dangerously handsome heartthrob in black tie (they've held hands; she thinks they're moving very fast)",
+  experience:"Virgin",orientation:"She isn't sure what that means",bodyCount:"0",firstTime:"Not yet. She thinks it involves a lot of kissing.",
+  turnOns:"Holding hands, forehead kisses, being called cute, the warm, fluttery feeling she gets when he looks at her a certain way (she thinks she's coming down with something)",turnOffs:"Dirty jokes (she never gets them)",
+  favPosition:"\"Like... sitting or standing?\"",
+  kinks:"None that she knows of. Her dream journal, which she keeps without understanding a word of it, says otherwise: being bred, being milked, being shown off to a crowd, wearing a collar and leash, being used until she can't stand, being covered in cum",
+  limits:"Anything she'd have to look up first",
+  notes:"Asked Crow what one of her dreams meant. Crow choked on her cocoa and has refused to explain."});
+/* every girl's yuri fuckbuddy (the scenes in Academy Fuckbuddies follow these pairs) */
+{
+  const B={
+    griffin:"Serpent. They can't stand each other in daylight; after dark, it's a different story.",
+    serpent:"Griffin. She'd rather die than admit it, which is why she always goes to Griffin's room, never the other way around.",
+    raven:"Crow. It started as just sex. It is very much not just sex anymore.",
+    crow:"Raven. It started as just sex; now it's her secret girlfriend.",
+    wolf:"Stag. They argue about everything, then settle it in bed.",
+    stag:"Wolf. The only fights she ever wants to lose.",
+    swan:"Butterfly. Two ballerinas, one practice room, a lock on the door.",
+    butterfly:"Swan. Every pas de deux ends on the studio floor.",
+    dragon:"Kraken. Rivals by day; by night, nobody wins and both of them do.",
+    kraken:"Dragon. Cold-blooded with everyone else.",
+    shark:"Salmon. Best friend, worst rival, favorite way to burn off a loss.",
+    salmon:"Shark. Perfectly scheduled: Thursdays, after practice.",
+    badger:"Fox (and Arctic Fox, when she sneaks in).",
+    fox:"Badger (and Arctic Fox, when the two foxes team up).",
+    arcticfox:"Fox and Badger. She sneaks into whichever bed is warmer.",
+    lovebird:"Flamingo. Rivals in love, fuckbuddies in practice.",
+    flamingo:"Lovebird. A princess needs someone to spoil her.",
+    owl:"Rat. Late nights in the library stacks.",
+    rat:"Owl. She steals the books; Owl catches her; they negotiate.",
+    lioness:"Scorpion. Hate-sex, every time; neither of them will admit it's the best she's had.",
+    scorpion:"Lioness. She'll poison anyone else who touches her.",
+    tiger:"Unicorn. They bicker endlessly, and make up even louder.",
+    unicorn:"Tiger. Gentle with everyone but her.",
+    phoenix:"Jellyfish. Fire and ice, every Friday.",
+    jellyfish:"Phoenix. The only one who can make her lose her cool.",
+    panda:"Lynx. She pranks her all week; Lynx collects on the weekend.",
+    lynx:"Panda. Revenge for the pranks, collected weekly.",
+    hummingbird:"Peacock. Rivals in the spotlight, sweethearts in the dark.",
+    peacock:"Hummingbird. The only girl allowed to mess up her hair.",
+    dolphin:"Crane. Racing rivals who cool down together.",
+    crane:"Dolphin. Her one unscheduled indulgence.",
+    panther:"Coyote. After the archives close.",
+    coyote:"Panther. The only regular in a drifter's life.",
+    firefly:"Raccoon. Also her secret girlfriend.",
+    raccoon:"Firefly. Also her secret girlfriend.",
+    orca:"Narwhal. The swim captain and the dreamer, in the pool after hours.",
+    narwhal:"Orca. Her first, and still the only girl.",
+    harpseal:"Leopard. Snowed-in sleepovers that stopped being just sleepovers.",
+    leopard:"Harp Seal. Still a virgin, she insists; Harp Seal doesn't count.",
+    jaguar:"Cougar. They fight over who's Lioness's right hand, and finish it in bed. Still a virgin, she says.",
+    cougar:"Jaguar. Hate-kissing turned into hate-everything else. Still a virgin, technically.",
+    cheetah:"Caracal. Quick and breathless, between classes. Still a virgin with men.",
+    caracal:"Cheetah. She pounces; Cheetah never runs away. Still a virgin with men.",
+    penguin:"None. She doesn't know what that means."};
+  Object.entries(B).forEach(([h,v])=>{if(BIOS[h])BIOS[h].yuriBuddy=v});
+  /* the pack */
+  Object.assign(BIOS.lioness,{friends:"Tiger, Dolphin, Butterfly, and her pack: Jaguar, Cheetah, Cougar and Caracal",rivals:"Scorpion (and Cougar, who keeps challenging her)"});
+}
+/* rivals that were only one-sided, answered */
+{
+  const addR=(h,txt)=>{if(BIOS[h])BIOS[h].rivals=BIOS[h].rivals?BIOS[h].rivals+"; "+txt:txt};
+  addR("shark","Cheetah (who keeps challenging her to races on the sand)");
+  addR("lynx","Caracal (who hates being mistaken for her) and Arctic Fox (whose tricks she always sees through)");
+  addR("panda","Harp Seal (for the best nap spots)");
+  addR("dolphin","Orca (the swim captain who makes her do drills)");
+  addR("jellyfish","Narwhal (she insists Narwhal copies her look)");
+}
+/* friendship goes both ways: anyone a girl names as a friend or best friend names her back */
+{
+  const NM=h=>({harpseal:"Harp Seal",arcticfox:"Arctic Fox"})[h]||h[0].toUpperCase()+h.slice(1);
+  const H=Object.keys(BIOS),byLen=H.slice().sort((a,b)=>NM(b).length-NM(a).length);
+  const find=s=>{let t=String(s||"");const out=[];byLen.forEach(h=>{const rx=new RegExp("\\b"+NM(h)+"\\b","g");if(rx.test(t)){out.push(h);t=t.replace(rx,"#")}});return out};
+  const add=[];
+  H.forEach(h=>{const b=BIOS[h];find(b.bestFriends).concat(find(b.friends)).forEach(o=>{if(o===h||!BIOS[o])return;const y=BIOS[o];
+    const known=find(y.bestFriends).concat(find(y.friends),find(y.rivals),find(y.yuriBuddy));if(!known.includes(h))add.push([o,h])})});
+  add.forEach(([o,h])=>{const y=BIOS[o];if(!find(y.friends).includes(h))y.friends=y.friends?y.friends.replace(/\.$/,"")+", "+NM(h):NM(h)});
+}
+
 /* ---- v210: Biography (tail block). A step between Outfit and Finish for everything about her that is not in the
    picture: name, birthday, sizes, personality, favorites, family, friends and rivals, her love life and notes.
    Nothing here goes into the prompt. It is saved with the design (S.bio), comes along with starting points that have one
@@ -21374,12 +21896,12 @@ arcticfox:{fullName:"Yuki Shirogane",nickname:"Arctic Fox, Yuki, Frosty",age:"22
     ["favorites","Favorites",[["favColor","Colors","t"],["favFood","Foods","t"],["favDrink","Drink","t"],["favDessert","Dessert","t"],["favSubject","Subject","t"],["favMusic","Music","t"],
       ["favBook","Book or film","t"],["favSeason","Season","t"],["favFlower","Flower","t"],["favAnimal","Animal","t"],["favPlace","Place","t"],["favScent","Scent","t"]]],
     ["family","Background and family",[["backstory","Background","a","Where she grew up and how she got here."],["mother","Mother","t"],["father","Father","t"],["siblings","Siblings","t"],["family","Other family","t"]]],
-    ["relations","Relationships",[["status","Relationship status","s",STATUS],["partner","Partner or crush","t"],["bestFriends","Best friends","t"],["friends","Friends","t"],["rivals","Rivals","t"],["exes","Exes","t"],["pets","Pets","t"]]],
+    ["relations","Relationships",[["status","Relationship status","s",STATUS],["partner","Partner or crush","t"],["yuriBuddy","Yuri fuckbuddy","t"],["bestFriends","Best friends","t"],["friends","Friends","t"],["rivals","Rivals","t"],["exes","Exes","t"],["pets","Pets","t"]]],
     ["intimacy","Intimacy",[["experience","Experience","s",EXP],["orientation","Orientation","s",ORIENT],["bodyCount","Partners so far","t"],["firstTime","First time","t"],
       ["turnOns","Turn-ons","t"],["turnOffs","Turn-offs","t"],["favPosition","Favorite position","t"],["kinks","Kinks and fantasies","t"],["limits","Limits","t"]]],
     ["notes","Notes",[["notes","Notes","a","Anything else: secrets, plans, things to remember."]]]];
   const FIELDS=SECTIONS.flatMap(s=>s[2].map(f=>f[0]));
-  const INTIMATE=new Set(SECTIONS.find(s=>s[0]==="intimacy")[2].map(f=>f[0]));
+  const INTIMATE=new Set(SECTIONS.find(s=>s[0]==="intimacy")[2].map(f=>f[0]).concat(["yuriBuddy"]));   /* v213: the yuri fuckbuddy line follows the intimacy rule */
   window.BIO_FIELDS=SECTIONS;
 
   /* ---------- state ---------- */
@@ -21418,7 +21940,7 @@ arcticfox:{fullName:"Yuki Shirogane",nickname:"Arctic Fox, Yuki, Frosty",age:"22
   const setBio=(k,v)=>{typing="main";try{mut(()=>{const b=Object.assign({},S.bio||{});if(v&&String(v).trim())b[k]=v;else delete b[k];if(Object.keys(b).length)S.bio=b;else delete S.bio},"bio:"+k)}finally{typing=""}};
   function asText(){
     const b=S.bio||{},lines=[];
-    SECTIONS.forEach(([id,label,fs])=>{if(id==="intimacy"&&!intimacyOk())return;const got=fs.filter(f=>b[f[0]]);if(!got.length)return;
+    SECTIONS.forEach(([id,label,fs])=>{if(id==="intimacy"&&!intimacyOk())return;const got=fs.filter(f=>b[f[0]]&&(!INTIMATE.has(f[0])||intimacyOk()));if(!got.length)return;
       lines.push(label.toUpperCase());got.forEach(([k,l])=>lines.push(`${l}: ${k==="dob"?b[k]+(signOf(b[k])?" ("+signOf(b[k])+")":""):b[k]}`));lines.push("")});
     return lines.join("\n").trim();
   }
@@ -21456,6 +21978,7 @@ arcticfox:{fullName:"Yuki Shirogane",nickname:"Arctic Fox, Yuki, Frosty",age:"22
       if(id==="intimacy"&&!intimacyOk()){d.append(h("p",{class:"bio-held",text:"Only for adult characters: this design is girl-labeled, or the age above is under 18."}));f.append(d);return}
       const grid=h("div",{class:"bio-grid"});
       fs.forEach(([k,l,kind,ph])=>{
+        if(INTIMATE.has(k)&&!intimacyOk())return;
         const fid="bio_"+k,v=b[k]||"";let ctl,aux=null;
         if(kind==="a")ctl=h("textarea",{id:fid,rows:"3",placeholder:ph||"",oninput:e=>setBio(k,e.target.value)});
         else if(kind==="s"){ctl=h("select",{id:fid,onchange:e=>{setBio(k,e.target.value);renderMain()}},h("option",{value:"",text:"Not set"}),...ph.map(o=>h("option",{value:o,text:o})));
@@ -21554,6 +22077,37 @@ arcticfox:{fullName:"Yuki Shirogane",nickname:"Arctic Fox, Yuki, Frosty",age:"22
     });
   }
   window.ORG210={characters:S0.filter(g=>!/^Academy/.test(g.label)).map(g=>g.label),outfitGroups:(PRESET_GROUPS.outfit||[]).length};
+})();
+
+/* ---- v213: the Academy girls in families. The girl chips, house profiles and every Academy list run family by
+   family (mythic beasts, big cats, canines, polar, sea, birds, woodland, snakes and bugs) instead of in the order the
+   houses were added. */
+(function(){
+  if(typeof ACAD==="undefined"||!ACAD.HOUSES)return;
+  const FAMILIES=[
+    ["Mythic",["griffin","dragon","phoenix","unicorn"]],
+    ["Big cats",["lioness","tiger","jaguar","cougar","cheetah","leopard","panther","lynx","caracal"]],
+    ["Canines",["wolf","fox","arcticfox","coyote"]],
+    ["Polar",["penguin","harpseal","orca","narwhal"]],
+    ["Sea",["kraken","shark","dolphin","jellyfish","salmon"]],
+    ["Birds",["raven","crow","owl","swan","crane","flamingo","peacock","lovebird","hummingbird"]],
+    ["Woodland",["stag","badger","panda","raccoon","rat"]],
+    ["Snakes and bugs",["serpent","scorpion","firefly","butterfly"]]];
+  const ORDER=FAMILIES.flatMap(f=>f[1]).filter(h=>ACAD.HOUSES.includes(h));
+  ACAD.HOUSES.filter(h=>!ORDER.includes(h)).forEach(h=>ORDER.push(h));
+  const rank=new Map(ORDER.map((h,i)=>[h,i]));
+  ACAD.HOUSES.sort((a,b)=>rank.get(a)-rank.get(b));   /* in place: the picker holds this array */
+  ACAD.FAMILY={};ACAD.FAMILIES=FAMILIES;FAMILIES.forEach(([l,hs])=>hs.forEach(h=>{ACAD.FAMILY[h]=l}));
+  /* every Academy list follows the same order (a set's own order within each girl is kept) */
+  const byLen=ACAD.HOUSES.slice().sort((a,b)=>b.length-a.length);
+  const houseOf=k=>{const t=tplById(k);if(!t)return null;if(t._house)return t._house;
+    const tg=(t.tags||[]).find(x=>rank.has(x));const p=byLen.find(h=>k.startsWith(h));return p||tg||(ACAD.BASES&&Object.keys(ACAD.BASES).find(h=>ACAD.BASES[h]===k))||null};
+  PRESET_GROUPS.start.forEach(g=>{if(!/^Academy/.test(g.label))return;
+    const ks=g.keys.map((k,i)=>[k,i,rank.has(houseOf(k))?rank.get(houseOf(k)):999]);
+    ks.sort((a,b)=>a[2]-b[2]||a[1]-b[1]);g.keys=ks.map(x=>x[0])});
+  const st=document.createElement("style");
+  st.textContent=".sp-fam{flex:none;align-self:center;font-size:12px;font-weight:600;color:var(--muted);margin:0 2px 0 10px;white-space:nowrap}";
+  document.head.append(st);
 })();
 
 /* ---- v210: interface pass (tail block).
