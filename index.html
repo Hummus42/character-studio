@@ -18322,7 +18322,7 @@ function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.s
     /* third row: the girls (Academy and Scenes) */
     const gr=girlRow();gr.textContent="";gr.hidden=!(s.sec==="academy"||s.sec==="scenes");
     if(!gr.hidden){gr.append(chip(!s.girl,"All girls",()=>go(s.sec,s.set,"")));const FAM=ACAD.FAMILY||{};let last="";   /* v213: the girls in families, each family labeled */
-      HOUSES.forEach(hh=>{const f=FAM[hh];if(f&&f!==last){last=f;gr.append(h("span",{class:"sp-fam",text:f}))}gr.append(chip(s.girl===hh,(ACAD.HNAME&&ACAD.HNAME[hh])||cap(hh),()=>go(s.sec,s.set,hh)))})}
+      HOUSES.forEach(hh=>{const f=FAM[hh];if(f&&f!==last){last=f;gr.append(h("span",{class:"sp-fam",text:f}))}const c=chip(s.girl===hh,(ACAD.HNAME&&ACAD.HNAME[hh])||cap(hh),()=>go(s.sec,s.set,hh));if(ACAD.pixelImg){const im=ACAD.pixelImg(hh,16);if(im){im.style.marginRight="4px";c.prepend(im)}}gr.append(c)})}
     const q=$("#spQ");if(q){const nm={chars:"characters",academy:"the Academy",men:"the men",scenes:"scenes",recent:"recent",saves:"your saves"}[s.sec];
       q.placeholder=nm?`Search ${nm}`:`Search ${data.list.length} starting points`}
   };
@@ -21872,6 +21872,124 @@ Object.assign(BIOS.penguin,{
   add.forEach(([o,h])=>{const y=BIOS[o];if(!find(y.friends).includes(h))y.friends=y.friends?y.friends.replace(/\.$/,"")+", "+NM(h):NM(h)});
 }
 
+/* ---- v214: each house's 16x16 pixel head, the house logo (biography House list, picker chips and profiles).
+   Rows of letters, one color per letter; "." is transparent. */
+(function(){
+  if(typeof ACAD==="undefined")return;
+  const PX={"griffin":{"r":["....b...........","...b.oooo.......","..booaaaaoo.....",".boaaaaaaaao....",".oaaaaaaaaaao...",".oaaaaeeaaaaoo..",".oaaaaewaaaannoo",".oaaaaaaaaaannnn",".oaaaaaaaaaaonnn",".oaaaaaaaaaoo...","..oaaaaaaaao....","..oabbbbbbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#e8b13a","a":"#f2efe6","b":"#c79a3a"}},"dragon":{"r":[".dd..........dd.","..dd........dd..","..odd......ddo..",".oaado....odaao.",".oaaaaooooaaaao.","oaaacaaaaaacaaao","oaaeeeaaaaeeeaao","oaaewaaaaaaewaao","oaaaaaaaaaaaaaao","oaaccbbbbbbccaao",".oaabbbbbbbbaao.",".oabbnbbbbnbbao.","..obbbbbbbbbbo..","..owbwbwbwbwbo..","...oooooooooo...","................"],"c":{"o":"#1d1b22","e":"#f2c230","w":"#ffffff","n":"#3a2a2a","a":"#c8303a","b":"#f0b85a","c":"#7a1620","d":"#e8c060"}},"phoenix":{"r":["...ccc..........","..c..oooo.......",".c.ooaaaaoo.....","c.oaaaaaaaao....",".oaaaaaaaaaao...",".oaaaaeeaaaaoo..",".oaaaaewaaaannoo",".oaaaaaaaaaannnn",".oaaaaaaaaaaonnn",".oaaaaaaaaaoo...","..oaaaaaaaao....","..oabbbbbbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#f6d34a","a":"#e8402a","b":"#f5a623","c":"#f6d34a"}},"unicorn":{"r":[".........d......","........dd......",".......dd.......","...cc.ood.......","..cccoaaao......","..ccoaaaaao.....",".ccoaaeaaaao....",".ccoaawaaaaao...",".cccoaaaaaaaao..",".cccoaaaaaabbbo.","..ccoaaaaabbbnbo","..cccoaaaaobbbbo","...ccoaaao.oooo.","...ccoaaao......","....coaaao......",".....oooo......."],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#d9a7c7","a":"#f7f4fb","b":"#f1d9e8","c":"#b9a4f0","d":"#f2d16b"}},"lioness":{"r":["................",".oo..........oo.",".opo........opo.",".oppo......oppo.",".ocacooooooocco.",".ocaacccccccaco.","ocaaaaaaaaaaaaco","ocaeeaaaaaaeeaco","ocaewaaaaaaewaco","ocaaaaaaaaaaaaco","ocaaabbbbbbaaaco",".ocabbbnnbbbaco.",".ocabbbbbbbbaco.","..occbbbbbbcco..","...ooccccccoo...",".....oooooo....."],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e9a99a","a":"#d9a24a","b":"#f3dcb0","c":"#8a5426"}},"tiger":{"r":["................",".oo..........oo.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaccaaaaao.","oaaaaaccccaaaaao","oaaeeaaaaaaeeaao","ocaewaaaaaaewaco","oacaaaaaaaaaacao","oaacabbbbbbacaao",".oaabbbnnbbbaao.",".oaabbbbbbbbaao.","..oaabbbbbbaao..","...ooaaaaaaoo...",".....oooooo....."],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e9a99a","a":"#ee8a2a","b":"#fbf4ea","c":"#2a2028"}},"jaguar":{"r":["................",".oo..........oo.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaacaaaaaacaao.","oaaaaaacaaaaaaao","oaaeeaaaaaaeeaao","oaaewaaaaaaewaao","oaaaaaaaaaaaaaao","oacaabbbbbbaacao",".oaabbbnnbbbaao.",".oacbbbbbbbbcao.","..oaabbbbbbaao..","...ooaaaaaaoo...",".....oooooo....."],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e9a99a","a":"#e2a73e","b":"#f6e3b8","c":"#2a2028"}},"cougar":{"r":["................",".oo..........oo.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaaaaaaaao.","oaaaaaaaaaaaaaao","oaaeeaaaaaaeeaao","oaaewaaaaaaewaao","oaaaaaaaaaaaaaao","oaaaabbbbbbaaaao",".oaabbbnnbbbaao.",".oaabbbbbbbbaao.","..oaabbbbbbaao..","...ooaaaaaaoo...",".....oooooo....."],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e9a99a","a":"#c08a58","b":"#f1e2cc"}},"cheetah":{"r":["................",".oo..........oo.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaacaaaaaacaao.","oaaaaaacaaaaaaao","oaaeeaaaaaaeeaao","oaaewaaaaaaewaao","oaaacaaaaaacaaao","oacacbbbbbbcacao",".oaabbbnnbbbaao.",".oacbbbbbbbbcao.","..oaabbbbbbaao..","...ooaaaaaaoo...",".....oooooo....."],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e9a99a","a":"#e8b95a","b":"#fbf1dc","c":"#2a2028"}},"leopard":{"r":["................",".oo..........oo.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaacaaaaaacaao.","oaaaaaacaacaaaao","oaaeeaaaaaaeeaao","oaaewaaaaaaewaao","ocaaaaaaaaaaaaco","oacaabbbbbbaacao",".oaabbbnnbbbaao.",".oacbbbbbbbbcao.","..oacbbbbbbcao..","...ooaaaaaaoo...",".....oooooo....."],"c":{"o":"#1d1b22","e":"#3b6ea8","w":"#ffffff","n":"#3a2a2a","p":"#f1b9c4","a":"#e6e8ee","b":"#ffffff","c":"#7d808a"}},"panther":{"r":["................",".oo..........oo.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaaaaaaaao.","oaaaaaaaaaaaaaao","oaaeeaaaaaaeeaao","oaaewaaaaaaewaao","oaaaaaaaaaaaaaao","oaaaabbbbbbaaaao",".oaabbbnnbbbaao.",".oaabbbbbbbbaao.","..oaabbbbbbaao..","...ooaaaaaaoo...",".....oooooo....."],"c":{"o":"#0d0c10","e":"#e8c13a","w":"#fff2a8","n":"#15131a","p":"#6a5a74","a":"#2b2833","b":"#46424f"}},"lynx":{"r":[".cc..........cc.",".co..........oc.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaaaaaaaao.","oaaaaaaaaaaaaaao","oaaeeaaaaaaeeaao","oaaewaaaaaaewaao","oaaaaaaaaaaaaaao","oaacabbbbbbacaao",".oaabbbnnbbbaao.",".oaacbbbbbbcaao.","..oaabbbbbbaao..","...ooaaaaaaoo...",".....oooooo....."],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e9a99a","a":"#c9b29a","b":"#f3ebe0","c":"#2a2028"}},"caracal":{"r":[".cc..........cc.",".co..........oc.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaaaaaaaao.","oaaaaaaaaaaaaaao","oaaeeaaaaaaeeaao","oaaewaaaaaaewaao","oaaaaaaaaaaaaaao","oaaaabbbbbbaaaao",".oaabbbnnbbbaao.",".oaabbbbbbbbaao.","..oaabbbbbbaao..","...ooaaaaaaoo...",".....oooooo....."],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e0977f","a":"#c4703e","b":"#f6e6d4","c":"#1d1b22"}},"wolf":{"r":[".o............o.",".oo..........oo.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaaaaaaaao.",".oaeeaaaaaaeeao.",".oaewaaaaaaewao.",".oaaaaaaaaaaaao.","..oaaabbbbaaao..","..oaabbbbbbaao..","...oabbnnbbao...","...oabbbbbbao...","....oabbbbao....",".....oaaaao.....","......oooo......"],"c":{"o":"#1d1b22","e":"#3a7fb8","w":"#ffffff","n":"#3a2a2a","p":"#c9a3a8","a":"#8e939e","b":"#e9ebef"}},"fox":{"r":[".o............o.",".oo..........oo.",".oco........oco.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaaaaaaaao.",".oaeeaaaaaaeeao.",".oaewaaaaaaewao.",".oaaaaaaaaaaaao.","..oaaabbbbaaao..","..oaabbbbbbaao..","...oabbnnbbao...","...oabbbbbbao...","....oabbbbao....",".....oaaaao.....","......oooo......"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e9a99a","a":"#e2722a","b":"#fbf4ea","c":"#1d1b22"}},"arcticfox":{"r":[".o............o.",".oo..........oo.",".oco........oco.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaaaaaaaao.",".oaeeaaaaaaeeao.",".oaewaaaaaaewao.",".oaaaaaaaaaaaao.","..oaaabbbbaaao..","..oaabbbbbbaao..","...oabbnnbbao...","...oabbbbbbao...","....oabbbbao....",".....oaaaao.....","......oooo......"],"c":{"o":"#6d7080","e":"#d4a12a","w":"#ffffff","n":"#3a2a2a","p":"#f1b9c4","a":"#f6f6fa","b":"#ffffff","c":"#c9cbd4"}},"coyote":{"r":[".o............o.",".oo..........oo.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaaaaaaaao.",".oaeeaaaaaaeeao.",".oaewaaaaaaewao.",".oaaaaaaaaaaaao.","..oaaabbbbaaao..","..oaabbbbbbaao..","...oabbnnbbao...","...oabbbbbbao...","....oabbbbao....",".....oaaaao.....","......oooo......"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#d9a08f","a":"#c9a274","b":"#f1e4cf"}},"penguin":{"r":["................",".....oooooo.....","...ooaaaaaaoo...","..oaaaaaaaaaao..",".oaaabbbbbbaaao.",".oaabbbbbbbbaao.",".oabbeebbeebbao.",".oabbewbbewbbao.",".oabbbbnnbbbbao.",".oabbbnnnnbbbao.",".oaabbbnnbbbaao.","..oaabbbbbbaao..","..oaabbbbbbaao..","...oaabbbbaao...","....oooooooo....","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#f08a24","a":"#1f1d26","b":"#ffffff"}},"harpseal":{"r":["................","................",".....oooooo.....","...ooaaaaaaoo...","..oaaaaaaaaaao..",".oaaaaaaaaaaaao.",".oaeeeaaaaeeeao.","oaaeeweaaeeweaao","oaaeeeaaaaeeeaao","oaaaaaabbaaaaaao","oaaaaabnnbaaaaao",".oaaaabbbbaaaao.",".oaaaaaaaaaaaao.","..ooaaaaaaaaoo..","....oooooooo....","................"],"c":{"o":"#7d808c","e":"#1d1b22","w":"#ffffff","n":"#2a2830","a":"#ffffff","b":"#e8e8ee"}},"orca":{"r":["................","................",".......oo.......","......oaao......","....oooaaooo....","..ooaaaaaaaaoo..",".oaawwaaaaaaaaoo","oaawwwwaaaaaaaao","oaewaaaaaaaaaaao","oaaeaaaaaaaaaaao","obbbbbbbbbaaaaao",".obbbbbbbbbbaaao","..oobbbbbbbbbbo.","....oooooooooo..","................","................"],"c":{"o":"#1d1b22","e":"#5a5866","w":"#ffffff","a":"#1f1d26","b":"#ffffff"}},"narwhal":{"r":["................","................","..........oo....",".........oaao...",".......oooaaooo.",".....ooaaaaaaaao","ooo.oacaaaaacaaa","ddddaaaaacaaaaaa","ooooaewaaaacaaaa","...oaeecaaaaaaaa","...obbbbbbbbbaaa","....obbbbbbbbbba",".....oobbbbbbbbb",".......ooooooooo","................","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","a":"#9fb6cf","b":"#e9f0f7","c":"#5f7894","d":"#f4efe2"}},"kraken":{"r":["................",".....oooooo.....","...ooaaaaaaoo...","..oaaaaaaaaaao..","..oaacaaaacaao..",".oaaaaaaaaaaaao.",".oaaeeaaaaeeaao.",".oaaewaaaaewaao.",".oaaaaaaaaaaaao.","..oaaaaaaaaaao..",".oaoaoaoaoaoaoo.","oaoaoaoaoaoaoao.","oao.oao.oao.oao.",".o..o.o..o..o.o.","................","................"],"c":{"o":"#1d1b22","e":"#c8203a","w":"#ffd0d8","a":"#6a3aa0","c":"#2bb3a8"}},"shark":{"r":["................","................","......ooo.......",".....ooooo......","....oooaaooo....","..ooaaaaaaaaoo..",".oaaaaaaaaaaaaoo","oaaaaaaaaaaaaaao","oaewaccaaaaaaaao","oaeeacccaaaaaaao","obbbbbbbbbaaaaao",".wwwbwbwbbbbaaao","..oobbbbbbbbbbo.","....oooooooooo..","................","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","a":"#6f8296","b":"#f2f4f7","c":"#4a5a6a"}},"dolphin":{"r":["................","................",".......oo.......","......oaao......","....oooaaooo....","..ooaaaaaaaaoo..",".oaaaaaaaaaaaaoo","oaaaaaaaaaaaaaao","oaewaaaaaaaaaaao","oaeeaaaaaaaaaaao","bobbbbbbbbaaaaao","oobbbbbbbbbbaaao","..oobbbbbbbbbbo.","....oooooooooo..","................","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","a":"#6fb3d6","b":"#e3f3fa"}},"jellyfish":{"r":["................",".....oooooo.....","...ooaaaaaaoo...","..oaaaawwaaaao..",".oaaawwaaaaaaao.",".oaaaaaaaaaaaao.",".oaeeaaaaaeeaao.",".oaewaaaaaewaao.",".oaaaaannaaaaao.",".oobobobobobooo.","..c.c..c..c.c...","..c..c.c.c..c...",".c...c.c.c...c..",".c..c..c..c..c..","..c.c...c..c.c..","................"],"c":{"o":"#7a5aa8","e":"#1d1b22","w":"#ffffff","n":"#7a3a9a","a":"#c9a6f0","b":"#f2b0d8","c":"#ff6fb5"}},"salmon":{"r":["................","................","................",".....oooooo.....","...ooaaaaaaoo..o","..oaaaacaaaaaooa",".oaewaacaaaaaaao",".oaeeaacaacaaaao",".oaaaaacaaaaaaao",".nobbbbcbbbbbooa","..oobbbbbbbbo..o","....oooooooo....","................","................","................","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#1d1b22","a":"#f08a7a","b":"#fbe0d8","c":"#c9504a"}},"raven":{"r":["................",".....oooo.......","...ooaaaaoo.....","..oaaaaaaaao....",".oaaaaaaaaaao...",".oaaaaeeaaaaoo..",".oaaaaewaaaannoo",".oaaaaaaaaaannnn",".oaaaaaaaaaaonnn",".oaaaaaaaaaoo...","..oaaaaaaaao....","..oabbbbbbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#1d1b22","e":"#0d0c10","w":"#8fb0ff","n":"#3a3850","a":"#262434","b":"#3a3850"}},"crow":{"r":["................",".....oooo.......","...ooaaaaoo.....","..oaaaaaaaao....",".oaaaaaaaaaao...",".oaaaaeeaaaaoo..",".oaaaaewaaaannoo",".oaaaaaaaaaannnn",".oaaaaaaaaaaonnn",".oaaaaaaaaaoo...","..oaaaaaaaao....","..oabbbbbbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#1d1b22","e":"#0d0c10","w":"#ffffff","n":"#50505a","a":"#2b2b33","b":"#45454f"}},"owl":{"r":[".o............o.",".oo..........oo.",".oaoo......ooao.",".oaaaooooooaaao.","oaaaaaaaaaaaaaao","oabbbbaaaabbbbao","obbweebaabweebbo","obbeeebaabeeebbo","oabbbbannabbbbao","oaaaaaannaaaaaao","oaaaaaaaaaaaaaao",".oacacacacacaao.",".oaacacacacacao.","..oaaaaaaaaaao..","...oooaaaaooo...","......oooo......"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#e8b13a","a":"#a07a50","b":"#f3e6cc","c":"#6a4a30"}},"swan":{"r":["................",".....oooo.......","...ooaaaaoo.....","..oaaaaaaaao....",".oaaaaaaaaaao...",".oaaaaeeaaaaoo..",".oaaaaewaaaaonoo",".oaaaaaaaaaannnn",".oaaaaaaaaaaonnn",".oaaaaaaaaaoo...","..oaaaaaaaao....","..oabbbbbbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#7d808c","e":"#1d1b22","w":"#ffffff","n":"#f08a24","a":"#ffffff","b":"#f2f2f6"}},"crane":{"r":["................",".....oooo.......","...ooccaaoo.....","..oaccaaaaao....",".oaaaaaaaaaao...",".oaaaaeeaaaaoo..",".oaaaaewaaaannoo",".oaaaaaaaaaannnn",".oaaaaaaaaaaonnn",".oaaaaaaaaaoo...","..oaaaaaaaao....","..oabbbbbbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#6d7080","e":"#1d1b22","w":"#ffffff","n":"#3a3a3a","a":"#ffffff","b":"#f2f2f6","c":"#e02a2a"}},"flamingo":{"r":["................",".....oooo.......","...ooaaaaoo.....","..oaaaaaaaao....",".oaaaaaaaaaao...",".oaaaaeeaaaaoo..",".oaaaaewaaaannoo",".oaaaaaaaaaannnn",".oaaaaaaaaaaonnn",".oaaaaaaaaaoo..n","..oaaaaaaaao....","..oabbbbbbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#b0587a","e":"#1d1b22","w":"#ffffff","n":"#2a2830","a":"#f39ab8","b":"#f7c2d4"}},"peacock":{"r":["....d.d.d.......","....cococ.......","...ooaaaaoo.....","..oaaaaaaaao....",".oaaaaaaaaaao...",".oaaaaeeaaaaoo..",".oaaaaewaaaannoo",".oaaaaaaaaaannnn",".oaaaaaaaaaaonnn",".oaaaaaaaaaoo...","..oaaaaaaaao....","..oabbbbbbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a3a3a","a":"#1f6fb8","b":"#1fa39a","c":"#2bd0a0","d":"#f2c230"}},"lovebird":{"r":["................",".....oooo.......","...ooaaaaoo.....","..oaaaaaaaao....",".occcaaaaaaao...",".occaaeeaaaaoo..",".oaaaaewaaaannoo",".oaaaaaaaaaannnn",".oaaaaaaaaaaonnn",".oaaaaaaaaaoo...","..oaaaaaaaao....","..oabbbbbbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#e8402a","a":"#7ed27a","b":"#f6d34a","c":"#f08a7a"}},"hummingbird":{"r":["................",".....oooo.......","...ooaaaaoo.....","..oaaaaaaaao....",".oaaaaaaaaaao...",".oaaaaeeaaaaoo..",".oaaaaewaaaa....",".oaaaaaaaaaannnn",".oaaaaaaaaaa....",".oaaaaaaaaaoo...","..occccccaao....","..occccccbao....","...obbbbbbbo....","...obbbbbbo.....","....oooooo......","................"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#2a2830","a":"#2bb36a","b":"#e8305a","c":"#e8305a"}},"stag":{"r":["d..d........d..d","dd.d.d....d.d.dd",".ddd.d....d.ddd.","..ddd......ddd..","..oo.ddddd...oo.",".opo..........o.",".oppo......oppo.",".oaaaoooooooaao.",".oaeeaaaaaaeeao.",".oaewaaaaaaewao.","..oaaaaaaaaaao..","..oaaabbbbaaao..","...oabbnnbbao...","....oabbbbao....",".....oaaaao.....","......oooo......"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#d9a08f","a":"#a8744a","b":"#efe0c8","d":"#e8d6b0"}},"badger":{"r":["................","..ooo......ooo..",".occco....occco.",".ocpcoooooocpco.",".ooaccaaaaccaoo.",".oaaccaaaaccaao.","oaaaccaaaaccaaao","oaaeccaaaacceaao","oaaeccaaaaccwaao","oaaaccaaaaccaaao","oaaaccbbbbccaaao",".oaaccbnnbccaao.",".oaaabbbbbbaaao.","..oaaabbbbaaao..","...oooaaaaooo...","......oooo......"],"c":{"o":"#3a3a44","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e9a99a","a":"#f4f4f6","b":"#ffffff","c":"#1d1b22"}},"panda":{"r":["................","..ooo......ooo..",".occco....occco.",".ocpcoooooocpco.",".ooaaaaaaaaaaoo.",".oaaaaaaaaaaaao.","oaaaaaaaaaaaaaao","oaacccaaaacccaao","oaacwcaaaacecaao","oaaccaaaaaaccaao","oaaaaabbbbaaaaao",".oaaabbnnbbaaao.",".oaaabbbbbbaaao.","..oaaabbbbaaao..","...oooaaaaooo...","......oooo......"],"c":{"o":"#3a3a44","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#e9a99a","a":"#ffffff","b":"#ffffff","c":"#1d1b22"}},"raccoon":{"r":[".o............o.",".oo..........oo.",".opo........opo.",".oppo......oppo.",".oaaaoooooooaao.",".oaaaaaaaaaaaao.",".oaeeaaaaaaeeao.",".occeccccccecco.",".occwccccccwcco.","..oaaabbbbaaao..","..oaabbbbbbaao..","...oabbnnbbao...","...oabbbbbbao...","....oabbbbao....",".....oaaaao.....","......oooo......"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#3a2a2a","p":"#c9a3a8","a":"#9a9aa6","b":"#f2f2f6","c":"#2a2830"}},"rat":{"r":["................",".oooo......oooo.",".oppco....ocppo.",".ocpcoooooocpco.",".ooaaaaaaaaaaoo.",".oaaaaaaaaaaaao.","oaaaaaaaaaaaaaao","oaaeeaaaaaaeeaao","oaaewaaaaaaewaao","oaaaaaaaaaaaaaao","oaaaaabbbbaaaaao",".oaaabbnnbbaaao.",".oaaabbbbbbaaao.","..oaaabbbbaaao..","...oooaaaaooo...","......oooo......"],"c":{"o":"#1d1b22","e":"#1d1b22","w":"#ffffff","n":"#e87a96","p":"#f1a9b8","a":"#b6b0b8","b":"#e8e2ea","c":"#b6b0b8"}},"serpent":{"r":["................",".....oooooo.....","...ooaaaaaaoo...","..oaacaaaacaao..",".oaaaacaacaaaao.",".oaewaaaaaaweao.",".oaeeaaaaaaeeao.",".oaaaaaaaaaaaao.","..oaaabbbbaaao..","..oaabbbbbbaao..","...oabnbbnbao...","....oabbbbao....",".....oooooo.....",".......pp.......","......p..p......","................"],"c":{"o":"#1d1b22","e":"#f2c230","w":"#1d1b22","n":"#1d1b22","p":"#e02a3a","a":"#2f9a5a","b":"#a8e0a0","c":"#1f6a3a"}},"scorpion":{"r":[".oo..........oo.","oaao........oaao","oaaao......oaaao",".oaaao....oaaao.","..oaaoo..ooaao..","...oaaaooaaao...","....oaaaaaao....","...oaeaaaaeao...","...oawaaaawao...","...oaaaaaaaao...","....oaccccao....",".....oaaaao.....",".....oaccao.....","......oaao......","......oaao......",".......oo......."],"c":{"o":"#0d0c10","e":"#e8402a","w":"#ffd0a8","a":"#2a2028","c":"#c8203a"}},"firefly":{"r":["...o........o...","....o......o....",".....o....o.....","......oooo......",".....oaaaao.....","oooo.oeaaeo.oooo","owwwooaaaaoowwwo","owwwwoaaaaowwwwo",".owwwoaaaaowwwo.","..oooobbbboooo..",".....obbbbo.....",".....occcco.....",".....occcco.....","......occo......",".......oo.......","................"],"c":{"o":"#1d1b22","e":"#d8ff4a","w":"#e8f0ff","a":"#3a3a6a","b":"#5a5a8a","c":"#d8ff4a"}},"butterfly":{"r":["................","...o........o...","....o......o....",".oooo.oooo.oooo.","oaaaaoobbooaaaao","oaccaaobboaaccao","oaccaaobboaaccao","oaaaaaobboaaaaao",".oaaaaobboaaaao.","..obbbobbobbbo..",".obbccobboccbbo.",".obbbbobbobbbbo.","..oooo.oo.oooo..","................","................","................"],"c":{"o":"#1d1b22","a":"#2a7ae8","b":"#2a2830","c":"#ffffff"}}};
+  ACAD.PIXEL=PX;
+  const cache={};
+  /* a data URL of the head, drawn once per house */
+  ACAD.pixelURL=h=>{if(cache[h])return cache[h];const p=PX[h];if(!p)return "";
+    const cv=document.createElement("canvas");cv.width=16;cv.height=16;const x=cv.getContext("2d");
+    p.r.forEach((row,y)=>{for(let i=0;i<16;i++){const ch=row[i];if(ch===".")continue;x.fillStyle=p.c[ch]||"#f0f";x.fillRect(i,y,1,1)}});
+    try{return cache[h]=cv.toDataURL("image/png")}catch(e){return ""}};
+  ACAD.pixelImg=(h,size)=>{const u=ACAD.pixelURL(h);if(!u)return null;const im=document.createElement("img");im.src=u;im.alt="";im.width=size||16;im.height=size||16;im.className="pxhead";im.setAttribute("aria-hidden","true");return im};
+  const st=document.createElement("style");st.textContent=".pxhead{image-rendering:pixelated;image-rendering:crisp-edges;vertical-align:middle;flex:none}";document.head.append(st);
+})();
+
+/* ---- v214: the Academy's eight groups (lore only; nothing here reaches the prompt).
+   Each group has a leader, a motto, a hangout and a rival group, and every girl has a role in hers. The biographies get
+   House, Group, Group role and Rival group, and "School year or work" no longer repeats the house. */
+const ACAD_GROUPS=[
+  {id:"legends",name:"The Legends",kind:"Mythic beasts",leader:"griffin",rival:"coil",members:["griffin","dragon","phoenix","unicorn"],
+    motto:"Born to be remembered.",hangout:"The Champions' Hall, under the old banners",
+    lore:"The Academy's living legends: champions, warriors and the girls the old stories are about. They've held the best table in the dining hall since the day they arrived, and the Coil has wanted it just as long."},
+  {id:"pride",name:"The Pride",kind:"Big cats",leader:"lioness",rival:"pack",members:["lioness","tiger","jaguar","cougar","cheetah","leopard","panther","lynx","caracal"],
+    motto:"We hunt together.",hangout:"The sunlit courtyard steps everyone calls Pride Rock",
+    lore:"The biggest group on campus: nine cats and one queen. They bicker, sulk and challenge each other constantly, then close ranks the second anyone from the Pack looks at one of them wrong."},
+  {id:"pack",name:"The Pack",kind:"Canines",leader:"wolf",rival:"pride",members:["wolf","fox","arcticfox","coyote"],
+    motto:"The strength of the wolf is the pack.",hangout:"The old forest trail behind the stables, around a bonfire",
+    lore:"Small, loyal and loud. Four girls who would follow Wolf off a cliff, and who have been at war with the Pride since before any of them can remember why."},
+  {id:"frost",name:"The Frost",kind:"Polar",leader:"orca",rival:"deep",members:["orca","penguin","harpseal","narwhal"],
+    motto:"Stay cool.",hangout:"The frozen lake in winter and the cocoa bar the rest of the year",
+    lore:"The coldest corner of campus and the warmest group in it. Orca runs them like a swim team, Penguin keeps them cheerful, Harp Seal keeps them napping and Narwhal tells them what's coming."},
+  {id:"deep",name:"The Deep",kind:"Sea",leader:"kraken",rival:"frost",members:["kraken","shark","dolphin","jellyfish","salmon"],
+    motto:"Still waters run deep.",hangout:"The aquarium wing after hours",
+    lore:"Mysterious, competitive and quietly running half the Academy's clubs. The pool is the Deep's territory, and the Frost keeps swimming in it."},
+  {id:"flock",name:"The Flock",kind:"Birds",leader:"raven",rival:"grove",members:["raven","crow","owl","swan","crane","flamingo","peacock","lovebird","hummingbird"],
+    motto:"Eyes in the sky.",hangout:"The observatory tower and the rooftops above it",
+    lore:"Nine birds who know everything that happens on campus, usually before it happens. Raven runs the Flock like a spy network; the Grove has been losing things to Crow since first year."},
+  {id:"grove",name:"The Grove",kind:"Woodland",leader:"stag",rival:"flock",members:["stag","badger","panda","raccoon","rat"],
+    motto:"Deep roots.",hangout:"The greenhouse and the old oak behind it",
+    lore:"The coziest group on campus: bakers, nappers, tinkerers and two very good thieves. Gentle until someone steals from one of them, which the Flock does constantly."},
+  {id:"coil",name:"The Coil",kind:"Snakes and bugs",leader:"serpent",rival:"legends",members:["serpent","scorpion","firefly","butterfly"],
+    motto:"Beauty bites.",hangout:"The emerald drawing room, by invitation only",
+    lore:"The Academy's most dangerous club: an heiress, her venomous right hand, and the two prettiest faces on campus, who nobody ever suspects. They want the Legends' table and they are very patient."}];
+(function(){
+  if(typeof ACAD==="undefined")return;
+  ACAD.GROUPS=ACAD_GROUPS;
+  const G={};ACAD_GROUPS.forEach(g=>{G[g.id]=g;g.members.forEach(h=>{G[h]=g})});
+  ACAD.GROUP_OF=h=>{const g=G[h];return g&&g.members?g:null};
+  const HN=h=>(ACAD.HNAME&&ACAD.HNAME[h])||ACAD.cap(h);
+  /* each girl's role in her group */
+  const ROLE={
+    griffin:"Leader. The undefeated champion leads the Legends from the front and has never let a challenge go unanswered, least of all one from Serpent.",
+    dragon:"The Sword. Griffin's best friend and the Legends' fiercest fighter; nobody touches a Legend while Dragon is standing.",
+    phoenix:"The Flame. The showstopper who never stays down; every comeback the Legends ever made was hers. Spends half her time with Lioness's Pride, which Griffin pretends not to notice.",
+    unicorn:"The Heart. The gentle one who keeps the peace, the only Legend everyone else on campus actually likes.",
+    lioness:"Leader. The queen of the Pride: every big cat on campus answers to her, eventually. She took the crown in her first week and has defended it against Cougar thirty-one times.",
+    tiger:"The Muscle. The toughest fighter in the Pride and the Pack's least favorite person on campus.",
+    jaguar:"The Right Hand. Lioness's enforcer and second-in-command, at least until Cougar takes the job from her (she won't).",
+    cougar:"The Challenger. Challenges Lioness for the crown once a month and loses every time; the Pride's best climber and worst loser.",
+    cheetah:"The Scout. The fastest girl alive carries every message, every rumor and every dare in the Pride, and always gets there first.",
+    leopard:"The Sunshine. The sweetheart of the Pride, who everyone protects and nobody can stay mad at.",
+    panther:"The Strategist. Plans every Pride scheme from her library tower, and is secretly best friends with the Pack's Coyote.",
+    lynx:"The Spy. Sees everything, says nothing, and reports only to Lioness. Wages a private prank war with the Grove's Panda.",
+    caracal:"The Wildcard. The smallest and feistiest of the Pride, who'll pounce on anyone, including Pack girls three times her size. Lioness adopted her on the spot.",
+    wolf:"Leader. The Pack's alpha: tough, fair and impossible to scare, the only girl on campus who stares Lioness down without blinking.",
+    fox:"The Trickster. The Pack's schemer, whose best friend is the Grove's Badger, which the Pack has learned to forgive.",
+    arcticfox:"The Prankster. Fox's snow-white shadow and the Pack's walking chaos; half of the Pride's missing hair ties are in her room.",
+    coyote:"The Drifter. The Pack's lone wolf, who comes and goes as she pleases, and whose best friend is the Pride's Panther (a scandal on both sides).",
+    orca:"Leader. The Frost's captain, who runs her group like a swim team: early mornings, cold water, nobody left behind.",
+    penguin:"The Sweetheart. The Frost's cheerful heart and unofficial mascot. The whole group guards her innocence fiercely, and Orca threatens anyone who tells a dirty joke near her.",
+    harpseal:"The Snuggler. The Frost's sleepy soft spot, who naps through every meeting and is somehow always right about the snacks.",
+    narwhal:"The Dreamer. The Frost's seer: Orca never makes a decision without hearing one of Narwhal's hunches first.",
+    kraken:"Leader. The queen of the Deep: cool, quiet and always three moves ahead. The Frost has never once caught her by surprise.",
+    shark:"The Enforcer. The Deep's cocky star athlete, who settles every argument with a race and has never lost one to the Frost.",
+    dolphin:"The Splash. The Deep's bubbly star swimmer and Orca's rival in the pool; she'd switch groups for the Frost's cocoa bar if anyone asked.",
+    jellyfish:"The Mystic. Drifts in and out of the Deep's meetings, and somehow always knows things nobody told her.",
+    salmon:"The Perfectionist. Keeps the Deep's schedule, its finances and its grudges in perfect order.",
+    raven:"Leader. The mastermind of the Flock, who runs her birds like a spy network from the observatory tower.",
+    crow:"The Thief. Steals whatever the Flock needs (and plenty it doesn't); Raven's secret girlfriend and the Grove's public enemy number one.",
+    owl:"The Scholar. The Flock's library and its oldest member; Raven asks her opinion and then does the opposite.",
+    swan:"The Grace. Prima ballerina and the Flock's public face; the reason the Flock gets invited everywhere.",
+    crane:"The Poise. Keeps the Flock's ceremonies, manners and seating charts perfect.",
+    flamingo:"The Princess. The Flock's most spoiled member, who funds every party and expects to be thanked for it.",
+    peacock:"The Showstopper. The vainest bird alive, Flamingo's partner in luxury and Hummingbird's favorite rival.",
+    lovebird:"The Romantic. The Flock's matchmaker, responsible for at least six couples on campus and one disaster.",
+    hummingbird:"The Messenger. The Flock's fastest flirt and fastest gossip; a secret told to Hummingbird reaches Raven in under an hour.",
+    stag:"Leader. The Grove's gentle guardian, soft-spoken and unbending, who has never once let the Flock bully one of her own.",
+    badger:"The Hearth. Bakes for everyone, mothers everyone, and fights anyone who touches her friends; best friends with the Pack's Fox.",
+    panda:"The Dozer. The Grove's sweetest and sleepiest member, locked in a prank war with the Pride's Lynx that she is somehow winning.",
+    raccoon:"The Bandit. The Grove's thief and Crow's nemesis, who steals back everything the Flock takes (and a little extra). Firefly's secret girlfriend.",
+    rat:"The Fixer. Can get anything for anyone, for a price; the Grove's quartermaster and Owl's best friend across enemy lines.",
+    serpent:"Leader. The haughty heiress who founded the Coil to take the Legends' table, and who has been patiently plotting it ever since.",
+    scorpion:"The Venom. Serpent's right hand and the Coil's most dangerous member; her rivalry with Lioness is campus legend.",
+    firefly:"The Spark. The Coil's bright one, who keeps the others from going full villain; secretly dating the Grove's Raccoon.",
+    butterfly:"The Lure. The prettiest face in the Coil; nobody ever suspects the ballerina, which is exactly the point."};
+  ACAD.GROUP_ROLE=ROLE;
+  /* leaders feud with the rival group's leader */
+  const LEADRIVAL={lioness:"Wolf (the Pack's alpha)",wolf:"Lioness (the Pride's queen)",orca:"Kraken (the Deep's queen)",kraken:"Orca (the Frost's captain)",
+    raven:"Stag (the Grove's guardian)",stag:"Raven (the Flock's mastermind)"};
+  if(typeof BIOS==="object")ACAD_GROUPS.forEach(g=>g.members.forEach(h=>{const b=BIOS[h];if(!b)return;
+    b.house=h;b.group=g.name;b.groupRole=ROLE[h]||"";b.rivalGroup=(G[g.rival]||{}).name||"";
+    /* "Second year, Penguin House: marine biology" reads "Second year: marine biology" now that House is its own line */
+    if(b.occupation)b.occupation=b.occupation.replace(/,\s*[A-Z][A-Za-z ]*? House(:|,)?\s*/,": ").replace(/^:\s*/,"").replace(/::/,":");
+    if(LEADRIVAL[h]&&!String(b.rivals||"").includes(LEADRIVAL[h].split(" ")[0]))b.rivals=(b.rivals?b.rivals+"; ":"")+LEADRIVAL[h];
+  }));
+  /* best friends from the rival group are a scandal worth noting, on both sides */
+  if(typeof BIOS==="object"){
+    const nmOf=h=>HN(h),byLen=ACAD_GROUPS.flatMap(g=>g.members).sort((a,b)=>nmOf(b).length-nmOf(a).length);
+    const first=s=>{let t=String(s||"");for(const h of byLen){if(new RegExp("\\b"+nmOf(h)+"\\b").test(t))return h}return null};
+    ACAD_GROUPS.forEach(g=>g.members.forEach(h=>{const b=BIOS[h];if(!b||/enemy lines/.test(b.bestFriends||""))return;const o=first(b.bestFriends),og=o&&G[o];
+      if(og&&og.members&&og.id===g.rival)b.bestFriends=b.bestFriends.replace(/\s*$/,"")+` (across enemy lines: she's ${og.name.replace(/^The /,"the ")}'s ${(ROLE[o]||"").split(".")[0].replace(/^The /,"").toLowerCase()})`}));
+  }
+  /* the robes say who she runs with */
+  ACAD_GROUPS.forEach(g=>g.members.forEach(h=>{const t=tplById(h+"robes");if(!t||!t.blurb||/ of the (Legends|Pride|Pack|Frost|Deep|Flock|Grove|Coil)\b/.test(t.blurb))return;
+    const role=(ROLE[h]||"").split(".")[0];const gn=g.name.replace(/^The /,"the ");t.blurb=t.blurb.replace(/\s*$/,"")+(role==="Leader"?` Leader of ${gn}.`:` ${role} of ${gn}.`)}));
+})();
+
 /* ---- v210: Biography (tail block). A step between Outfit and Finish for everything about her that is not in the
    picture: name, birthday, sizes, personality, favorites, family, friends and rivals, her love life and notes.
    Nothing here goes into the prompt. It is saved with the design (S.bio), comes along with starting points that have one
@@ -21887,7 +22005,7 @@ Object.assign(BIOS.penguin,{
   /* [id, label, kind, placeholder or options]; kind: t text, a long text, s select, d date */
   const SECTIONS=[
     ["identity","Identity",[["fullName","Full name","t","Aurelia Castellane"],["nickname","Nicknames","t","Rory, the Captain"],["age","Age","t","22"],["dob","Date of birth","d"],
-      ["birthplace","Hometown","t","A harbor town on the south coast"],["occupation","School year or work","t","Fourth year, dance and sailing"],["languages","Languages","t","English, French"]]],
+      ["birthplace","Hometown","t","A harbor town on the south coast"],["occupation","School year or work","t","Fourth year, dance and sailing"],["house","House","h"],["languages","Languages","t","English, French"]]],
     ["sizes","Body and sizes",[["height","Height","t","168 cm (5′6″)"],["weight","Weight","t","52 kg (115 lb)"],["bust","Bust","t","84 cm (33″)"],["cup","Cup size","t","C"],
       ["waist","Waist","t","58 cm (23″)"],["hips","Hips","t","86 cm (34″)"],["butt","Butt","t","Small, round and firm"],["shoe","Shoe size","t","US 7"],["bloodType","Blood type","s",BLOOD],["hand","Dominant hand","t","Right"]]],
     ["personality","Personality",[["summary","In a few words","a","Who she is, the way her best friend would put it."],["traits","Traits","t","Brave, competitive, secretly shy"],
@@ -21896,7 +22014,7 @@ Object.assign(BIOS.penguin,{
     ["favorites","Favorites",[["favColor","Colors","t"],["favFood","Foods","t"],["favDrink","Drink","t"],["favDessert","Dessert","t"],["favSubject","Subject","t"],["favMusic","Music","t"],
       ["favBook","Book or film","t"],["favSeason","Season","t"],["favFlower","Flower","t"],["favAnimal","Animal","t"],["favPlace","Place","t"],["favScent","Scent","t"]]],
     ["family","Background and family",[["backstory","Background","a","Where she grew up and how she got here."],["mother","Mother","t"],["father","Father","t"],["siblings","Siblings","t"],["family","Other family","t"]]],
-    ["relations","Relationships",[["status","Relationship status","s",STATUS],["partner","Partner or crush","t"],["yuriBuddy","Yuri fuckbuddy","t"],["bestFriends","Best friends","t"],["friends","Friends","t"],["rivals","Rivals","t"],["exes","Exes","t"],["pets","Pets","t"]]],
+    ["relations","Relationships",[["group","Group","g"],["groupRole","Group role","t","Leader, right hand, the spy…"],["rivalGroup","Rival group","g"],["status","Relationship status","s",STATUS],["partner","Partner or crush","t"],["yuriBuddy","Yuri fuckbuddy","t"],["bestFriends","Best friends","t"],["friends","Friends","t"],["rivals","Rivals","t"],["exes","Exes","t"],["pets","Pets","t"]]],
     ["intimacy","Intimacy",[["experience","Experience","s",EXP],["orientation","Orientation","s",ORIENT],["bodyCount","Partners so far","t"],["firstTime","First time","t"],
       ["turnOns","Turn-ons","t"],["turnOffs","Turn-offs","t"],["favPosition","Favorite position","t"],["kinks","Kinks and fantasies","t"],["limits","Limits","t"]]],
     ["notes","Notes",[["notes","Notes","a","Anything else: secrets, plans, things to remember."]]]];
@@ -21929,6 +22047,52 @@ Object.assign(BIOS.penguin,{
   function signOf(d){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||"");if(!m)return"";const mo=+m[2],da=+m[3];for(const[s,M,D]of SIGNS){if(mo<M||(mo===M&&da<=D))return s}return""}
   function ageOf(d){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||"");if(!m)return null;const now=new Date(),b=new Date(+m[1],+m[2]-1,+m[3]);let a=now.getFullYear()-b.getFullYear();
     if(now.getMonth()<b.getMonth()||(now.getMonth()===b.getMonth()&&now.getDate()<b.getDate()))a--;return a}
+  /* v214: houses and groups */
+  const houseName=k=>!k?"":(typeof ACAD!=="undefined"&&ACAD.HOUSES&&ACAD.HOUSES.includes(k))?((ACAD.HNAME&&ACAD.HNAME[k])||ACAD.cap(k))+" House":k;
+  const GROUPS=()=>(typeof ACAD!=="undefined"&&ACAD.GROUPS)||[];
+  const groupByName=n=>GROUPS().find(g=>g.name===n)||null;
+  function houseCtl(fid,v){
+    const isKey=v&&ACAD.HOUSES&&ACAD.HOUSES.includes(v);
+    const lab=h("span",{class:"bio-hlab",text:v?houseName(v):"Not set"});
+    const btn=h("button",{type:"button",id:fid,class:"pick bio-hbtn","aria-haspopup":"true","aria-expanded":"false"},isKey&&ACAD.pixelImg?ACAD.pixelImg(v,24):null,lab,h("i",{class:"caret","aria-hidden":"true"}));
+    const panel=h("div",{class:"bio-hpanel",hidden:true,role:"group","aria-label":"Houses"});
+    const pick=k=>{const b=S.bio||{};setBio("house",k);
+      /* a built-in house brings its group along, if she has none yet */
+      const g=ACAD.GROUP_OF&&ACAD.GROUP_OF(k);if(g&&!b.group){setBio("group",g.name);const rv=GROUPS().find(x=>x.id===g.rival);if(rv&&!b.rivalGroup)setBio("rivalGroup",rv.name)}
+      renderMain()};
+    GROUPS().forEach(g=>{panel.append(h("div",{class:"bio-hg",text:g.name+" · "+g.kind}));
+      const row=h("div",{class:"bio-hrow"});
+      g.members.forEach(k=>row.append(h("button",{type:"button",class:"bio-hopt"+(v===k?" on":""),"aria-pressed":v===k?"true":"false",onclick:()=>pick(k)},ACAD.pixelImg?ACAD.pixelImg(k,32):null,h("span",{text:(ACAD.HNAME&&ACAD.HNAME[k])||ACAD.cap(k)}))));
+      panel.append(row)});
+    const own=h("input",{type:"text",placeholder:"Or name a house of your own",value:isKey?"":(v||""),onchange:e=>{setBio("house",e.target.value.trim());renderMain()}});
+    panel.append(h("div",{class:"bio-hown"},own,h("button",{type:"button",class:"btn sm",onclick:()=>{setBio("house","");renderMain()},text:"No house"})));
+    btn.onclick=()=>{panel.hidden=!panel.hidden;btn.setAttribute("aria-expanded",panel.hidden?"false":"true")};
+    return h("div",{class:"bio-house"},btn,panel);
+  }
+  function groupCtl(fid,k,v){
+    const sel=h("select",{id:fid,onchange:e=>{setBio(k,e.target.value);
+        if(k==="group"){const g=groupByName(e.target.value),b=S.bio||{};if(g&&!b.rivalGroup){const rv=GROUPS().find(x=>x.id===g.rival);if(rv)setBio("rivalGroup",rv.name)}}
+        renderMain()}},h("option",{value:"",text:"Not set"}),...GROUPS().map(g=>h("option",{value:g.name,text:g.name+" ("+g.kind.toLowerCase()+")"})));
+    if(v&&!GROUPS().some(g=>g.name===v))sel.append(h("option",{value:v,text:v}));
+    sel.value=v||"";
+    const g=k==="group"&&groupByName(v);if(!g)return sel;
+    const L=ACAD.HNAME||{},nm=x=>L[x]||ACAD.cap(x),rv=GROUPS().find(x=>x.id===g.rival);
+    const card=h("div",{class:"bio-gcard"},
+      h("div",{class:"bio-gfaces","aria-hidden":"true"},...g.members.map(x=>ACAD.pixelImg?ACAD.pixelImg(x,x===g.leader?32:24):null)),
+      h("p",{},h("b",{text:"“"+g.motto+"” "}),g.lore),
+      h("p",{class:"muted small",text:`Leader: ${nm(g.leader)}. Members: ${g.members.map(nm).join(", ")}. Hangout: ${g.hangout}.`+(rv?` Rivals: ${rv.name}.`:"")}));
+    return h("div",{},sel,card);
+  }
+  const hst=document.createElement("style");
+  hst.textContent=".bio-house{position:relative}.bio-hbtn{display:flex;align-items:center;gap:8px;width:100%;text-align:left}.bio-hbtn .bio-hlab{flex:1}"+
+    ".bio-hpanel{margin-top:6px;padding:8px 10px;border:1px solid var(--rule2);border-radius:10px;background:var(--panel);max-height:420px;overflow:auto}"+
+    ".bio-hg{font-size:12px;font-weight:600;color:var(--muted);margin:8px 0 4px}.bio-hg:first-child{margin-top:0}.bio-hrow{display:flex;flex-wrap:wrap;gap:6px}"+
+    ".bio-hopt{display:flex;flex-direction:column;align-items:center;gap:2px;width:76px;padding:6px 4px;border:1px solid var(--rule2);border-radius:8px;background:var(--bg);font-size:12px;cursor:pointer;color:inherit}"+
+    ".bio-hopt.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}.bio-hopt:focus-visible{outline:2px solid var(--blue)}"+
+    ".bio-hown{display:flex;gap:6px;margin-top:10px}.bio-hown input{flex:1}"+
+    ".bio-gcard{margin-top:8px;padding:10px 12px;border-left:3px solid var(--blue);background:var(--panel2);border-radius:0 8px 8px 0}.bio-gcard p{margin:6px 0 0}"+
+    ".bio-gfaces{display:flex;gap:4px;align-items:flex-end;flex-wrap:wrap}.bio-f.wide-g{grid-column:1/-1}";
+  document.head.append(hst);
   /* the intimacy section is for adults only */
   function intimacyOk(){
     try{if(Policy.restricted())return false}catch(e){}
@@ -21941,7 +22105,7 @@ Object.assign(BIOS.penguin,{
   function asText(){
     const b=S.bio||{},lines=[];
     SECTIONS.forEach(([id,label,fs])=>{if(id==="intimacy"&&!intimacyOk())return;const got=fs.filter(f=>b[f[0]]&&(!INTIMATE.has(f[0])||intimacyOk()));if(!got.length)return;
-      lines.push(label.toUpperCase());got.forEach(([k,l])=>lines.push(`${l}: ${k==="dob"?b[k]+(signOf(b[k])?" ("+signOf(b[k])+")":""):b[k]}`));lines.push("")});
+      lines.push(label.toUpperCase());got.forEach(([k,l])=>lines.push(`${l}: ${k==="dob"?b[k]+(signOf(b[k])?" ("+signOf(b[k])+")":""):k==="house"?houseName(b[k]):b[k]}`));lines.push("")});
     return lines.join("\n").trim();
   }
   window.BIO={text:asText,sign:signOf,fields:FIELDS,girlOf,bioOf};
@@ -21980,6 +22144,8 @@ Object.assign(BIOS.penguin,{
       fs.forEach(([k,l,kind,ph])=>{
         if(INTIMATE.has(k)&&!intimacyOk())return;
         const fid="bio_"+k,v=b[k]||"";let ctl,aux=null;
+        if(kind==="h"){grid.append(h("div",{class:"bio-f wide"},h("label",{for:fid,text:l}),houseCtl(fid,v)));return}
+        if(kind==="g"){grid.append(h("div",{class:"bio-f"+(k==="group"&&v?" wide":"")},h("label",{for:fid,text:l}),groupCtl(fid,k,v)));return}
         if(kind==="a")ctl=h("textarea",{id:fid,rows:"3",placeholder:ph||"",oninput:e=>setBio(k,e.target.value)});
         else if(kind==="s"){ctl=h("select",{id:fid,onchange:e=>{setBio(k,e.target.value);renderMain()}},h("option",{value:"",text:"Not set"}),...ph.map(o=>h("option",{value:o,text:o})));
           if(v&&!ph.includes(v))ctl.append(h("option",{value:v,text:v}))}
@@ -22012,9 +22178,72 @@ Object.assign(BIOS.penguin,{
       try{const card=document.querySelector("#startGrid .sp-prof");if(!card||card.querySelector(".sp-bio"))return;
         const hh=(card.getAttribute("aria-label")||"").replace(/ profile$/,"").toLowerCase(),B=typeof BIOS!=="undefined"&&BIOS[hh];if(!B)return;
         const bits=[B.fullName,B.age?B.age+" years old":"",B.dob&&signOf(B.dob)?signOf(B.dob):"",B.height].filter(Boolean).join(" · ");
-        const p=h("p",{class:"sp-bio"},h("b",{text:bits}),B.summary?h("br"):null,B.summary||"");
+        const g=B.group&&groupByName(B.group);
+        const p=h("p",{class:"sp-bio"},h("b",{text:bits}),B.summary?h("br"):null,B.summary||"",
+          g?h("span",{class:"sp-grp"},h("br"),h("b",{text:g.name+": "}),B.groupRole||""):null);
+        {const t=card.querySelector("h3");if(t&&ACAD.pixelImg&&!t.querySelector(".pxhead")){const im=ACAD.pixelImg(hh,32);if(im){im.style.marginRight="8px";t.prepend(im)}}}
         const acts=card.querySelector(".sp-acts");card.insertBefore(p,acts||null)}catch(e){}};
   }
+})();
+
+/* ---- v214: a house in the biography suggests that house's palettes and outfits. Pick Penguin House for your own girl
+   and the Palette step offers Penguin's palettes, the Outfit step her robes, regalia, signature look and a few of her sets.
+   Nothing is applied until a suggestion is tapped, and Undo brings back what was there. */
+(function(){
+  if(typeof RENDER!=="object"||typeof ACAD==="undefined")return;
+  const HN=h=>(ACAD.HNAME&&ACAD.HNAME[h])||ACAD.cap(h);
+  const houseNow=()=>{const k=S.bio&&S.bio.house;return k&&ACAD.HOUSES.includes(k)&&tplById(k+"robes")?k:null};
+  const byLen=()=>ACAD.HOUSES.slice().sort((a,b)=>b.length-a.length);
+  const isHers=(k,h)=>{const t=tplById(k);if(!t)return false;if(t._house)return t._house===h;return byLen().find(x=>k.startsWith(x))===h||(h==="crow"&&k==="crowbody")};
+  const inGroup=(label,h)=>{const g=PRESET_GROUPS.start.find(x=>x.label===label);if(!g)return null;const k=g.keys.find(x=>isHers(x,h));return k?tplById(k):null};
+  function h2(hk,title,note){return h("div",{class:"hs-head"},ACAD.pixelImg?ACAD.pixelImg(hk,32):null,h("div",{},h("h3",{text:title}),h("p",{class:"muted small",text:note})))}
+  const st=document.createElement("style");
+  st.textContent=".hs-box{border:1px solid var(--rule2);border-radius:12px;padding:12px 14px;margin:0 0 16px;background:var(--panel2)}.hs-head{display:flex;gap:10px;align-items:center}.hs-head h3{margin:0;font-size:15px}.hs-head p{margin:2px 0 0}"+
+    ".hs-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.hs-pal{display:flex;flex-direction:column;gap:4px;width:120px;padding:6px;border:1px solid var(--rule2);border-radius:8px;background:var(--bg);cursor:pointer;font-size:12px;text-align:left;color:inherit}"+
+    ".hs-pal .strip{display:flex;height:18px;border-radius:4px;overflow:hidden}.hs-pal .strip i{flex:1}.hs-pal:hover,.hs-out:hover{border-color:var(--ink)}"+
+    ".hs-out{padding:6px 10px;border:1px solid var(--rule2);border-radius:8px;background:var(--bg);cursor:pointer;font-size:13px;color:inherit;display:flex;align-items:center;gap:6px}.hs-out .strip{display:flex;width:28px;height:14px;border-radius:3px;overflow:hidden}.hs-out .strip i{flex:1}";
+  document.head.append(st);
+  const SL=["primary","secondary","third","accent","extra"];
+  const strip=pal=>h("span",{class:"strip","aria-hidden":"true"},...SL.map(k=>{const hx=pal&&pal[k]&&nameHex(pal[k]);return h("i",{style:hx?`background:${hx}`:""})}));
+
+  /* ---------- Palette ---------- */
+  function palettes(hk){
+    const out=[],seen=new Set();
+    const add=(label,t)=>{if(!t||!t.pal)return;const key=SL.map(k=>t.pal[k]||"").join("|");if(seen.has(key)||!t.pal.primary)return;seen.add(key);out.push([label,t.pal])};
+    add("House robes",tplById(hk+"robes"));add("Headmistress",tplById(hk+"head"));add("Boyfriend's colors",tplById(hk+"man"));
+    PRESET_GROUPS.start.forEach(g=>{if(out.length>=8||!/^Academy/.test(g.label))return;const k=g.keys.find(x=>isHers(x,hk));if(k)add(g.label.replace(/^Academy /,""),tplById(k))});
+    return out;
+  }
+  const P0=RENDER.palette;
+  RENDER.palette=function(){const f=P0.apply(this,arguments);try{const hk=houseNow();if(!hk)return f;
+    const box=h("div",{class:"hs-box"},h2(hk,`${HN(hk)} House palettes`,"Her biography puts her in this house. Tap one to fill your unlocked palette slots; Undo brings back yours."));
+    const row=h("div",{class:"hs-row"});
+    palettes(hk).forEach(([label,pal])=>row.append(h("button",{type:"button",class:"hs-pal",title:SL.map(k=>pal[k]).filter(Boolean).join(", "),onclick:()=>{
+        let n=0;mut(()=>{SL.forEach(k=>{if(pal[k]&&!(typeof palLocked==="function"&&palLocked(k))){S.pal[k]=pal[k];n++}})},"housepal");toast(`${HN(hk)} House: ${label.toLowerCase()} palette applied.`)}},strip(pal),h("span",{text:label}))));
+    box.append(row);f.prepend(box)}catch(e){}return f};
+
+  /* ---------- Outfit ---------- */
+  const SETS=[["Academy Signature","Signature look"],["Academy House Regalia","House regalia"],["Academy Day Off","Day off"],["Academy Date Night","Date night"],["Academy Ballgowns","Ballgown"],
+    ["Academy Pajama Day","Pajamas"],["Academy Swim Team","Swim team"],["Academy Winter Break","Winter break"],["Academy Spa Day","Spa day"],["Academy Lingerie Try-On","Lingerie"]];
+  function outfits(hk){
+    const out=[];const add=(label,t)=>{if(t&&t.outfit&&t.outfit.items&&Object.keys(t.outfit.items).length)out.push([label,t])};
+    add("House robes",tplById(hk+"robes"));SETS.forEach(([g,l])=>add(l,inGroup(g,hk)));add("Headmistress robes",tplById(hk+"head"));
+    return out;
+  }
+  function wear(label,t,hk){
+    if(typeof applyOutfitPreset!=="function")return;
+    const o=t.outfit,p={id:"house:"+t.id,name:`${HN(hk)} ${label.toLowerCase()}`,items:o.items,details:o.details||{},dcol:o.dcol||{},look:o.look||"",pal:t.pal};
+    mut(()=>{S.outfits.push(newOutfit(p.name));S.cur=S.outfits.length-1},"houseoutfit");
+    applyOutfitPreset(p);
+  }
+  const O0=RENDER.outfit;
+  RENDER.outfit=function(){const f=O0.apply(this,arguments);try{const hk=houseNow();if(!hk||(typeof isMale==="function"&&isMale()))return f;
+    const box=h("div",{class:"hs-box"},h2(hk,`${HN(hk)} House outfits`,"Each one opens as a new outfit in your colors (empty palette slots take the house's). The outfits you have stay."));
+    const row=h("div",{class:"hs-row"});
+    outfits(hk).forEach(([label,t])=>row.append(h("button",{type:"button",class:"hs-out",title:t.name,onclick:()=>wear(label,t,hk)},strip(t.pal),h("span",{text:label}))));
+    box.append(row);
+    const tabs=f.querySelector&&f.querySelector(".wardrobe");if(tabs&&tabs.nextSibling)f.insertBefore(box,tabs);else f.prepend(box)}catch(e){}return f};
+  window.HOUSE_SUGGEST={palettes,outfits};
 })();
 
 /* ---- v210: every color a starting point uses is a named color in the color pickers (tail block).
@@ -22093,6 +22322,8 @@ Object.assign(BIOS.penguin,{
     ["Birds",["raven","crow","owl","swan","crane","flamingo","peacock","lovebird","hummingbird"]],
     ["Woodland",["stag","badger","panda","raccoon","rat"]],
     ["Snakes and bugs",["serpent","scorpion","firefly","butterfly"]]];
+  /* v214: the families are the Academy's groups; the labels are the group names */
+  if(ACAD.GROUPS){FAMILIES.length=0;ACAD.GROUPS.forEach(g=>FAMILIES.push([g.name,g.members.slice()]))}   /* leader first */
   const ORDER=FAMILIES.flatMap(f=>f[1]).filter(h=>ACAD.HOUSES.includes(h));
   ACAD.HOUSES.filter(h=>!ORDER.includes(h)).forEach(h=>ORDER.push(h));
   const rank=new Map(ORDER.map((h,i)=>[h,i]));
