@@ -34,6 +34,42 @@ const STEPS=[
  {cost:4,name:"Signature",text:"+8 in contests that lean hard on this stat."}];
 const hasStep=(w,stat,i)=>(w.tree[stat]||0)>i;
 
+/* the fourth step on each path is her own move, named from her bio so no two girls learn the same thing */
+const SIGM={};
+function signature(h,stat){const k=h+"|"+stat;if(SIGM[k])return SIGM[k];const b=(typeof BIOS==="object"&&BIOS[h])||{},st=STATS.find(x=>x.id===stat)||{},n=HN(h);
+  const cap=t=>String(t||"").replace(/(^|[\s-])([a-z])/g,(m,p,c)=>p+c.toUpperCase());
+  const clean=t=>{let x=String(t||"").split(/[,;(.:]| at | in | on | under | after | by | of | with /i)[0].replace(/^(the|a|an|her|his|their)\s+/i,"").trim();return x.split(/\s+/).slice(0,3).join(" ")};
+  const single=t=>{let x=clean(t).split(/\s+/);let w=x.pop()||"";if(/ies$/i.test(w))w=w.replace(/ies$/i,"y");else if(/ves$/i.test(w))w=w.replace(/ves$/i,"f");else if(/(ss|us)es$/i.test(w))w=w.replace(/es$/i,"");else if(/(ss|us)$/i.test(w)){}else if(/s$/i.test(w))w=w.replace(/s$/i,"");x.push(w);return x.join(" ")};
+  const first=t=>clean(String(t||"").split(/[,;]/)[0].replace(/^(and|the)\s+/i,""));
+  const rally=String(b.catchphrase||"").replace(/["“”]/g,"").trim();
+  let name,text;
+  if(stat==="grace"&&clean(b.favPlace)){name="The "+cap(clean(b.favPlace))+" Turn";text=n+" moves the way she does at "+String(b.favPlace).toLowerCase()+": unhurried and exact."}
+  else if(stat==="wit"&&clean(b.favSubject)){name="The "+cap(clean(b.favSubject))+" Gambit";text=n+" turns her love of "+String(b.favSubject).toLowerCase()+" into a line nobody sees coming."}
+  else if(stat==="heart"&&clean(b.favFlower)){name=cap(single(b.favFlower))+" Promise";text=n+" gives a little of herself away, and the room leans in."}
+  else if(stat==="vigor"&&rally&&rally.length<=26){name="Rally: "+rally;text=n+" calls it out, and her second wind arrives on cue."}
+  else if(stat==="vigor"&&clean(b.hobbies)){name=cap(first(b.hobbies))+" Sprint";text=n+" runs the way she does everything she loves: all of her at once."}
+  else if(stat==="craft"&&first(b.hobbies)){name=cap(first(b.hobbies))+" Flourish";text=n+" brings the hands of someone who does "+first(b.hobbies).toLowerCase()+" every free hour."}
+  else if(stat==="nerve"&&clean(b.favAnimal)){name=cap(single(b.favAnimal))+" Nerve";text=n+" borrows the stillness of "+String(b.favAnimal).toLowerCase()+" and does not blink."}
+  else if(stat==="heart"&&clean(b.favScent)){name=cap(clean(b.favScent))+" Promise";text=n+" gives a little of herself away, and the room leans in."}
+  else if(stat==="nerve"&&clean(b.favSeason)){name=cap(clean(b.favSeason))+" Nerve";text=n+" waits for her season to turn, and does not blink."}
+  else{name=n+"'s "+(st.sig||"Signature");text="Her own move."}
+  return SIGM[k]={name,text:text+" +8 in contests that lean hard on this stat."}}
+G.signature=signature;
+
+/* a few lines of the moment itself, written from her bio, shown with the picture */
+function moment(h,id){const b=(typeof BIOS==="object"&&BIOS[h])||{},n=HN(h),lc=t=>{t=String(t||"").trim().replace(/[.!]+$/,"");return t?t.charAt(0).toLowerCase()+t.slice(1):""},f1=t=>String(t||"").split(/[;]/)[0].trim(),say=String(b.catchphrase||"").replace(/["“”]/g,"").trim();
+  const dr=lc(f1(b.dreams)),fe=lc(f1(b.fears)),pl=lc(b.favPlace),dk=lc(b.favDrink),sc=lc(b.favScent),hb=lc(f1(b.habits)),lk=lc(String(b.likes||"").split(",")[0]);
+  const T={
+   "romance-1":`${n} has kept your letter close all day.${hb?" You can tell by how she reads it: "+hb+".":""} She says nothing about it, and smiles at the page instead.`,
+   "romance-2":`${pl?"She takes you to "+pl:"She takes you walking in the golden light"}, and for once does not rush ahead.${dr?" She tells you what she wants most: "+dr+".":""}`,
+   "romance-3":`${dk?"Over "+dk+", she":"Over tea, she"} tells you the thing she does not tell people.${fe?" It is this: "+fe+".":""} You tell her yours, and the rain keeps time.`,
+   "romance-4":`${n} has plainly rehearsed this.${say?" It is not \""+say+"\" this time.":""} She says she wants you beside her for what comes next, and her hands do not know where to go.`,
+   "romance-5":`The candles burn low. ${n} stops performing, stops being clever, and simply holds on to you.${sc?" She smells of "+sc+".":""} Nothing is said that needs saying.`,
+   "romance-6":`Morning. ${n} steals${dk?" your "+dk:" the blanket"} and does not apologise.${lk?" She says "+lk+" was never really the point.":""} You are late for everything, and neither of you minds.`
+  };
+  return T[id]||""}
+G.moment=moment;
+
 /* ---------- the week ---------- */
 const ACTIONS=[
  {id:"lessons",name:"Lessons",stat:"wit",second:"heart",room:"lecture",fat:10,mood:-2,text:"Lectures, labs and the library."},
@@ -56,10 +92,13 @@ const CONTESTS=[
  {id:"bakeoff",week:10,name:"The Bake-off",ground:"bakeoff",room:"kitchens",w:{craft:.5,heart:.3,wit:.2},prize:110,text:"Official bake-offs, and the unofficial ones after midnight."},
  {id:"ice",week:15,name:"Midwinter Skate",ground:"ice",room:"lake",w:{grace:.4,vigor:.4,nerve:.2},prize:120,text:"The Everlake freezes, and the Frost skates under lanterns."},
  {id:"catwalk",week:22,name:"Catwalk Night",ground:"catwalk",room:"conservatory",w:{grace:.45,heart:.4,craft:.15},prize:130,text:"The long aisle between the orchids is a natural runway."},
+ {id:"night",week:19,name:"The Rooftop Run",ground:"night",room:"observatory",w:{grace:.35,nerve:.4,vigor:.25},prize:120,text:"Slate roofs, a clear sky and a dare nobody admits to."},
+ {id:"storm",week:24,name:"The Storm Duel",ground:"storm",room:"cliffs",w:{nerve:.4,vigor:.25,heart:.2,wit:.15},prize:125,text:"When the weather turns on the cliffs, grudges are settled in the open."},
  {id:"trail",week:26,name:"The Moonlit Run",ground:"forest",room:"trail",w:{vigor:.4,nerve:.4,wit:.2},prize:120,text:"The Pack's old trail, by full moon, to the lake and back."},
  {id:"sports",week:28,name:"Sports Day",ground:"race",room:"fields",w:{vigor:.55,nerve:.25,grace:.2},prize:150,text:"Every race worth losing, and most of the Academy's bets."},
  {id:"chess",week:31,name:"The Scholars' Duel",ground:"chess",room:"library",w:{wit:.55,nerve:.3,heart:.15},prize:130,text:"The two deans have played at the same table since 1966."},
  {id:"cup",week:34,name:"The Spire Cup",ground:null,room:"champions",w:{grace:.17,wit:.17,heart:.17,vigor:.17,craft:.16,nerve:.16},prize:260,big:true,text:"The Academy's all-round trophy, decided in the Champions' Hall."}];
+CONTESTS.sort((a,b)=>a.week-b.week);
 const CBYWEEK={};CONTESTS.forEach(c=>(CBYWEEK[c.week]=CBYWEEK[c.week]||[]).push(c));
 const CONT=Object.fromEntries(CONTESTS.map(c=>[c.id,c]));
 const TIERS={gold:{name:"Gold",pts:4},silver:{name:"Silver",pts:3},bronze:{name:"Bronze",pts:2},finalist:{name:"Finalist",pts:1},entered:{name:"Entered",pts:1}};

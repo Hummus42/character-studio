@@ -93,6 +93,7 @@ html.ev-open,html.ev-open body{overflow:hidden}
 #evRoot .scenebig{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:14px;align-items:start}
 #evRoot .scenebig>img{width:100%;border-radius:10px;border:1px solid var(--g-gold)}
 @media(max-width:900px){
+ #evRoot .top{padding:6px 10px;gap:4px 8px}#evRoot .brand{font-size:15px}#evRoot .pill{font-size:12.5px;padding:1px 9px}#evRoot .top button{padding:5px 10px;font-size:13px}
  #evRoot .hub{grid-template-columns:1fr;overflow:auto;display:block}#evRoot .left{overflow:visible}#evRoot .right{margin-top:10px;overflow:visible}
  #evRoot .letters{grid-template-columns:1fr}#evRoot .cal{grid-template-columns:repeat(6,1fr)}#evRoot .steps{grid-template-columns:1fr 1fr}#evRoot .path{grid-template-columns:1fr}#evRoot .slotrow{grid-template-columns:1fr}
  #evRoot .scenebig{grid-template-columns:1fr}}
@@ -171,7 +172,8 @@ function hub(){ensure();show();dispose();root.textContent="";G.prepareWeek(S);G.
   HS={area:"castle_ground",room:null,t:600,day:0,sel:sel,follow:true,play:false,speed:1};
   const left=E("div",{class:"left"}),right=E("div",{class:"right"}),team=E("div",{class:"team"}),stageHost=E("div"),cap=E("div",{class:"cap"}),dayRow=E("div",{class:"row"}),slider=E("input",{type:"range",min:360,max:1380,step:5,value:600}),acts=E("div",{class:"acts"}),tabs=E("div",{class:"tabs"}),panel=E("div",{class:"panel"}),pop=E("div");
   left.append(team,stageHost,E("div",{class:"time"},dayRow,slider),cap,acts,pop);right.append(tabs,panel);
-  root.append(top(),E("div",{class:"hub"},left,right));
+  const topEl=top(),hubEl=E("div",{class:"hub"},left,right);root.append(topEl,hubEl);
+  {const fit=()=>{hubEl.style.top=topEl.offsetHeight+"px"};fit();if(window.ResizeObserver)new ResizeObserver(fit).observe(topEl);else addEventListener("resize",fit)}
   const L2=L(),emph=new Set(S.order);
   const paintTeam=()=>{team.textContent="";S.order.forEach(h=>{const w=S.wards[h];team.append(E("div",{class:"mate"+(h===sel?" on":""),onclick:()=>choose(h)},spr(h,34),E("div",null,E("b",null,HN(h)),E("div",{class:"bar fat mini"},E("i",{style:{width:pct(w.fatigue)+"%"}})))))})};
   const activity=()=>{if(!sel)return "";const sx=L2.stateAt(sel,HS.t,HS.day),rid=sx.st==="in"||sx.st==="out"?sx.room:sx.to,rn=L2.roomName(rid);let what="";
@@ -198,6 +200,9 @@ function hub(){ensure();show();dispose();root.textContent="";G.prepareWeek(S);G.
   paintTeam();paintDays();paintCap();paintTabs();paintPanel();paintActs()}
 
 /* ---------- Today: the selected protégée, her plan, and the contests ahead ---------- */
+/* which stats a contest is decided by, heaviest first, marking the ones this girl is short on */
+const needs=(c,w)=>Object.entries(c.w).sort((a,b)=>b[1]-a[1]).map(([st,v])=>({st,pct:Math.round(v*100),name:SNAME[st],low:w&&G.SID.every(()=>1)?(w.stats[st]<Math.max(...G.SID.map(k=>w.stats[k]))*.7):false}));
+const needsRow=(c,w)=>E("div",{class:"chips",style:{marginTop:"4px"}},E("span",{class:"mut",style:{fontSize:"12px"}},"Train:"),...needs(c,w).map(n=>E("span",{class:"chip"+(n.low?" down":" up"),title:n.low?"She is short on this for this contest":"She is fine here"},n.name+" "+n.pct+"%")));
 function upcoming(n){const o=[];for(let k=0;k<n;k++){let wk=S.week+k,y=S.year;if(wk>G.WEEKS){wk-=G.WEEKS;y++}if(y>G.YEARS)break;(G.CBYWEEK[wk]||[]).forEach(c=>o.push({c,wk,y,in:k}))}return o}
 function today(pane,ctx){if(!sel||!S.wards[sel])sel=S.order[0];const h=sel,w=S.wards[h],a=G.aptitude(h),g=grp(h),mine=S.accolades.filter(x=>x.h===h);
   const page=E("span",{class:"chip",style:{cursor:"pointer"},onclick:()=>codex("house:"+h)},"Her page");
@@ -214,7 +219,7 @@ function today(pane,ctx){if(!sel||!S.wards[sel])sel=S.order[0];const h=sel,w=S.w
   pane.append(E("h3",null,"Contests ahead"));
   if(!next.length)pane.append(E("p",{class:"mut"},"No contests ahead this year."));
   else pane.append(E("div",{class:"grid"},...next.slice(0,6).map(({c,wk,y,in:k})=>{const on=G.entered(S,c.id,h),fit=G.fitOf(w,c),field=G.fieldOf(c,y),key=c.id+":"+y,decided=(S.entries[key]||{})[h]!==undefined;
-    return E("div",{class:"card"},E("div",{class:"row",style:{justifyContent:"space-between"}},E("b",null,c.name),E("span",{class:"mut"},k===0?"this week":"in "+k+" week"+(k>1?"s":""))),E("div",{class:"mut"},"Her fit "+fmt(fit)+" vs a field near "+fmt(field)+(on&&!decided?" · entered automatically":"")),
+    return E("div",{class:"card"},E("div",{class:"row",style:{justifyContent:"space-between"}},E("b",null,c.name),E("span",{class:"mut"},k===0?"this week":"in "+k+" week"+(k>1?"s":""))),needsRow(c,w),E("div",{class:"mut"},"Her fit "+fmt(fit)+" vs a field near "+fmt(field)+(on&&!decided?" · entered automatically":"")),
       E("button",{type:"button",class:"sm"+(on?" pri":""),style:{marginTop:"5px"},onclick:()=>{G.enter(S,c.id,h,!on);G.save(S,slot);ctx.syncMap();ctx.repaint()}},on?"Entered: tap to withdraw":"Enter her"))})));
   const log=S.log.slice(-4).reverse();pane.append(E("h3",null,"Log"),E("div",{class:"card"},...log.map(l=>E("div",{class:"mut"},`Y${l.y} W${l.w}: ${l.t}`))))}
 
@@ -223,7 +228,7 @@ function skills(pane,ctx){if(!sel||!S.wards[sel])sel=S.order[0];const h=sel,w=S.
   G.STATS.forEach(st=>{const n=w.tree[st.id]||0;
     pane.append(E("div",{class:"path"},E("div",null,E("b",null,st.path),E("div",{class:"mut"},SNAME[st.id]+" "+fmt(w.stats[st.id])+(a[st.id]>=1.2?" ★":""))),
       E("div",{class:"steps"},...G.STEPS.map((s,i)=>{const on=i<n,next=i===n,can=next&&w.sp>=s.cost;
-        return E("button",{type:"button",class:"step "+(on?"on":next?"next":"lock"),disabled:!can,onclick:()=>{const r=G.unlock(S,h,st.id);if(r.ok){G.save(S,slot);say(HN(h)+" learns "+(i===3?st.sig:s.name)+".");ctx.repaint()}else say(r.msg)}},E("b",null,(i===3?st.sig:s.name)+" "+(on?"✓":"· "+s.cost)),E("div",{class:"mut",style:{fontSize:"11.5px"}},s.text))}))))})}
+        return E("button",{type:"button",class:"step "+(on?"on":next?"next":"lock"),disabled:!can,onclick:()=>{const r=G.unlock(S,h,st.id);if(r.ok){G.save(S,slot);say(HN(h)+" learns "+(i===3?G.signature(h,st.id).name:s.name)+".");ctx.repaint()}else say(r.msg)}},E("b",null,(i===3?G.signature(h,st.id).name:s.name)+" "+(on?"✓":"· "+s.cost)),E("div",{class:"mut",style:{fontSize:"11.5px"}},i===3?G.signature(h,st.id).text:s.text))}))))})}
 
 const stageBadge=h=>{const r=S.rel[h];return r?G.STAGELABEL[G.stageOf(r)]:"Not yet written to"};
 function letters(pane,ctx){const corr=Object.keys(S.rel).sort((a,b)=>G.stageOf(S.rel[b])-G.stageOf(S.rel[a])||S.rel[b].bond-S.rel[a].bond);if(!letterSel)letterSel=corr[0]||S.order[0];
@@ -243,7 +248,7 @@ function letters(pane,ctx){const corr=Object.keys(S.rel).sort((a,b)=>G.stageOf(S
   pane.append(E("div",{class:"letters"},left,right))}
 function sceneReveal(h,id,done){const ov=E("div",{class:"overlay"}),sheet=E("div",{class:"sheet"});ov.append(sheet);root.append(ov);const romance=/^romance/.test(id);
   const img=E("img",{src:G.sceneURL(h,id),alt:"",onerror:ev=>{ev.target.replaceWith(E("div",{class:"card mut",style:{textAlign:"center"}},spr(h,96),E("p",null,"The picture for this moment isn't ready yet. It is saved in the scrapbook and will appear when it is.")))}});
-  sheet.append(E("h2",null,romance?"A moment with "+HN(h):"Memory kept"),E("div",{class:"scenebig"},img,E("div",null,E("p",null,romance?HN(h)+" will remember this.":""),E("p",{class:"mut"},"Saved to "+HN(h)+"'s scrapbook in the Hall."),E("button",{type:"button",class:"pri",onclick:()=>{ov.remove();done&&done()}},"Continue"))))}
+  sheet.append(E("h2",null,romance?"A moment with "+HN(h):"Memory kept"),E("div",{class:"scenebig"},img,E("div",null,E("p",null,romance?(G.moment(h,id)||HN(h)+" will remember this."):""),E("p",{class:"mut"},"Saved to "+HN(h)+"'s scrapbook in the Hall."),E("button",{type:"button",class:"pri",onclick:()=>{ov.remove();done&&done()}},"Continue"))))}
 
 function hall(pane,ctx){if(!sel||!S.wards[sel])sel=S.order[0];const girls=[...new Set([...S.order,...Object.keys(S.gallery||{})])];let who=hall.who&&girls.includes(hall.who)?hall.who:sel;
   pane.append(E("div",{class:"row"},E("h3",{style:{margin:0}},"The Hall"),...girls.map(x=>E("button",{type:"button",class:"sm"+(x===who?" pri":""),onclick:()=>{hall.who=x;if(S.wards[x])sel=x;ctx.repaint()}},HN(x)))));
@@ -258,13 +263,13 @@ function hall(pane,ctx){if(!sel||!S.wards[sel])sel=S.order[0];const girls=[...ne
 
 function calendar(pane){pane.append(E("h3",{style:{marginTop:0}},"The year at Everspire"));
   G.TERMS.forEach(([name,start])=>{pane.append(E("div",{style:{margin:"8px 0 3px"}},E("b",null,name+" term")));const cal=E("div",{class:"cal"});
-    for(let w=start;w<start+12;w++){const ev=G.CBYWEEK[w]||[];cal.append(E("div",{class:"wk"+(w===S.week?" now":"")+(ev.length?" ev":"")+(w<S.week?" past":"")},E("b",null,w),...ev.map(c=>E("div",null,c.name.replace(/^The /,"")))))}pane.append(cal)});
-  pane.append(E("p",{class:"mut",style:{marginTop:"8px"}},"Contests are decided on the Saturday afternoon of their week, at their venue, with their rivals in the field. Scrub the map to Saturday and watch them gather."))}
+    for(let w=start;w<start+12;w++){const ev=G.CBYWEEK[w]||[];cal.append(E("div",{class:"wk"+(w===S.week?" now":"")+(ev.length?" ev":"")+(w<S.week?" past":"")},E("b",null,w),...ev.map(c=>E("div",null,c.name.replace(/^The /,""),...(c.w?[E("div",{class:"mut",style:{fontSize:"10px"}},needs(c).slice(0,2).map(n=>n.name).join(" + "))]:[])))))}pane.append(cal)});
+  pane.append(E("p",{class:"mut",style:{marginTop:"8px"}},"Each contest lists the stats it rewards (heaviest first). Contests are decided on the Saturday afternoon of their week, at their venue, with their rivals in the field. Scrub the map to Saturday and watch them gather."))}
 
 /* ---------- playing a week ---------- */
 const tierText=a=>G.TIERS[a.tier].name+" ("+a.rank+" of "+a.n+")";
 function resultSheet(res,done){const ov=E("div",{class:"overlay"}),sheet=E("div",{class:"sheet"});ov.append(sheet);root.append(ov);
-  sheet.append(E("h2",null,res.c.name),E("div",{class:"mut"},res.c.text));
+  sheet.append(E("h2",null,res.c.name),E("div",{class:"mut"},res.c.text),...(res.c.w?[needsRow(res.c)]:[]));
   res.rows.slice(0,Math.max(5,...res.rows.filter(r=>r.ward).map(r=>r.rank))).forEach(r=>sheet.append(E("div",{class:"pod"+(r.ward?" me":"")},E("b",null,"#"+r.rank),spr(r.h,34),E("span",null,HN(r.h)+(r.rival?" (rival)":"")),E("span",{class:"mut"},Math.round(r.score)))));
   res.recap.forEach(t=>sheet.append(E("div",{class:"bubble"},t)));
   res.wards.forEach(a=>{sheet.append(E("div",{class:"card",style:{margin:"8px 0"}},E("div",{class:"scenebig"},
