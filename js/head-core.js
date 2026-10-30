@@ -43,24 +43,25 @@ const isLeader=h=>/^Leader/.test(((typeof BIOS==="object"&&BIOS[h])||{}).groupRo
 const rarityOf=h=>isLeader(h)?3:Math.floor(hash(h+"|rare")*3);
 const feeOf=h=>40+rarityOf(h)*45;
 const levelOf=g=>1+Math.floor(SID.reduce((t,s)=>t+g.stats[s],0)/12);
-const eligible=s=>ACAD.HOUSES.filter(h=>!s.girls[h]&&!lockedFaction(h));
+const eligible=s=>ACAD.HOUSES.filter(h=>!s.girls[h]&&!(H.locked?H.locked(s,h):lockedFaction(h))&&!((s.alumnae||[]).some(a=>a.h===h)));
 
 /* ---------- state ---------- */
 H.newRun=name=>{const s={v:1,kind:"head",id:String(Date.now())+Math.random().toString(36).slice(2,6),name:name||"The Headmaster",day:0,funds:300,renown:0,insight:0,saved:Date.now(),
-  rooms:{},girls:{},order:[],short:[],nextApp:2,free:2,log:[],flags:{},stats:{earned:0,spent:0}};
+  rooms:{},girls:{},order:[],short:[],nextApp:2,free:2,log:[],flags:{},stats:{earned:0,spent:0},wardens:{},muses:[],scouts:[],invites:{},trophies:[],alumnae:[],gates:{lattice:0,starless:0},gallery:{},ascended:0};
   Object.entries(ROOMS).forEach(([id,R])=>{if(R.start)s.rooms[id]={lvl:R.start}});
   H.refill(s,true);H.note(s,"You take the headmaster's chair. The academy is quiet, but the lanterns are lit.");return s};
-H.fix=s=>{s.rooms=s.rooms||{};s.girls=s.girls||{};s.order=(s.order||[]).filter(h=>s.girls[h]);s.short=(s.short||[]).filter(h=>!s.girls[h]);s.log=s.log||[];s.flags=s.flags||{};s.stats=s.stats||{earned:0,spent:0};if(s.nextApp==null)s.nextApp=2;if(s.free==null)s.free=0;s.insight=s.insight||0;return s};
+H.fix=s=>{s.wardens=s.wardens||{};s.muses=s.muses||[];s.scouts=s.scouts||[];s.invites=s.invites||{};s.trophies=s.trophies||[];s.alumnae=s.alumnae||[];s.gates=s.gates||{lattice:0,starless:0};s.gallery=s.gallery||{};s.ascended=s.ascended||0;Object.values(s.girls||{}).forEach(g=>{if(g.tier==null)g.tier=0;if(g.ess==null)g.ess=0;if(!g.trial)g.trial={};if(g.lastAud==null)g.lastAud=-1});s.rooms=s.rooms||{};s.girls=s.girls||{};s.order=(s.order||[]).filter(h=>s.girls[h]);s.short=(s.short||[]).filter(h=>!s.girls[h]);s.log=s.log||[];s.flags=s.flags||{};s.stats=s.stats||{earned:0,spent:0};if(s.nextApp==null)s.nextApp=2;if(s.free==null)s.free=0;s.insight=s.insight||0;return s};
 H.note=(s,t)=>{s.log.push({d:s.day,t});if(s.log.length>90)s.log.splice(0,s.log.length-90)};
 H.tier=s=>tierOf(s.renown);
-H.beds=s=>Object.entries(s.rooms).reduce((t,[id,r])=>t+(ROOMS[id]&&ROOMS[id].k==="dorm"?4*r.lvl:0),0);
+H.beds=s=>Object.entries(s.rooms).reduce((t,[id,r])=>t+(ROOMS[id]&&ROOMS[id].k==="dorm"?4*r.lvl+2*(r.gild||0):0),0);
 H.lvlOf=(s,id)=>(s.rooms[id]||{}).lvl||0;
+H.gildOf=(s,id)=>(s.rooms[id]||{}).gild||0;
 H.sum=(s,kind)=>Object.entries(s.rooms).reduce((t,[id,r])=>t+(ROOMS[id]&&ROOMS[id].k===kind?r.lvl:0),0);
 H.visible=(s,id)=>{const R=ROOMS[id];return !!R&&(R.tier<=H.tier(s)+1||s.rooms[id])};
 H.canBuild=(s,id)=>{const R=ROOMS[id];if(!R)return {ok:false,msg:"No such room."};if(R.k==="sealed")return {ok:false,msg:R.why};const lv=H.lvlOf(s,id);
   if(R.tier>H.tier(s))return {ok:false,msg:"Needs renown tier "+TIERS[R.tier].name+"."};if(lv>=MAXLV)return {ok:false,msg:"Fully restored."};
   const c=roomCost(id,lv);if(s.funds<c)return {ok:false,msg:"Needs "+c+" coins.",cost:c};return {ok:true,cost:c}};
-H.build=(s,id)=>{const c=H.canBuild(s,id);if(!c.ok)return c;s.funds-=c.cost;s.stats.spent+=c.cost;const lv=H.lvlOf(s,id)+1;s.rooms[id]={lvl:lv};
+H.build=(s,id)=>{const c=H.canBuild(s,id);if(!c.ok)return c;s.funds-=c.cost;s.stats.spent+=c.cost;const lv=H.lvlOf(s,id)+1;s.rooms[id]=Object.assign(s.rooms[id]||{},{lvl:lv});
   s.renown+=lv===1?1:.5;H.note(s,(lv===1?"Restored ":"Improved ")+(ACAD.livemap.roomName?ACAD.livemap.roomName(id):id)+" (level "+lv+").");return {ok:true,cost:c.cost,lvl:lv}};
 
 /* ---------- admissions ---------- */
@@ -71,29 +72,29 @@ H.canEnroll=(s,h)=>{if(s.girls[h])return {ok:false,msg:"Already enrolled."};if(s
   const f=s.free>0?0:feeOf(h);if(s.funds<f)return {ok:false,msg:"Needs "+f+" coins for her scholarship.",cost:f};return {ok:true,cost:f}};
 H.enroll=(s,h)=>{const c=H.canEnroll(s,h);if(!c.ok)return c;if(s.free>0)s.free--;else{s.funds-=c.cost;s.stats.spent+=c.cost}
   const a=G.aptitude(h),stats={};SID.forEach(st=>stats[st]=r1(8+6*a[st]));
-  s.girls[h]={joined:s.day,stats,mood:55,aff:0,focus:null};s.order.push(h);s.short=s.short.filter(x=>x!==h);s.renown+=.5;
+  s.girls[h]={joined:s.day,stats,mood:55,aff:0,focus:null,tier:0,ess:0,trial:{},lastAud:-1};s.order.push(h);s.short=s.short.filter(x=>x!==h);s.renown+=.5;
   H.note(s,HN(h)+" enrols and drops her bags in the dormitory.");return {ok:true,cost:c.cost}};
 H.decline=(s,h)=>{s.short=s.short.filter(x=>x!==h);H.refill(s);return {ok:true}};
 
 /* ---------- a girl's day: which rooms she uses, and how much she gains ---------- */
 H.bestRoom=(s,stat,h)=>{let best=null,bl=0;Object.entries(s.rooms).forEach(([id,r])=>{const R=ROOMS[id];if(!R||R.k!=="train"||R.stat!==stat)return;if(r.lvl>bl||(r.lvl===bl&&best&&hash(h+id)>hash(h+best))){best=id;bl=r.lvl}});return best};
-H.focusStats=(s,h)=>{const g=s.girls[h],a=G.aptitude(h),order=SID.slice().sort((x,y)=>a[y]-a[x]);const out=[];if(g.focus)out.push(g.focus);order.forEach(x=>{if(!out.includes(x))out.push(x)});return out.slice(0,2)};
+H.focusStats=(s,h)=>{const g=s.girls[h],a=G.aptitude(h),cap=H.capOf?H.capOf(g):100,open=x=>g.stats[x]<cap-.4,order=SID.slice().sort((x,y)=>a[y]-a[x]);const out=[];if(g.focus&&open(g.focus))out.push(g.focus);order.forEach(x=>{if(!out.includes(x)&&open(x))out.push(x)});order.forEach(x=>{if(!out.includes(x))out.push(x)});return out.slice(0,2)};
 H.rooms2=(s,h)=>H.focusStats(s,h).map(st=>H.bestRoom(s,st,h));
-H.moodTarget=s=>clamp(50+6*Math.sqrt(H.sum(s,"mood")),50,100);
-H.tuition=(s,h)=>{const g=s.girls[h];return (3+levelOf(g)*.1)*(1+.08*H.sum(s,"office"))};
+H.moodTarget=s=>clamp(50+6*Math.sqrt(H.sum(s,"mood")+.5*Object.entries(s.rooms).reduce((t,[id,r])=>t+(ROOMS[id]&&ROOMS[id].k==="mood"?(r.gild||0):0),0)),50,100);
+H.tuition=(s,h)=>{const g=s.girls[h];return (3+levelOf(g)*.1)*(1+.08*H.sum(s,"office"))*(H.tierMul?H.tierMul(g):1)};
 
 H.income=s=>s.order.reduce((t,h)=>t+H.tuition(s,h),0)+Object.entries(s.rooms).reduce((t,[id,r])=>t+(ROOMS[id]&&ROOMS[id].k==="income"?5*r.lvl*(1+.1*ROOMS[id].tier):0),0);
 /* the one daily step. Deterministic, so offline progress and the simulator agree */
 H.step=(s,days,rep)=>{rep=rep||{funds:0,renown:0,insight:0,gains:{},levels:[],days:0};
   for(let d=0;d<days;d++){s.day++;rep.days++;let inc=0;const ren0=s.renown;
     s.order.forEach(h=>{const g=s.girls[h],a=G.aptitude(h),before=levelOf(g),mf=.7+g.mood/200;inc+=H.tuition(s,h);
-      const fs=H.focusStats(s,h);fs.forEach((st,i)=>{const room=H.bestRoom(s,st,h),lv=room?s.rooms[room].lvl:0;let gain=.04+(lv?.3*(1+.4*(lv-1)):0)*(i?.7:1)*a[st]*mf;if(!room)gain*=.4;
-        const cap=100;gain=Math.min(gain,cap-g.stats[st]);if(gain>0){g.stats[st]=r1x(g.stats[st]+gain);(rep.gains[h]=rep.gains[h]||{})[st]=(rep.gains[h][st]||0)+gain}});
-      SID.forEach(st=>{if(!fs.includes(st))g.stats[st]=r1x(Math.min(100,g.stats[st]+.03*a[st]))});
-      g.mood=clamp(g.mood+(H.moodTarget(s)-g.mood)*.1,0,100);s.renown+=levelOf(g)/400;const after=levelOf(g);
+      const fs=H.focusStats(s,h);fs.forEach((st,i)=>{const room=H.bestRoom(s,st,h),lv=room?s.rooms[room].lvl:0;let gain=(.02+(lv?.12*(1+.4*(lv-1)):0)*(i?.7:1)*a[st]*mf)*Math.max(.2,1-g.stats[st]/100);if(!room)gain*=.4;
+        gain*=(H.roomMul?H.roomMul(s,room):1)*(H.growMul?H.growMul(s):1);const cap=H.capOf?H.capOf(g):100;gain=Math.min(gain,cap-g.stats[st]);if(gain>0){g.stats[st]=r1x(g.stats[st]+gain);(rep.gains[h]=rep.gains[h]||{})[st]=(rep.gains[h][st]||0)+gain}});
+      SID.forEach(st=>{if(!fs.includes(st))g.stats[st]=r1x(Math.min(H.capOf?H.capOf(g):100,g.stats[st]+.03*a[st]))});
+      g.mood=clamp(g.mood+(H.moodTarget(s)-g.mood)*.1,0,100);s.renown+=levelOf(g)/400*(H.tierMul?H.tierMul(g):1);const after=levelOf(g);
       if(after>before&&(after%5===0)){H.note(s,HN(h)+" reaches level "+after+".");rep.levels.push([h,after])}});
-    Object.entries(s.rooms).forEach(([id,r])=>{const R=ROOMS[id];if(!R)return;if(R.k==="income")inc+=5*r.lvl*(1+.1*R.tier);if(R.k==="renown")s.renown+=.2*r.lvl;if(R.k==="insight"){s.insight+=.5*r.lvl;rep.insight+=.5*r.lvl}});
-    s.funds+=inc;s.stats.earned+=inc;rep.funds+=inc;rep.renown+=s.renown-ren0;
+    Object.entries(s.rooms).forEach(([id,r])=>{const R=ROOMS[id];if(!R)return;const wm=H.roomMul?H.roomMul(s,id):1;if(R.k==="income")inc+=5*r.lvl*(1+.1*R.tier)*wm;if(R.k==="renown")s.renown+=.2*r.lvl*wm;if(R.k==="insight"){s.insight+=.5*r.lvl*wm;rep.insight+=.5*r.lvl*wm}});
+    (H.dayHooks||[]).forEach(f=>{inc+=f(s,rep)||0});inc*=H.incMul?H.incMul(s):1;s.funds+=inc;s.stats.earned+=inc;rep.funds+=inc;rep.renown+=s.renown-ren0;
     const t0=tierOf(s.renown-0),was=s.flags.tier||0;if(t0>was){s.flags.tier=t0;H.note(s,"The academy's renown grows: "+TIERS[t0].name+". New rooms and applicants await.")}
     if(s.short.length<5){s.nextApp--;if(s.nextApp<=0){H.refill(s);s.nextApp=2}}}
   return rep};

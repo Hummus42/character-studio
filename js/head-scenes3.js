@@ -1,0 +1,70 @@
+/* Everspire: the Headmaster, twelve hand-written signature scenes, one for each group leader. Unlike the composed scenes these are written for the one girl: her catchphrase,
+   her place, her fear and her dream are in them. They open at confidant (affection 430) and sit among her other scenes. */
+(function(){
+"use strict";
+if(typeof ACAD==="undefined"||!ACAD.head||!ACAD.head.SCENE_T)return;
+const H=ACAD.head,T=H.SCENE_T;
+const L=(id,only,t,paras)=>T.push({id,only,t,heat:2,aff:430,wing:0,intr:"",b:[],o:[],y:[],c:[],paras});
+L("L01","griffin","All hands on deck",[
+ `Griffin takes you out on the academy's little sloop at dusk, saying it is a training run, and then forgets to steer a training course at all. The lighthouse swings its beam over the water behind you, and she stands at the tiller with the wind in her hair and the whole bay turning gold, humming a shanty her father taught her.`,
+ `"All hands on deck!" she calls, grinning, and you are the only hand she has, and you haul where she points. She teaches you to trim the sail with her hands over yours, her cheek by your ear, her voice a low, easy instruction that you will not remember a word of.`,
+ `Out past the point the water goes black and deep, and her laughter thins. She is not afraid of anything on the surface. But the dark water beneath the boat is another matter, and she lets the sail go slack, and stands very still, and says, quietly, "Stay close to me out here." You do, and the pressure of her shoulder against yours says the rest.`,
+ `You kiss her at the tiller, with the lighthouse beam turning slowly over you both, and she kisses you back as if she had been steering toward it all evening. "Captain's orders," she murmurs against your mouth. "You're not allowed to let go."`]);
+L("L02","lioness","The throne on the rock",[
+ `Lioness has a rock. Every morning she climbs to the top of it before breakfast and surveys the grounds like a queen, and today, for the first time, she lets you climb up beside her.`,
+ `"Don't tell the Pride," she says, not looking at you. "They think I do this to remind them who's in charge." The sun is just coming over the fields and gilding her hair. "I do it because it's the only place no one asks me for anything."`,
+ `You sit beside her in silence, and for a long, easy while she is not the queen of anything. When she finally speaks it is only to say that being crowned is easy, and being dethroned is what she lies awake over, and that she has never told anyone. "Bow down," she adds, with a wavering laugh. "Kidding. Mostly."`,
+ `You do not bow. You take her hand instead, and she looks at it as if it were a rare animal that might startle, and then she turns it over and holds on. "Good answer," says the queen of the Pride, and kisses you in the morning sun.`]);
+L("L03","wolf","Under the full moon",[
+ `Wolf takes you up to the clifftop under a full moon, because she says that is the only way to talk to her properly, and walks the whole way a half-step ahead, as though she were leading you through dark woods rather than a well-trodden path.`,
+ `"Keep up," she says, flashing her sharp, quick grin. "I won't wait forever." But at every stile she does wait, and she holds the gate, and when you slip she has your arm before you have finished slipping.`,
+ `At the top the whole coast lies silver below. She stands very still, head tilted, listening, and the alpha of the Pack looks, for a moment, like someone who has carried a very large responsibility alone for a long time. "I'm good at leading," she says quietly. "I'm not so good at being led. Or being kept." She does not look at you.`,
+ `You say you are not trying to lead her, only to walk beside her. She is silent a while, and then she leans her shoulder into yours, and when she kisses you it is the way wolves greet each other: brief and fierce and then, unexpectedly, long.`]);
+L("L04","orca","Pod up",[
+ `At five in the morning the Frost pool is black and silent, and Orca is already in it, doing laps like a clock. She surfaces at the wall, sees you standing there with a towel and a flask of something hot, and grins. "Pod up," she says. "You're early."`,
+ `She hauls herself out in one smooth movement and takes the towel, and takes the flask, and takes her time. Water runs off her shoulders onto the tiles. She tells you, with the unselfconscious ease of an athlete, what she had to beat today: her own best time.`,
+ `Then the grin slips. She does not like being seen as soft, she says, and she does not like losing people in the water, and sometimes in the dark of the pool she counts heads in her mind and cannot stop. "Everyone's fine," she says, to herself. "Everyone is fine." You tell her you are not counting; you are only here.`,
+ `She stands there wrapped in your towel, hair dripping, smelling of chlorine and cold water, and leans her forehead against your collarbone. "That," she says into your shirt, "is the nicest thing anyone has done for me." And you kiss her, there on the wet tiles, with the first light coming through the high windows.`]);
+L("L05","kraken","After closing",[
+ `The aquarium after closing is Kraken's favourite place, and she lets you in by the staff door at midnight with a finger to her lips. The tanks glow blue in the dark and the whole room breathes slowly.`,
+ `"Hm. Interesting," she says, watching a jellyfish, as though it had told her something. She moves along the glass, naming creatures under her breath, and every time she pauses you find you are watching her instead of the fish.`,
+ `She tells you, without turning, about the surface. How she jokes about it. How it is not entirely a joke. How being misunderstood is its own kind of pressure, one that deepens the lower you go. You say you understood her perfectly well, and she is quiet for a long minute, and the jellyfish drifts on.`,
+ `She turns at last, blue light on her face, and says, "You are the first person who ever stayed in here with me and didn't try to turn on the lights." Then she steps in close, quite deliberately, and kisses you: three moves ahead of everything, and exactly on time.`]);
+L("L06","raven","Look up",[
+ `The observatory dome is dark and open to the sky, and Raven is lying on the floor beneath the great telescope with a notebook on her chest, saying nothing, which is her usual way of saying hello.`,
+ `"Look up," she says, when you lie down beside her, and you do. The dome frames a slice of sky as sharp as cut glass, and she points out the comet she is hunting, a smudge of nothing you would never have noticed, and says her whole life is in that smudge.`,
+ `She tells you she will name it after her girlfriend, if she finds it. She has not told anyone who that is. She tells you, in her quiet, careful voice, that she is afraid of losing her sight and of people discovering her secret, and that she has told you both because she thinks, somehow, that you are safe.`,
+ `You are close enough to feel her breath when she says it. She turns her head, and the dark is complete, and the kiss, when it comes, is soft and exact and very much like the first light of a star you have been looking for all your life.`]);
+L("L07","peacock","Admire me",[
+ `Juliana receives you in the conservatory by the fountain, in a gown the colour of a peacock's throat, arranged on a bench as though for a portrait, and says, without looking up, "Admire me." You do. She lets you for a good minute before she cracks.`,
+ `"It is exhausting," she says, dropping her pose and kicking off one jewelled shoe, "being the most beautiful girl in every room. Do you know what happens when you stop? They stop looking. That is the whole of my terror." She laughs, brittle, and stirs the fountain with one finger.`,
+ `You tell her she is the most interesting girl in every room, and that you would look at her in a potato sack, and she gasps and swats you with her fan and is, for once, completely unguarded. "I do not own a potato sack," she says, hoarse with laughter. "I would have one made. In silk."`,
+ `Then the fan drops. The fountain plays. She says, very quietly, "No one has looked at me and not at the dress, not once, in years," and you kiss her there among the jewels and the water, and discover that Juliana without an audience is the most radiant of all.`]);
+L("L08","stag","Can you hear them?",[
+ `Sylvie takes you into the old forest at dawn with her finger to her lips, and you walk so softly that you hear your own heart. A mossy clearing opens between the oaks, hung with mist. "Listen," she breathes. "Can you hear them?"`,
+ `You hear nothing, and then everything: the drip of the leaves, the knock of a woodpecker, the slow creak of a very old tree breathing. Sylvie stands with her eyes closed, hands open at her sides, and the forest seems to lean toward her as though to tell her something.`,
+ `She tells you in a whisper that she is afraid of fire, and of cities, and of the day she will have to leave this place. She is soft-spoken and unbending and has never let a single tree be taken, but she is only one girl, and some nights that is a great deal to hold.`,
+ `You say you will hold some of it. She opens her eyes, and they are the green of the clearing, and she takes your hand and lays it flat against the bark of the oldest oak. "Feel that," she says. "It knows you're here." And she kisses you, in the mist, as quietly as anything in the whole green wood.`]);
+L("L09","serpent","As if I care",[
+ `Celestine summons you to her penthouse balcony at night with a note that says only "Do come, if you have nothing better to do," which you take, correctly, as an invitation she has been rewriting for a week.`,
+ `She is standing at the rail in a silk wrap with a glass in her hand and the whole city glittering below, and does not turn when you arrive. "Hmph," she says. "As if I care whether you came." Her fingers are tight on the stem of the glass.`,
+ `It takes two glasses and a long silence before she says the real thing: that no one has ever wanted her for herself. That she runs an empire to prove she can, and that she is terrified of being ordinary, and more terrified of being loved only for her money. "And then," she says, bitterly, "you came along and wanted nothing, and I don't know what to do with you."`,
+ `You tell her she does not have to do anything with you. She turns at last, haughty and miserable and lovelier than you have ever seen her, and says, "Stay anyway." You do. The kiss is cool at first, like all her best things, and then entirely warm.`]);
+L("L10","bee","Busy, busy, darling",[
+ `Melissa is in the apiary tower at golden hour, in an apron, up to her elbows in honeycomb, and she greets you with a sticky hand and a bright, unhurried "Busy, busy, darling, but come in."`,
+ `The whole tower hums. Light comes through the old windows the colour of tea, and the bees move round her like a living halo and do not seem to mind her in the least. She feeds you a spoon of honey straight from the comb and watches your face with the proprietary joy of a woman who has waited years for someone to taste it.`,
+ `She tells you, between spoonfuls, that she fears the Hive splitting again, that she fears letting her bugs down, that she has never once been allowed to stop being the queen. "Everyone needs something from me," she says, honeyed, tired. "I forget I can need something too."`,
+ `You say she may need something of you. She looks at you, a long, soft look, and wipes her fingers on her apron, and kisses you with the taste of honey and sunlight, and the bees hum louder, as though in approval.`]);
+L("L11","sovereign","Noted",[
+ `Sovereign stands on the Gallery balcony at dawn, as she has stood at every dawn since before the academy had a name, and she does not turn when you come to stand beside her. "You are early," she says. "Noted."`,
+ `The sun comes up over the old well court below. She watches it with the flat, patient attention of a sentry who has never been relieved, and you realise you are watching a very old watch being kept by a very young face.`,
+ `"One century with nothing to guard," she says, after a long time, in answer to a question you have not asked. "That is what I want. I have calculated it. I am afraid of the day the wards fail on my watch more than of anything." She says it like a report. Her hand on the stone is white.`,
+ `You lay your hand beside hers, not on it. Neither of you speaks. The sun rises. After a while, very slightly, her little finger moves against yours. "Noted," she says, her voice not quite level. And when you kiss her, on the cold balcony at the edge of the day, she lets the watch go for one whole minute and is simply a girl.`]);
+L("L12","horizon","Everything returns",[
+ `Horizon waits for you at the edge of the old well, as she often does at midnight, one foot on the rim, looking down into a dark that looks back. "Everything returns," she says, not turning, in the tone of a woman reminding herself.`,
+ `She lets you stand beside her, close to the edge. The well hums, deep and cold, and the starlight seems to bend around her as if she were a hole in the night. She is very beautiful and very strange, and you are not afraid, and that, you can tell, is why she called you.`,
+ `She tells you her fear: that there is nothing on the other side of herself, that she is only the edge, the place where things stop. "Sovereign," she says, almost fondly, "wants to be rid of the dark. I would be glad of one game against her that I could win cleanly. And you, headmaster, you look at me as though I were a person."`,
+ `You say she is, and that she returns every night to the same well, and that this, to you, is a kind of answer. She turns, and the dark in her eyes shivers and settles. "Everything returns," she says again, softer, and kisses you, the whole cold night in it, and underneath it, warm, startling and entirely alive.`]);
+T.sort((a,b)=>a.aff-b.aff);
+H.SCENES.length=0;T.forEach(t=>H.SCENES.push({id:t.id,title:t.t,heat:t.heat,aff:t.aff,wing:t.wing,art:t.art||null,only:t.only||null}));
+})();

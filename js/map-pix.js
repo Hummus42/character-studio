@@ -150,6 +150,7 @@ function room(id,sh0,lv,w,h){
       for(let i=0;i<W*H*.03;i++)o.p(R()*W,R()*H,"#4a5a3a");const dx=Math.round(W/2-3);for(let k=0;k<6;k++){o.p(dx+k,H-3+((k%2)?-1:0),"#5a3a22");o.p(dx+k,H-2,"#5a3a22")}
       for(const[x,y]of[[2,2],[W-3,2]])for(let k=0;k<3;k++){o.p(x+(x>5?-k:k),y,"#e8e8f0");o.p(x,y+k,"#e8e8f0")}}
   }
+  if(pn==="water"||id==="bathhouse")o.c.classList.add("pxwater");
   return o.c}
 
 /* ---------- the ground of a whole area ---------- */
@@ -184,5 +185,7 @@ function portal(sh0,w,h){const o=Cv(Math.round(w/PS),Math.round(h/PS)),W=o.w,H=o
   else{o.r(0,0,W,H,"#8a7a52");for(let i=0;i<W*H*.2;i++)o.p(R()*W,R()*H,R()<.5?"#6a5a3a":"#a8986a");const cy=H/2;for(let x=3;x<W-3;x+=8){o.r(x,cy-1,3,1,"#f0e8c8");o.p(x+3,cy,"#f0e8c8");o.r(x,cy+1,3,1,"#f0e8c8")}}
   return o.c}
 
+/* water and glass shimmer a little */
+{const st=document.createElement("style");st.textContent="@keyframes pxwater{0%{filter:brightness(1) saturate(1)}50%{filter:brightness(1.1) saturate(1.12)}100%{filter:brightness(1) saturate(1)}}canvas.pxwater{animation:pxwater 3.2s ease-in-out infinite}";document.head.append(st)}
 ACAD.pix={room,ground,portal,PS};
 })();

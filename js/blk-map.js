@@ -180,12 +180,12 @@ const css=document.createElement("style");css.id="mapCss313";css.textContent=`
 .lm-spr{position:absolute;aspect-ratio:1;transform:translate(-50%,-92%);cursor:pointer;filter:drop-shadow(0 3px 2px #0009);will-change:left,top}
 .lm-spr img{width:100%;height:100%;display:block;image-rendering:auto}
 .lm-spr.walk img{animation:lmbob .4s steps(2) infinite}
-.lm-spr.sel{filter:drop-shadow(0 0 6px #ffd24a) drop-shadow(0 0 2px #fff);z-index:4}
+.lm-spr.sel{filter:drop-shadow(0 0 4px #ffd24a);z-index:4}
 .lm-spr.zz img{transform:rotate(90deg) scale(.8);opacity:.85}
 .lm-spr .nm{position:absolute;left:50%;top:100%;transform:translateX(-50%);font:700 11px Georgia;white-space:nowrap;background:#000b;color:#fff;padding:0 5px;border-radius:4px;opacity:0;pointer-events:none}
 .lm-spr:hover .nm,.lm-spr.sel .nm{opacity:1}
 @keyframes lmbob{0%{transform:translateY(0)}50%{transform:translateY(-7%)}}
-.lm-spr.emph{filter:drop-shadow(0 0 6px #ffd24a) drop-shadow(0 0 2px #fff);z-index:3}
+.lm-spr.emph{filter:drop-shadow(0 0 3px #ffd24acc);z-index:3}
 .lm-spr.emph .nm{opacity:1;background:#ffd24acc;color:#241b06}
 .lm-stage.dimo .lm-spr:not(.emph){opacity:.4}
 .lm-sky{inset:0;pointer-events:none;z-index:5;transition:background .6s}

@@ -37,7 +37,7 @@ html.ev-open,html.ev-open body{overflow:hidden}
 #evRoot .bar.fat>i{background:#e58a5a}#evRoot .bar.mood>i{background:#7fb6e5}#evRoot .bar.sp>i{background:#e58ac4}
 #evRoot .stat{display:grid;grid-template-columns:62px 1fr 34px;gap:6px;align-items:center;font-size:13px;margin:2px 0}
 #evRoot .up{color:var(--g-ok)}#evRoot .down{color:var(--g-bad)}
-#evRoot .title{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;background:linear-gradient(#100d26cc,#100d26ee),#100d26}
+#evRoot .title{position:absolute;inset:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:14px 0 36px;gap:10px;text-align:center;background:linear-gradient(#100d26cc,#100d26ee),#100d26}
 #evRoot .title .bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.55;filter:saturate(1.1)}
 #evRoot .title>*:not(.bg){position:relative}
 #evRoot .logo{font:700 clamp(40px,9vw,92px)/1 Georgia;letter-spacing:.14em;color:var(--g-gold);text-shadow:0 4px 30px #000}
@@ -247,8 +247,10 @@ function letters(pane,ctx){const corr=Object.keys(S.rel).sort((a,b)=>G.stageOf(S
     E("h3",null,"Send a gift (1)"),E("div",{class:"chips"},...G.ITEMS.map(it=>E("button",{type:"button",class:"sm",disabled:S.cp<1||S.money<it.price,onclick:()=>act("gift",it.id)},it.name+" · "+it.price))));
   if(letterLast&&letterLast.reply)right.append(E("div",{class:"card",style:{marginTop:"10px"}},E("div",{class:"bubble"},letterLast.reply),E("div",{class:"chips"},E("span",{class:"chip "+(letterLast.db>=0?"up":"down")},"Bond "+(letterLast.db>=0?"+":"")+letterLast.db),E("span",{class:"chip "+(letterLast.ds>=0?"up":"down")},"Spark "+(letterLast.ds>=0?"+":"")+letterLast.ds),...(letterLast.up?[E("span",{class:"chip hot"},"Now: "+G.STAGELABEL[letterLast.stage])]:[])),...(letterLast.note?[E("div",{class:"bubble"},letterLast.note)]:[])));
   pane.append(E("div",{class:"letters"},left,right))}
+/* the scene as written narration, from the Headmaster module's writers (used when a picture is missing) */
+function narrFor(h,id){const Hd=ACAD.head;if(!Hd)return null;try{const m=String(id).match(/^([a-z]+)-(win|lose)$/);if(m&&Hd.contestScene)return Hd.contestScene(h,m[1],m[2]==="win"?1:6,S?S.year:1);if(/^romance-/.test(id)&&Hd.MOMENT_SCENE&&Hd.sceneText){const t=Hd.MOMENT_SCENE[id];return t?Hd.sceneText(h,t):null}}catch(e){}return null}
 function sceneReveal(h,id,done){const ov=E("div",{class:"overlay"}),sheet=E("div",{class:"sheet"});ov.append(sheet);root.append(ov);const romance=/^romance/.test(id);
-  const img=E("img",{src:G.sceneURL(h,id),alt:"",onerror:ev=>{ev.target.replaceWith(E("div",{class:"card mut",style:{textAlign:"center"}},spr(h,96),E("p",null,"The picture for this moment isn't ready yet. It is saved in the scrapbook and will appear when it is.")))}});
+  const img=E("img",{src:G.sceneURL(h,id),alt:"",onerror:ev=>{{const nt=narrFor(h,id);ev.target.replaceWith(nt?E("div",{class:"card",style:{lineHeight:"1.6"}},E("div",{class:"row",style:{marginBottom:"6px"}},spr(h,64)),...nt.map(t=>E("p",{style:{margin:"0 0 8px"}},t))):E("div",{class:"card mut",style:{textAlign:"center"}},spr(h,96),E("p",null,"The picture for this moment isn't ready yet. It is saved in the scrapbook and will appear when it is.")))}}});
   sheet.append(E("h2",null,romance?"A moment with "+HN(h):"Memory kept"),E("div",{class:"scenebig"},img,E("div",null,E("p",null,romance?(G.moment(h,id)||HN(h)+" will remember this."):""),E("p",{class:"mut"},"Saved to "+HN(h)+"'s scrapbook in the Hall."),E("button",{type:"button",class:"pri",onclick:()=>{ov.remove();done&&done()}},"Continue"))))}
 
 function hall(pane,ctx){if(!sel||!S.wards[sel])sel=S.order[0];const girls=[...new Set([...S.order,...Object.keys(S.gallery||{})])];let who=hall.who&&girls.includes(hall.who)?hall.who:sel;
