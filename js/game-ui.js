@@ -118,14 +118,15 @@ const edition=()=>typeof EVERSPIRE_EDITION!=="undefined"?EVERSPIRE_EDITION:"publ
 /* ---------- title ---------- */
 function title(){ensure();show();dispose();S=null;root.textContent="";const last=G.lastSlot(),ls=last>=0?G.load(last):null;
   const mk=(label,sub,fn,pri)=>E("button",{type:"button",class:pri?"pri":"",onclick:fn},label,sub?E("small",null,sub):null);
-  const m=E("div",{class:"menu"},
-    ...(ls?[mk("Continue","Patron "+ls.name+" · "+G.dateOf(ls).label,()=>{slot=last;enter(ls)},true)]:[]),
-    mk("New Game","Back up to three girls through six years",()=>{slot=firstFree();newGame([])},!ls),
+  const hb=ACAD.head&&ACAD.head.ui?ACAD.head.ui.titleButtons(mk):[],cl=hb.length?"Classic: ":"";
+  const m=E("div",{class:"menu"},...hb,
+    ...(ls?[mk(cl+"Continue","Patron "+ls.name+" · "+G.dateOf(ls).label,()=>{slot=last;enter(ls)},!hb.length)]:[]),
+    mk(cl+"New Game","The planner game: back up to three girls through six years",()=>{slot=firstFree();newGame([])},!ls&&!hb.length),
     mk("Load Game","Slots, and saves from a file",loadGame),
     mk("Character Creator","Design a girl, a look or a scene",()=>{hide()}),
     mk("Codex","The Academy, its Houses and its history",()=>codex("home")),
     mk("Settings","Standing orders and display",settings));
-  root.append(E("div",{class:"title"},E("div",{class:"bg",style:{backgroundImage:"url(assets/rooms/portal_castle.webp)"}}),E("div",{class:"logo"},"EVERSPIRE"),E("div",{class:"tag"},"A patron's tale of the Academy"),m,
+  root.append(E("div",{class:"title"},E("div",{class:"bg",style:{backgroundImage:"url(assets/rooms/portal_castle.webp)"}}),E("div",{class:"logo"},"EVERSPIRE"),E("div",{class:"tag"},"The Academy awaits its headmaster"),m,
     E("div",{class:"foot"},"Everspire Academy · "+(edition()==="admin"?"admin edition":"public edition"))))}
 function firstFree(){const s=G.slots();const i=s.findIndex(x=>!x);return i<0?0:i}
 
@@ -328,6 +329,7 @@ const bh=ENC.buildHouse;if(bh)ENC.buildHouse=(el,h)=>{bh(el,h);
     const c=E("img",{class:"ev-chibi",src:"assets/sprites/"+h+".256.webp",alt:HN(h)+" as a chibi",title:"Her chibi",loading:"lazy",draggable:"false",style:{position:"absolute",right:"18px",bottom:"0",height:"min(150px,70%)",width:"auto",filter:"drop-shadow(0 4px 6px #0008)",pointerEvents:"auto"},onerror:ev=>ev.target.remove()});bn.append(c)}}
   const bar=el.querySelector(".enc-chairbar");if(bar)bar.append(E("button",{type:"button",class:"enc-load",onclick:()=>{ENC.close();G.open({sponsor:h})}},"Take her on as a protégée"))};
 /* Everspire opens first: the title screen covers the studio until the player chooses the Character Creator */
+ACAD.gameUI={ensure,show,hide,title:()=>title(),root:()=>root,codex,spr,col,dispose,say:m=>say(m)};
 function boot(){ensure();title()}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();
