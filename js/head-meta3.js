@@ -35,7 +35,7 @@ H.leagueStrength=(s,a,div)=>(20+16*div)*(.82+.36*hash(a.id+"|"+div+"|"+Math.floo
 H.leagueTable=s=>{const lg=s.league||{div:1},rows=H.LEAGUE_ACADEMIES.map(a=>({id:a.id,name:a.name,tag:a.tag,str:H.leagueStrength(s,a,lg.div||1)}));return rows.sort((a,b)=>b.str-a.str)};
 H.leagueMine=s=>{const t=H.leagueTeam(s);return t.length?t.reduce((n,h)=>n+H.power(s.girls[h]),0)/t.length*(t.length<6?.6+.4*t.length/6:1):0};
 H.playLeague=s=>{if(!H.leagueOpen(s))return {ok:false,msg:"The league final opens late in the year."};s.league=s.league||{div:1,history:[]};const key=H.leagueKey(s);if(s.league.last===key)return {ok:false,msg:"This year's final is done."};
-  const team=H.leagueTeam(s);if(team.length<3)return {ok:false,msg:"Enrol at least three girls first."};const mine=H.leagueMine(s)*(.92+.16*hash(s.id+key)),rows=H.leagueTable(s),rank=1+rows.filter(r=>r.str>mine).length;
+  const team=H.leagueTeam(s);if(team.length<3)return {ok:false,msg:"Enroll at least three girls first."};const mine=H.leagueMine(s)*(.92+.16*hash(s.id+key)),rows=H.leagueTable(s),rank=1+rows.filter(r=>r.str>mine).length;
   const div=s.league.div,prize=Math.round((300+140*div)*[2.2,1.5,1.1,.7,.4,.3,.25,.2,.15][rank-1]*H.eraMod(s).prize),ren=[14,9,6,3,2,1,1,0,0][rank-1]*Math.sqrt(div);
   s.funds+=prize;s.stats.earned+=prize;s.renown+=ren;team.forEach(h=>{s.girls[h].ess+=rank<=3?4:1});let moved=0;if(rank<=3){s.league.div++;moved=1}else if(rank>=8&&div>1){s.league.div--;moved=-1}
   s.league.last=key;s.league.history.push({year:Math.floor(s.day/360)+1,rank,div});const out={ok:true,rank,prize,ren,moved,div:s.league.div,mine:Math.round(mine),rows,team};

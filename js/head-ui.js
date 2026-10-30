@@ -134,7 +134,7 @@ function admissions(p){const free=S.free>0,beds=H.beds(S);
       E("div",{class:"mut"},((g||{}).name||"")+(b.age?" · "+b.age:"")+(b.occupation?" · "+String(b.occupation).split(/[;,]/)[0]:"")),
       E("div",{class:"chips",style:{margin:"4px 0"}},...top.map(s=>E("span",{class:"chip hot"},SNAME[s]+" "+r1(a[s])+"×"))),
       b.summary?E("div",{class:"mut",style:{fontSize:"13px"}},String(b.summary).split(/(?<=\.)\s/)[0]):null,
-      E("div",{class:"row",style:{marginTop:"8px"}},E("button",{type:"button",class:c.ok?"pri":"",disabled:!c.ok,title:c.ok?"":c.msg,onclick:()=>{const o=H.enroll(S,h);if(o.ok){SP.push(h);say(HN(h)+" enrols.");afterChange()}else say(o.msg)}},free?"Welcome her (free)":"Welcome her · "+H.feeOf(h)),
+      E("div",{class:"row",style:{marginTop:"8px"}},E("button",{type:"button",class:c.ok?"pri":"",disabled:!c.ok,title:c.ok?"":c.msg,onclick:()=>{const o=H.enroll(S,h);if(o.ok){SP.push(h);say(HN(h)+" enrolls.");afterChange()}else say(o.msg)}},free?"Welcome her (free)":"Welcome her · "+H.feeOf(h)),
         E("button",{type:"button",class:"sm",onclick:()=>{H.decline(S,h);repaint("admissions")}},"Not now"),E("button",{type:"button",class:"sm",onclick:()=>U.codex("house:"+h)},"Codex"),
         !c.ok?E("span",{class:"mut"},c.msg):null)))))});
   if(hooks.admissions.length)hooks.admissions.forEach(f=>f(p));else p.append(E("p",{class:"mut",style:{marginTop:"14px"}},"Beyond these doors: "+ACAD.HOUSES.filter(H.lockedFaction).length+" girls have not answered Everspire yet."))}

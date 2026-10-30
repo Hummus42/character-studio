@@ -73,7 +73,7 @@ H.canEnroll=(s,h)=>{if(s.girls[h])return {ok:false,msg:"Already enrolled."};if(s
 H.enroll=(s,h)=>{const c=H.canEnroll(s,h);if(!c.ok)return c;if(s.free>0)s.free--;else{s.funds-=c.cost;s.stats.spent+=c.cost}
   const a=G.aptitude(h),stats={};SID.forEach(st=>stats[st]=r1(8+6*a[st]));
   s.girls[h]={joined:s.day,stats,mood:55,aff:0,focus:null,tier:0,ess:0,trial:{},lastAud:-1};s.order.push(h);s.short=s.short.filter(x=>x!==h);s.renown+=.5;
-  H.note(s,HN(h)+" enrols and drops her bags in the dormitory.");return {ok:true,cost:c.cost}};
+  H.note(s,HN(h)+" enrolls and drops her bags in the dormitory.");return {ok:true,cost:c.cost}};
 H.decline=(s,h)=>{s.short=s.short.filter(x=>x!==h);H.refill(s);return {ok:true}};
 
 /* ---------- a girl's day: which rooms she uses, and how much she gains ---------- */
