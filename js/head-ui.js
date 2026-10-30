@@ -30,9 +30,9 @@ function firstFree(){const s=H.slots();const i=s.findIndex(x=>!x);return i<0?0:i
 
 /* ---------- title entries ---------- */
 function titleButtons(mk){const last=H.lastSlot(),ls=last>=0?H.load(last):null;
-  return [ls?mk("Continue Headmaster",ls.name+" · "+dateInfo(ls).label,()=>{slot=last;enter(ls)},true):null,
-    mk("New Headmaster","Build Everspire into the finest academy in the world",()=>{slot=firstFree();newScreen()},!ls),
-    mk("Headmaster saves","Slots, import and export",savesScreen)].filter(Boolean)}
+  return [ls?mk("Headmaster (archive): Continue",ls.name+" · "+dateInfo(ls).label,()=>{slot=last;enter(ls)},false):null,
+    mk("Headmaster (archive): New","The idle academy game, kept as it was",()=>{slot=firstFree();newScreen()},false),
+    mk("Headmaster (archive): saves","Slots, import and export",savesScreen)].filter(Boolean)}
 
 function pageWith(title,body){U.ensure();U.show();const r=root();r.textContent="";const page=E("div",{class:"page narrow"}),w=E("div");
   w.append(E("div",{class:"row"},E("button",{type:"button",onclick:()=>U.title()},"Back"),E("h2",{style:{margin:0}},title)),body);page.append(w);r.append(page)}

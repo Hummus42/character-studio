@@ -120,10 +120,10 @@ const edition=()=>typeof EVERSPIRE_EDITION!=="undefined"?EVERSPIRE_EDITION:"publ
 /* ---------- title ---------- */
 function title(){ensure();show();dispose();S=null;root.textContent="";const last=G.lastSlot(),ls=last>=0?G.load(last):null;
   const mk=(label,sub,fn,pri)=>E("button",{type:"button",class:pri?"pri":"",onclick:fn},label,sub?E("small",null,sub):null);
-  const hb=ACAD.head&&ACAD.head.ui?ACAD.head.ui.titleButtons(mk):[],cl=hb.length?"Classic: ":"";
-  const m=E("div",{class:"menu"},...hb,
-    ...(ls?[mk(cl+"Continue","Patron "+ls.name+" · "+G.dateOf(ls).label,()=>{slot=last;enter(ls)},!hb.length)]:[]),
-    mk(cl+"New Game","The planner game: back up to three girls through six years",()=>{slot=firstFree();newGame([])},!ls&&!hb.length),
+  const cb=ACAD.climb&&ACAD.climb.titleButtons?ACAD.climb.titleButtons(mk):[],hb=ACAD.head&&ACAD.head.ui?ACAD.head.ui.titleButtons(mk):[],cl=hb.length?"Classic: ":"",none=!hb.length&&!cb.length;
+  const m=E("div",{class:"menu"},...cb,...hb,
+    ...(ls?[mk(cl+"Continue","Patron "+ls.name+" · "+G.dateOf(ls).label,()=>{slot=last;enter(ls)},none)]:[]),
+    mk(cl+"New Game","The planner game: back up to three girls through six years",()=>{slot=firstFree();newGame([])},!ls&&none),
     mk("Load Game","Slots, and saves from a file",loadGame),
     mk("Character Creator","Design a girl, a look or a scene",()=>{hide()}),
     mk("Codex","The Academy, its Houses and its history",()=>codex("home")),
