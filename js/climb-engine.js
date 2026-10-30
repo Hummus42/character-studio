@@ -5,7 +5,7 @@
 if(typeof ACAD==="undefined"||!ACAD.climb||!ACAD.climb.WEAPONS)return;
 const C=ACAD.climb,W=C.WEAPONS,PS=C.PASSIVES,EN=C.ENEMY,rnd=Math.random,TAU=Math.PI*2,hypot=Math.hypot;
 const XPS=.38,SLOTS=6,MAXT=600,BOSS_T=540;
-const need=L=>Math.round((L<=19?10*L-5:195+13*(L-19)+(L===20?600:0))*XPS);
+const need=L=>Math.max(L===1?7:0,Math.round((L<=19?10*L-5:195+13*(L-19)+(L===20?600:0))*XPS));
 C.xpNeed=need;
 const pick=a=>a[Math.floor(rnd()*a.length)];
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
@@ -144,6 +144,7 @@ class Run{
  result(){const win=this.won&&!this.dead,F=this.fi;const gold=Math.round((this.gold+(win?100*(F+1):0))*P_g(this.stats));return {win,t:this.t,kills:this.kills,gold,lv:this.lv,hero:this.hero,boss:this.bossId,floor:this.fi,ess:Math.round(this.kills/12+this.t/8+(win?40+10*F:0))}}
  /* ----- enemies ----- */
  spawn(dt){const t=this.t,m=t/60,P=this.stats,fi=this.fi;this.spawnT-=dt;
+  if(!this.opened){this.opened=1;for(let i=0;i<16;i++){const a=rnd()*TAU,d=150+rnd()*130;this.mk(i%4?this.floor.en[0]:"bat",this.px+Math.cos(a)*d,this.py+Math.sin(a)*d)}}
   /* scripted moments */
   const ev=(k,at,fn)=>{if(t>=at&&!this.ev[k]){this.ev[k]=1;fn()}};
   ev("e1",180,()=>this.mkElite());ev("e2",360,()=>this.mkElite());ev("boss",BOSS_T,()=>this.mkBoss());
@@ -153,9 +154,9 @@ class Run{
   const target=Math.min(340,Math.round((24+34*m*(1+.05*fi))*P.curse));
   if(this.spawnT<=0){this.spawnT=Math.max(.18,.5-m*.02);let n=Math.min(7,Math.max(0,target-this.en.length));for(let i=0;i<n;i++)this.mk(this.kindAt(m))}}
  kindAt(m){const r=this.floor.en,x=rnd();if(m<1.2)return x<.55?"bat":r[0];if(m<3)return x<.45?r[0]:x<.8?r[1]:"bat";if(m<6)return x<.3?r[0]:x<.6?r[1]:x<.9?r[2]:"bat";return x<.15?r[0]:x<.4?r[1]:x<.7?r[2]:x<.9?"shade":"gear"}
- mk(kind,x,y,o){const d=EN[kind],t=this.t/60,fi=this.fi,P=this.stats;const a=rnd()*TAU,R=Math.max(this.vw||640,this.vh||400)*.62+20;
-  const hm=(1+.3*t+.014*t*t)*(1+.2*fi)*P.curse;const e=Object.assign({id:this.nid++,k:kind,x:x==null?this.px+Math.cos(a)*R:x,y:y==null?this.py+Math.sin(a)*R:y,hp:d.hp*hm,mhp:d.hp*hm,sp:d.sp*(1+.1*(P.curse-1)*5)*(1+.01*fi),dmg:d.dmg*(1+.05*fi)*(1+.3*t*.1),r:d.r,xp:d.xp,kx:0,ky:0,flash:0,fz:0,col:this.floor.acc},o||{});this.en.push(e);return e}
- swarm(kind,n){const a=rnd()*TAU;for(let i=0;i<n;i++){const aa=a+(i/n-.5)*1.4,R=Math.max(this.vw||640,this.vh||400)*.62+20;this.mk(kind,this.px+Math.cos(aa)*R,this.py+Math.sin(aa)*R)}}
+ edge(){const sc=this.sc||1,hw=(this.vw||640)/2/sc+36,hh=(this.vh||400)/2/sc+36,p=rnd()*(hw+hh),side=p<hw?(rnd()<.5?-1:1):0;return p<hw?[this.px+(rnd()*2-1)*hw,this.py+(rnd()<.5?-hh:hh)]:[this.px+(rnd()<.5?-hw:hw),this.py+(rnd()*2-1)*hh]}
+ mk(kind,x,y,o){const d=EN[kind],t=this.t/60,fi=this.fi,P=this.stats;const [ex,ey]=this.edge();const hm=(1+.3*t+.014*t*t)*(1+.2*fi)*P.curse;const e=Object.assign({id:this.nid++,k:kind,x:x==null?ex:x,y:y==null?ey:y,hp:d.hp*hm,mhp:d.hp*hm,sp:d.sp*(1+.1*(P.curse-1)*5)*(1+.01*fi),dmg:d.dmg*(1+.05*fi)*(1+.3*t*.1),r:d.r,xp:d.xp,kx:0,ky:0,flash:0,fz:0,col:this.floor.acc},o||{});this.en.push(e);return e}
+ swarm(kind,n){const [ex,ey]=this.edge(),a=Math.atan2(this.py-ey,this.px-ex)+Math.PI/2;for(let i=0;i<n;i++){const o=(i/n-.5)*260;this.mk(kind,ex+Math.cos(a)*o,ey+Math.sin(a)*o)}}
  ringOf(kind,n){const R=Math.min(this.vw||640,this.vh||400)*.5+60;for(let i=0;i<n;i++){const a=i/n*TAU;this.mk(kind,this.px+Math.cos(a)*R,this.py+Math.sin(a)*R,{ringed:1})}}
  mkElite(){const k=this.floor.en[this.floor.en.length-1]==="gear"?"gear":"shade";const e=this.mk(k,null,null,{elite:1});e.hp=e.mhp=e.mhp*(k==="gear"?7:16);e.r*=2;e.dmg*=1.4;e.xp=40;e.sp*=.85;this.text(this.px,this.py-60,"An elite approaches","#ffd24a",1)}
  mkBoss(){const fi=this.fi,e=this.mk("gear",null,null,{boss:1});e.hp=e.mhp=900*(1+.38*fi)*this.stats.curse;e.r=40;e.dmg=16+2*fi;e.sp=62;e.xp=0;e.bt=2;e.dashT=5;this.bossE=e;this.shake=.6;this.flash=.4;this.flashC="#ff3a3a";this.text(this.px,this.py-70,"The challenger arrives","#ff8a8a",1);if(this.cb.boss)this.cb.boss(this.bossId)}
