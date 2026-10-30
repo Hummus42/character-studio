@@ -31,9 +31,9 @@ const SH={
   close:[`She goes quiet at the end and says, "I wanted you to know where I come from," and leans her head on your shoulder.`,`She folds the letter away with great care, and says that someday, perhaps, you could meet them.`]}};
 function shapeFor(h){const b=bio(h),av=[];if(b.favPlace)av.push("place");if(b.hobbies){av.push("craft");av.push("wager")}if(b.favFood||b.favDrink)av.push("meal");if(b.favMusic||b.favBook)av.push("song");if(b.pets||b.mother)av.push("people");
   return av[Math.floor(hash(h+"|shape")*av.length)]||"place"}
-function titleFor(h,shape){const b=bio(h);switch(shape){case"place":return up(b.favPlace).replace(/ (at|under|after|on|in) .*$/i,m=>m.length>22?"":m)||"Her place";case"craft":return "A lesson in "+lc(first(b.hobbies));case"meal":return up(first(b.favDrink)||first(b.favFood))+" for two";case"wager":return "A wager over "+lc(first(b.hobbies));
+function titleFor(h,shape){const b=bio(h);if(H.CAP&&H.CAP[h])return H.CAP[h][0];switch(shape){case"place":return up(b.favPlace).replace(/ (at|under|after|on|in) .*$/i,m=>m.length>22?"":m)||"Her place";case"craft":return "A lesson in "+lc(first(b.hobbies));case"meal":return up(first(b.favDrink)||first(b.favFood))+" for two";case"wager":return "A wager over "+lc(first(b.hobbies));
   case"song":return b.favMusic?"The song she plays at night":"A page she loves";case"people":return b.pets?"Meeting the family":"Her people";default:return "Her scene"}}
-function gen(h){const R=rng(h+"|sig"),b=bio(h),arch=H.voiceOf(h),pick=a=>a[Math.floor(R()*a.length)],shape=shapeFor(h),S=SH[shape];
+function gen(h){if(H.CAP&&H.CAP[h])return H.CAP[h].slice(1);const R=rng(h+"|sig"),b=bio(h),arch=H.voiceOf(h),pick=a=>a[Math.floor(R()*a.length)],shape=shapeFor(h),S=SH[shape];
   const open=shape==="song"?(b.favMusic?S.openM:S.openB):shape==="people"?(b.pets?S.openP:S.openF):S.open;
   const p=[pick(open),pick(V.MANN[arch]),'You say, "'+S.you+'" '+pick(V.SAY[S.beat][arch])];
   p.push(R()<.5?pick(V.FEAR):pick(V.DREAM));p.push(pick(V.SENSE[2])+" "+pick(V.REACT[arch][2]));p.push(pick(S.close));return p}

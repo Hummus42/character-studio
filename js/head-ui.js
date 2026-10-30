@@ -61,11 +61,16 @@ function enter(s,fresh){stop();S=H.fix(s);const rep=fresh?null:H.offline(S);H.sy
 /* ---------- the screen ---------- */
 function say(m){const e=topEls.say;if(!e)return;e.textContent=m;e.style.display="";clearTimeout(sayT);sayT=setTimeout(()=>{e.style.display="none"},4000)}
 function fitHub(){const r=root(),t=r&&r.querySelector(".top"),h=r&&r.querySelector(".hub");if(t&&h&&h.style.top!==t.offsetHeight+"px")h.style.top=t.offsetHeight+"px"}
-function refreshTop(){const di=dateInfo(S),t=H.tier(S),next=H.TIERS[t+1];const set=(k,v)=>{if(topEls[k])topEls[k].textContent=v};
-  set("date",di.label);set("coins","Coins "+fmt(S.funds));set("ren",H.TIERS[t].name+" · "+fmt(S.renown));set("ins","Insight "+fmt(S.insight));set("beds","Beds "+S.order.length+"/"+H.beds(S));fitHub()}
-function topBar(){topEls={};const pill=(k,tt)=>{const e=E("span",{class:"pill",title:tt});topEls[k]=e;return e};
+const ICONS={coin:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5h5M9.5 13.5h5"/>',star:'<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',bed:'<path d="M3 18V7M3 14h18v4M21 14v-3a3 3 0 0 0-3-3h-7v6"/>',cal:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',seal:'<circle cx="12" cy="9" r="5"/><path d="M9 13l-2 8 5-3 5 3-2-8"/>'};
+const ico=n=>{const sp=document.createElement("span");sp.className="ico";sp.innerHTML='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICONS[n]||"")+'</svg>';return sp};
+function refreshTop(){const di=dateInfo(S),t=H.tier(S),next=H.TIERS[t+1];const set=(k,v)=>{const e=topEls[k];if(e){const x=e.querySelector(".tx");(x||e).textContent=v}};
+  set("date",di.label);set("coins",fmt(S.funds));set("ren",H.TIERS[t].name+" · "+fmt(S.renown));set("ins",fmt(S.insight));set("beds",S.order.length+"/"+H.beds(S));
+  if(topEls.seals){topEls.seals.style.display=(S.seals||0)>0?"":"none";set("seals",String(S.seals||0))}
+  if(topEls.muses){topEls.muses.textContent="";(S.muses||[]).filter(h=>S.girls[h]).forEach(h=>{const col=(H.PT[S.girls[h].tier]||{col:"#8b8ba2"}).col;topEls.muses.append(E("span",{class:"mf",title:HN(h)+" · Muse",style:{borderColor:col},onclick:()=>{if(U.openGirl)U.openGirl(h)}},spr(h,32)))})}
+  fitHub()}
+function topBar(){topEls={};const pill=(k,tt,ic)=>{const e=E("span",{class:"pill",title:tt},ico(ic||"star"),E("span",{class:"tx"}));topEls[k]=e;return e};
   const say2=E("span",{class:"pill hsay",style:{display:"none"}});topEls.say=say2;
-  return E("div",{class:"top"},E("div",{class:"brand"},"Headmaster "+S.name),pill("date","The academy calendar"),pill("coins","Coins"),pill("ren","Renown tier and points"),pill("ins","Insight"),pill("beds","Girls and free beds"),say2,E("span",{class:"sp"}),
+  return E("div",{class:"top"},E("div",{class:"brand"},"Headmaster "+S.name),pill("date","The academy calendar","cal"),pill("coins","Coins","coin"),pill("ren","Renown tier and points","star"),pill("ins","Insight","eye"),pill("beds","Girls and free beds","bed"),pill("seals","Seals","seal"),(topEls.muses=E("span",{class:"musebar"})),say2,E("span",{class:"sp"}),
     ...(H.ui.sfxButton?[H.ui.sfxButton()]:[]),E("button",{type:"button",onclick:()=>U.codex("home")},"Codex"),E("button",{type:"button",onclick:()=>{H.save(S,slot);say("Saved.")}},"Save"),E("button",{type:"button",onclick:leave},"Menu"))}
 
 function hub(){U.ensure();U.show();U.dispose();injectCss();const r=root();r.textContent="";SP.length=0;S.order.forEach(h=>SP.push(h));EM=new Set(S.muses||[]);sigs={};
