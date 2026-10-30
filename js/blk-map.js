@@ -172,6 +172,10 @@ const css=document.createElement("style");css.id="mapCss313";css.textContent=`
 .lm-tile:hover{filter:brightness(1.18)}
 .lm-tile b{position:absolute;left:0;right:0;top:0;padding:.3cqw .8cqw;font:700 max(8.5px,1.9cqw) Georgia;line-height:1.15;color:#fff;background:linear-gradient(#000b,#0000);text-shadow:0 1px 2px #000;pointer-events:none}
 .lm-tile.portal{border-style:dashed;border-color:#fff9;background-color:#0004}
+.lm-tile.pix{border:0;box-shadow:none;overflow:visible;border-radius:0!important}
+.lm-tile.pix.portal{background:transparent}
+.lm-tile.pix b{left:2%;right:auto;top:4%;max-width:96%;padding:.1cqw .7cqw;font:700 max(8px,1.55cqw) "Courier New",monospace;line-height:1.2;color:#fff8e0;background:#14101acc;border:1px solid #000a;border-radius:3px;text-shadow:none;letter-spacing:.02em}
+.lm-tile.pix:hover{filter:brightness(1.22)}
 .lm-tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .lm-spr{position:absolute;aspect-ratio:1;transform:translate(-50%,-92%);cursor:pointer;filter:drop-shadow(0 3px 2px #0009);will-change:left,top}
 .lm-spr img{width:100%;height:100%;display:block;image-rendering:auto}
@@ -233,9 +237,12 @@ function mountStage(host,o){
     sp.addEventListener("click",ev=>{ev.stopPropagation();select(h)});return sp};
   function drawArea(){const A=AREA[st.area],a=A.a;cv.textContent="";sprites=new Map();back.style.display="none";
     const f=a.foot,box=(r,css)=>{const [x,y]=pct(r[0],r[1]);return Object.assign(css||{},{left:x+"%",top:y+"%",width:r[2]/W*100+"%",height:r[3]/H*100+"%"})};
-    cv.append(E("div",{style:{inset:"0",background:a.bg}}),E("div",{style:box(f,{background:a.floor,border:"5px solid #231f2b",borderRadius:"8px"})}));
+    const PX=!!(ACAD.pix&&o.pixel!==false),lvl=id=>o.level?o.level(id):3;
+     if(PX)cv.append(ACAD.pix.ground(st.area,a,A.shapes));else cv.append(E("div",{style:{inset:"0",background:a.bg}}),E("div",{style:box(f,{background:a.floor,border:"5px solid #231f2b",borderRadius:"8px"})}));
     A.shapes.forEach(sh=>{const r=sh.r||[sh.c[0]-sh.c[2],sh.c[1]-sh.c[2],sh.c[2]*2,sh.c[2]*2],R=ROOM[sh.id],lab=sh.portal?sh.label:(R&&R.name)||sh.id;
-      const t=E("div",{class:"lm-tile"+(sh.portal?" portal":""),style:box(r,{backgroundColor:sh.floor||"#333",borderRadius:sh.c?"50%":"6px"}),title:lab,onclick:()=>{if(sh.portal){st.area=sh.to;st.room=null;redraw()}else{st.room=sh.id;redraw()}}},
+      const go=()=>{if(sh.portal){st.area=sh.to;st.room=null;redraw()}else{st.room=sh.id;redraw()}};
+       if(PX){const t=E("div",{class:"lm-tile pix"+(sh.portal?" portal":""),style:box(r,{backgroundColor:"transparent"}),title:lab,onclick:go,"data-pid":sh.id},sh.portal?ACAD.pix.portal(sh,r[2],r[3]):ACAD.pix.room(sh.id,sh,lvl(sh.id),r[2],r[3]),E("b",null,lab));cv.append(t);return}
+       const t=E("div",{class:"lm-tile"+(sh.portal?" portal":""),style:box(r,{backgroundColor:sh.floor||"#333",borderRadius:sh.c?"50%":"6px"}),title:lab,onclick:go},
         ((!sh.portal&&R&&R.thumb)||(sh.portal&&sh.thumb))?E("img",{src:sh.portal?sh.thumb:R.thumb,alt:"",loading:"lazy",draggable:"false",onerror:ev=>ev.target.remove()}):null,E("b",null,lab));cv.append(t)});
     cv.append(E("div",{class:"lm-layer",style:{inset:"0"}}))}
   function drawRoom(){const R=ROOM[st.room];cv.textContent="";sprites=new Map();back.style.display="block";
@@ -272,7 +279,8 @@ function mountStage(host,o){
   let last=0,alive=true;const loop=now=>{if(!stage.isConnected){alive=false;return}if(st.play){const dt=Math.min(200,now-last);st.t+=dt/1000*st.speed*4;if(st.t>=1440){st.t-=1440;st.day=(st.day+1)%7;if(o.onDay)o.onDay(st.day)}}
     if(now-last>60||!st.play){last=now;frame(false)}requestAnimationFrame(loop)};
   redraw();requestAnimationFrame(loop);
-  return {frame,redraw,select,focus,stage,state:st,get info(){return info},dispose:()=>{alive=false}}
+  function refreshTiles(){if(st.room||!ACAD.pix)return;const A=AREA[st.area];cv.querySelectorAll(".lm-tile.pix[data-pid]").forEach(t=>{const sh=A.by[t.dataset.pid];if(!sh||sh.portal)return;const r=sh.r||[sh.c[0]-sh.c[2],sh.c[1]-sh.c[2],sh.c[2]*2,sh.c[2]*2],old=t.querySelector("canvas");if(old)old.replaceWith(ACAD.pix.room(sh.id,sh,o.level?o.level(sh.id):3,r[2],r[3]))})}
+  return {frame,redraw,refreshTiles,select,focus,stage,state:st,get info(){return info},dispose:()=>{alive=false}}
 }
 
 function build(el){

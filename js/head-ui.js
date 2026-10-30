@@ -74,7 +74,7 @@ function hub(){U.ensure();U.show();U.dispose();injectCss();const r=root();r.text
   const topEl=topBar(),hubEl=E("div",{class:"hub"},left,right);r.append(topEl,hubEl);
   {const fit=()=>{hubEl.style.top=topEl.offsetHeight+"px"};fit();if(window.ResizeObserver)new ResizeObserver(fit).observe(topEl);else addEventListener("resize",fit)}
   const paintSpeed=()=>{speedRow.textContent="";speedRow.append(E("span",{class:"mut"},"Time"));SPEEDS.forEach(([lab,v],i)=>speedRow.append(E("button",{type:"button",class:"sm"+(i===speedIx?" on":""),title:i?"Speed "+lab:"Pause",onclick:()=>{speedIx=i;HS.play=v>0;if(v>0)HS.speed=v;paintSpeed()}},lab)))};
-  ctl=L().mountStage(stageHost,{state:HS,girls:SP,emph:EM,dim:false,tabs:true,onSelect:h=>studentPop(h),onDay:()=>onDay(),onView:()=>{paintMap();if(tab==="academy")repaint("academy")},onFrame:c=>{paintCap(c)}});
+  ctl=L().mountStage(stageHost,{state:HS,girls:SP,emph:EM,dim:false,tabs:true,level:id=>S?H.lvlOf(S,id):3,onSelect:h=>studentPop(h),onDay:()=>onDay(),onView:()=>{paintMap();if(tab==="academy")repaint("academy")},onFrame:c=>{paintCap(c)}});
   const TABS=[["academy","Academy"],["admissions","Admissions"],["students","Students"],["journal","Journal"]];
   window.__hdTabs=()=>{tabs.textContent="";TABS.forEach(([k,l])=>tabs.append(E("button",{type:"button",class:k===tab?"on":"",onclick:()=>{tab=k;window.__hdTabs();repaint(k)}},l+(k==="admissions"&&S.short.length?" ("+S.short.length+")":""))))};
   paintSpeed();window.__hdTabs();refreshTop();paintMap();repaint(tab)}
@@ -91,8 +91,8 @@ let nameId=null;
 function paintMap(){if(!S||!HS)return;const cv=root().querySelector(".lm-cv");if(!cv)return;if(!nameId){nameId={};Object.entries(L().rooms).forEach(([id,r])=>nameId[r.name]=id)}
   const built=id=>H.lvlOf(S,id)>0||(H.ROOMS[id]&&H.ROOMS[id].k==="sealed"?false:false);
   if(HS.room){cv.style.filter=H.lvlOf(S,HS.room)>0?"":"grayscale(.85) brightness(.55)";return}
-  cv.style.filter="";cv.querySelectorAll(".lm-tile:not(.portal)").forEach(t=>{const id=nameId[t.getAttribute("title")];if(!id||!H.ROOMS[id])return;const on=built(id);t.style.filter=on?"":"grayscale(.9) brightness(.5)"})}
-function afterChange(){H.syncMap(S);if(ctl)ctl.frame(true);paintMap();refreshTop();repaintAll()}
+  cv.style.filter="";cv.querySelectorAll(".lm-tile:not(.portal)").forEach(t=>{const id=nameId[t.getAttribute("title")];if(!id||!H.ROOMS[id])return;const on=built(id);t.style.filter=on?"":"grayscale(.55) brightness(.72)"})}
+function afterChange(){H.syncMap(S);if(ctl){ctl.frame(true);ctl.refreshTiles&&ctl.refreshTiles()}paintMap();refreshTop();repaintAll()}
 
 /* ---------- Academy: restore and improve rooms ---------- */
 function pips(lv){return E("span",{class:"pips"},...Array.from({length:H.MAXLV},(_,i)=>E("i",{class:i<lv?"on":""})))}
