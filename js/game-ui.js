@@ -317,7 +317,11 @@ G.open=opts=>{ensure();show();opts=opts||{};
     slot=firstFree();newGame([sp]);return}
   title()};
 G.ui={title,hub,state:()=>S,setState:s=>{S=G.fix(s)},show,hide,codex,prefs:()=>P};
-const bh=ENC.buildHouse;if(bh)ENC.buildHouse=(el,h)=>{bh(el,h);const bar=el.querySelector(".enc-chairbar");if(bar)bar.append(E("button",{type:"button",class:"enc-load",onclick:()=>{ENC.close();G.open({sponsor:h})}},"Take her on as a protégée"))};
+const bh=ENC.buildHouse;if(bh)ENC.buildHouse=(el,h)=>{bh(el,h);
+  /* her chibi stands in the corner of her banner, and a click shows her large */
+  {const bn=el.querySelector(".enc-banner");if(bn&&!bn.querySelector(".ev-chibi")){if(getComputedStyle(bn).position==="static")bn.style.position="relative";
+    const c=E("img",{class:"ev-chibi",src:"assets/sprites/"+h+".256.webp",alt:HN(h)+" as a chibi",title:"Her chibi",loading:"lazy",draggable:"false",style:{position:"absolute",right:"18px",bottom:"0",height:"min(150px,70%)",width:"auto",filter:"drop-shadow(0 4px 6px #0008)",pointerEvents:"auto"},onerror:ev=>ev.target.remove()});bn.append(c)}}
+  const bar=el.querySelector(".enc-chairbar");if(bar)bar.append(E("button",{type:"button",class:"enc-load",onclick:()=>{ENC.close();G.open({sponsor:h})}},"Take her on as a protégée"))};
 /* Everspire opens first: the title screen covers the studio until the player chooses the Character Creator */
 function boot(){ensure();title()}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
