@@ -113,8 +113,8 @@ function openGirl(h){injectCss();const s=S(),st=statusOf(h),g=s.girls[h],{ov,sh,
       if(q){sh.append(E("h3",null,"Ascend to "+q.tier.name),...q.reqs.map(r=>E("div",{class:"req"},E("i",{class:r.ok?"up":"down"},r.ok?"✓":"○"),E("span",null,r.label+(r.have!=null&&!r.ok?" (she has "+r.have+")":"")))));
         const btns=E("div",{class:"row",style:{margin:"6px 0"}});
         if(q.tier.need.trial&&!g2.trial[q.ti])btns.append(E("button",{type:"button",onclick:()=>trialSheet(h,q.ti,draw)},"Face her trial"));
-        if(q.ti===4)btns.append(...Object.entries(H.VOWS).map(([k,v])=>E("button",{type:"button",class:"sm",disabled:!q.ok,title:v.text,onclick:()=>{const r=H.ascend(s,h,k);A.say(r.ok?HN(h)+" ascends.":r.msg);A.afterChange();draw();if(r.ok)narrSheet(h,"Ascension: "+r.tier.name,H.ascensionScene(h,PT.indexOf(r.tier),k),"A Mythic ceremony")}},v.name)));
-        else btns.append(E("button",{type:"button",class:"pri",disabled:!q.ok,onclick:()=>{const r=H.ascend(s,h);A.say(r.ok?HN(h)+" ascends to "+r.tier.name+".":r.msg);A.afterChange();draw();if(r.ok)narrSheet(h,"Ascension: "+r.tier.name,H.ascensionScene(h,PT.indexOf(r.tier)),HN(h))}},"Ascend"));
+        if(q.ti===4)btns.append(...Object.entries(H.VOWS).map(([k,v])=>E("button",{type:"button",class:"sm",disabled:!q.ok,title:v.text,onclick:()=>{const r=H.ascend(s,h,k);A.say(r.ok?HN(h)+" ascends.":r.msg);A.afterChange();draw();if(r.ok){if(U.flourish)U.flourish(h,PT.indexOf(r.tier));narrSheet(h,"Ascension: "+r.tier.name,H.ascensionScene(h,PT.indexOf(r.tier),k),"A Mythic ceremony")}}},v.name)));
+        else btns.append(E("button",{type:"button",class:"pri",disabled:!q.ok,onclick:()=>{const r=H.ascend(s,h);A.say(r.ok?HN(h)+" ascends to "+r.tier.name+".":r.msg);A.afterChange();draw();if(r.ok){if(U.flourish)U.flourish(h,PT.indexOf(r.tier));narrSheet(h,"Ascension: "+r.tier.name,H.ascensionScene(h,PT.indexOf(r.tier)),HN(h))}}},"Ascend"));
         sh.append(btns)}
       else sh.append(E("p",{class:"mut"},"She stands at the summit."+(g2.vow?" "+H.VOWS[g2.vow].name+": "+H.VOWS[g2.vow].text:"")))}
     else if(st!=="sealed"&&st!=="alumna"){const c=H.canScout(s,h);if(!s.short.includes(h)&&st!=="scouting")sh.append(E("div",{class:"row",style:{margin:"10px 0"}},E("button",{type:"button",class:c.ok?"pri":"",disabled:!c.ok,title:c.ok?"":c.msg,onclick:()=>{const r=H.scout(s,h);A.say(r.ok?"A scout sets out.":r.msg);A.afterChange();draw()}},"Send a scout · "+H.scoutCost(h)),E("span",{class:"mut"},c.ok?"about "+H.scoutDays(h)+" days":c.msg)))}
@@ -192,6 +192,7 @@ U.hooks.admissions.push(p=>{injectCss();const s=S(),sb=H.setBonus(s),gc=H.groupC
 U.hooks.studentRow.push((row,h)=>{const g=S().girls[h];row.style.borderLeft="4px solid "+PT[g.tier].col;row.lastChild.append(E("div",{class:"row",style:{marginTop:"6px"}},E("span",{class:"chip",style:{borderColor:PT[g.tier].col}},PT[g.tier].name),E("button",{type:"button",class:"sm"+(H.readyToAscend(S(),h)?" pri":""),onclick:()=>openGirl(h)},H.readyToAscend(S(),h)?"Ready to ascend":"Her page")))});
 
 U.openGirl=openGirl;
+U.playMoment=(h,id)=>momentSheet(h,id,()=>{});
 U.addTab("collection","Collection",collection,()=>{const s=S();return Math.floor(s.day/4)+"|"+s.order.length+"|"+s.short.join(",")+"|"+s.alumnae.length},null,"students");
 U.addTab("contests","Contests",contests,()=>{const s=S();return H.invitations(s).map(x=>x.key+x.done).join(",")+"|"+s.order.length+"|"+H.tier(s)},()=>{const s=S();return s?H.invitations(s).filter(x=>!x.done).length||0:0},"collection");
 })();
