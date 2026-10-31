@@ -15,9 +15,9 @@ const STAT={M:["might",.08,"damage",p=>"+"+Math.round(p*100)+"% damage","⚔️"
  $:["greed",.1,"greed",p=>"+"+Math.round(p*100)+"% gold","💰"],R:["regen",.15,"regen",p=>"+"+p.toFixed(2)+" health a second","🌿"],H:["maxhp",.1,"maxhp",p=>"+"+Math.round(p*100)+"% max health","❤️"],W:["armor",.6,"armor",p=>"+"+p+" armor","🛡️"]};
 Object.keys(C.KITX).forEach(h=>{const x=C.KITX[h],base=W[x.base];if(!base)return;
   const d=JSON.parse(JSON.stringify(base)),col=hex(C.hash(h+"hue")*360,78,66),v=.92+C.hash(h+"v")*.2;
-  d.id="s_"+h;d.n=x.wn;d.ic=x.wi;d.c=col;d.sig=h;d.twist=x.tw;d.rar=80;delete d.union;d.evo=["hr_"+h,"x_"+h];d.base.dmg=Math.round(d.base.dmg*v*(PW[x.base]||1)*10)/10;
+  d.id="s_"+h;d.bid=x.base;d.n=x.wn;d.ic=x.wi;d.c=col;d.sig=h;d.twist=x.tw;d.rar=80;delete d.union;d.evo=["hr_"+h,"x_"+h];d.base.dmg=Math.round(d.base.dmg*v*(PW[x.base]||1)*10)/10;
   d.d=base.d+" "+C.TWISTS[x.tw][0]+": "+C.TWISTS[x.tw][1]+".";W[d.id]=d;
-  const a=JSON.parse(JSON.stringify(base));a.id="x_"+h;a.n="Awakened "+x.wn;a.ic=x.wi;a.c=col;a.sig=h;a.evolved=true;a.twist=x.tw;delete a.up;delete a.evo;delete a.union;
+  const a=JSON.parse(JSON.stringify(base));a.id="x_"+h;a.bid=x.base;a.n="Awakened "+x.wn;a.ic=x.wi;a.c=col;a.sig=h;a.evolved=true;a.twist=x.tw;delete a.up;delete a.evo;delete a.union;
   a.base.dmg=Math.round(a.base.dmg*v*(PW[x.base]||1)*1.9*10)/10;if(a.base.amt)a.base.amt+=1;if(a.base.cd)a.base.cd=Math.round(a.base.cd*.8*100)/100;a.base.area=(a.base.area||1)*1.2;
   a.d=x.wn+", awakened: stronger, quicker, and its "+C.TWISTS[x.tw][0].toLowerCase()+" doubled.";W[a.id]=a;
   const per={},txt=[];x.st.forEach(c=>{const s=STAT[c];per[s[0]]=(per[s[0]]||0)+s[1]});x.st.forEach(c=>{const s=STAT[c];txt.push(s[3](per[s[0]]))});
@@ -110,7 +110,7 @@ class Run2 extends Base{
    if(this.shield>0&&this.wp.some(w=>w.id==="crimson")){this.rt=(this.rt||0)-d;if(this.rt<=0){this.rt=.5;const dm=30*this.stats.might;this.en.forEach(e=>{if(Math.hypot(e.x-this.px,e.y-this.py)<110)this.hurt(e,dm,{c:"#ff5a7a",quiet:0})});this.ring(this.px,this.py,110,"#ff5a7a",.35)}}
    if(this.haste>0){this.haste-=d;if(this.haste<=0){this.haste=0;this.recompute()}}
    for(const e of this.en){if(e.dead)continue;
-    if(e.bt>0){e.bt-=d;e.bacc=(e.bacc||0)+d;if(e.bacc>=.5){e.bacc=0;this._tw=1;this.hurt(e,e.bd*.5,{quiet:1});this._tw=0;this.pt.push({x:e.x,y:e.y-e.r,vx:0,vy:-30,l:.4,m:.4,c:"#ff8a3a",s:3})}}
+    if(e.bt>0&&e.bd){e.bt-=d;e.bacc=(e.bacc||0)+d;if(e.bacc>=.5){e.bacc=0;this._tw=1;this.hurt(e,e.bd*.5,{quiet:1});this._tw=0;this.pt.push({x:e.x,y:e.y-e.r,vx:0,vy:-30,l:.4,m:.4,c:"#ff8a3a",s:3})}}
     if(e.pt>0){e.pt-=d;e.pacc=(e.pacc||0)+d;if(e.pacc>=.5){e.pacc=0;this._tw=1;this.hurt(e,e.pd*e.ps*.5,{quiet:1});this._tw=0;this.pt.push({x:e.x,y:e.y-e.r,vx:0,vy:-24,l:.4,m:.4,c:"#8aff5a",s:3})}}else if(e.ps)e.ps=0;
     if(e.mk>0)e.mk-=d;
     if(e.sl>0){e.sl-=d;if(!e.sp0){e.sp0=e.sp;e.sp=e.sp*.55}}else if(e.sp0){e.sp=e.sp0;e.sp0=0}}}
