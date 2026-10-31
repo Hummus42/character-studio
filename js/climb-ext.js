@@ -101,7 +101,7 @@ class Run2 extends Base{
   else if(tw==="sl")e.sl=2*lv;
   else if(tw==="ch"){let q=null,bd=130*130;for(const z of this.en){if(z===e||z.dead)continue;const dd=(z.x-e.x)**2+(z.y-e.y)**2;if(dd<bd){bd=dd;q=z}}if(q){this._tw=1;this.hurt(q,dmg*.5*lv,{c:wd.c,quiet:0});this._tw=0;for(let i=1;i<6;i++)this.pt.push({x:e.x+(q.x-e.x)*i/6,y:e.y+(q.y-e.y)*i/6,vx:0,vy:0,l:.25,m:.25,c:wd.c,s:3})}}
   else if(tw==="lc"){if(rnd()<.3*lv)this.heal(1)}
-  else if(tw==="pu"){if(!e.boss&&!e.elite){e.x+=(this.px-e.x)*.15*lv;e.y+=(this.py-e.y)*.15*lv}}
+  else if(tw==="pu"){if(!e.boss&&!e.elite&&!e.rare){e.x+=(this.px-e.x)*.15*lv;e.y+=(this.py-e.y)*.15*lv}}
   else if(tw==="mk")e.mk=3*lv;
   else if(tw==="ps"){e.ps=Math.min(6,(e.ps||0)+1);e.pt=4;e.pd=dmg*.12}
   else if(tw==="fr"){if(rnd()<.08*lv&&!e.boss)e.fz=Math.max(e.fz||0,1)}}

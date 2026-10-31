@@ -81,7 +81,7 @@ function page(body){U.ensure();U.show();injectCss();const r=root();r.textContent
 /* ---------- home: the tower ---------- */
 let sel=null;
 function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
-  const top=E("div",{class:"cl-top"},E("button",{type:"button",onclick:()=>U.title()},"Menu"),E("h2",null,"Climb the Spire"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold)),E("button",{type:"button",onclick:powers},"Powers"),E("button",{type:"button",onclick:()=>ENC.open("home")},"Codex"));
+  const top=E("div",{class:"cl-top"},E("button",{type:"button",onclick:()=>U.title()},"Menu"),E("h2",null,"Climb the Spire"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold)),E("button",{type:"button",onclick:powers},"Powers"),E("button",{type:"button",onclick:recipes},"Recipes"),E("button",{type:"button",onclick:()=>ENC.open("home")},"Codex"));
   const tower=E("div",{class:"cl-tower"}),panel=E("div");
   const drawTower=()=>{tower.textContent="";for(let i=0;i<C.FLOORS.length;i++){const f=C.FLOORS[i],open=floorOpen(i),g=(ACAD.GROUPS||[]).find(x=>x.id===f.g)||{name:f.g},mem=members(f.g),n=mem.filter(h=>M.free[h]).length;
     const b=E("button",{type:"button",class:"cl-fl"+(i===sel.floor?" on":"")+(open?"":" lock"),style:{"--fc":f.acc},onclick:()=>{if(!open)return;sel.floor=i;sel.boss=null;save();drawTower();drawPanel()}},E("span",{class:"no"},String(i+1)),E("span",null,E("b",null,f.n),E("small",null,open?g.name+" · "+n+" of "+mem.length+" freed":"Free 3 girls on floor "+i+" to open")),E("span",{class:"mut"},M.best[i]?"✓":open?"":"🔒"));tower.append(b)}};
@@ -109,6 +109,25 @@ function powers(){load();const g=E("div",{class:"cl-up"});
     g.append(E("div",{class:"card"},E("b",null,u.ic+" "+u.n),E("div",{style:{fontSize:"13px",margin:"2px 0"}},d[0]),E("div",{class:"mut",style:{fontSize:"12px"}},d[1]+(cur?" · "+cur:"")+(rk<mx&&d[3]&&d[2]==="%"?" → +"+nx+"%":"")),E("div",{class:"mut"},"Rank "+rk+" of "+mx),E("div",{class:"bar",style:{margin:"4px 0"}},E("i",{style:{width:100*rk/mx+"%"}})),
       E("button",{type:"button",class:can?"pri sm":"sm",disabled:!can,onclick:()=>{M.gold-=cost;M.up[u.k]=rk+1;save();powers()}},rk>=mx?"Maxed":"💰 "+cost)))});
   page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Powers"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold))),E("p",{class:"mut"},"Permanent strengths for every hero, bought with gold from your runs. Each rank adds the amount shown; buying costs more every rank. They apply to every girl, on every floor."),g))}
+
+/* ---------- recipes: every weapon combination, found ones in full ---------- */
+function recipes(){load();const found=M.evo||{},ev=M.evo=found;
+  const rows=[],seen={};
+  Object.keys(W).forEach(id=>{const d=W[id];if(d.evolved||d.sig)return;
+    if(d.evo&&W[d.evo[1]])rows.push({to:d.evo[1],a:[d],p:PS[d.evo[0]]});
+    if(d.union&&W[d.union[1]]&&!seen[d.union[1]]){seen[d.union[1]]=1;rows.push({to:d.union[1],a:[d,W[d.union[0]]]})}});
+  const sig=Object.keys(W).filter(id=>W[id].sig&&!W[id].evolved);
+  const card=r=>{const ok=found[r.to],t=W[r.to],how=r.p?r.a[0].n+" at full level, plus "+r.p.ic+" "+r.p.n+" (any level) in your slots":r.a.map(x=>x.n).join(" and ")+", both at full level";
+    return E("div",{class:"card",style:{opacity:ok?1:.8}},E("div",{style:{fontSize:"26px"}},ok?t.ic:"🔒"),E("b",{style:{color:ok?t.c:"inherit"}},ok?t.n:"Unknown evolution"),
+      E("div",{class:"mut",style:{fontSize:"12px",margin:"2px 0"}},(r.a.map(x=>x.ic).join(" + "))+(r.p?" + "+r.p.ic:"")+" → "+(ok?t.ic:"❔")),
+      E("div",{style:{fontSize:"13px"}},ok?t.d:"Discover it by opening a chest with the ingredients ready."),E("div",{class:"mut",style:{fontSize:"12px",marginTop:"4px"}},how+". Then open any chest."))};
+  const nf=rows.filter(r=>found[r.to]).length,sf=sig.filter(id=>found["x_"+id.slice(2)]).length;
+  const sg=sig.filter(id=>found["x_"+id.slice(2)]).map(id=>{const h=id.slice(2),a=W["x_"+h],b=W[id],p=PS["hr_"+h];return E("div",{class:"card"},E("div",{style:{fontSize:"26px"}},a.ic),E("b",{style:{color:a.c}},a.n),E("div",{class:"mut",style:{fontSize:"12px"}},HN(h)+(p?" · "+p.n:"")),E("div",{style:{fontSize:"13px"}},a.d||""),E("div",{class:"mut",style:{fontSize:"12px",marginTop:"4px"}},b.n+" at full level plus her heirloom, then any chest."))});
+  page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Recipes"),E("span",{class:"chip hot"},nf+" / "+rows.length+" found")),
+    E("p",{class:"mut"},"A weapon evolves when it reaches full level while you also carry the matching item (or, for pairs, both weapons are full level). Then the next chest you open, from an elite, a rare one or the challenger, turns them into something stronger. Found evolutions fill in here as you make them; the rest show what is needed."),
+    E("div",{class:"cl-up"},...rows.map(card)),
+    E("h3",null,"Her awakenings ("+sf+" / "+sig.length+")"),E("p",{class:"mut"},"Each girl's own weapon awakens with her own heirloom. Found ones are listed."),
+    sg.length?E("div",{class:"cl-up"},...sg):E("p",{class:"mut"},"None yet. Max her signature weapon, pick up her heirloom, and open a chest.")))}
 
 /* ---------- a run ---------- */
 let RUN=null,raf=0,keys={},stickEl=null;
@@ -166,7 +185,7 @@ function levelModal(ov,run,ch,go){let cur=ch,banish=false;const m=E("div",{class
   draw();ov.append(m);SND.play("level")}
 
 function chestModal(ov,run,got,go){let i=0;const m=E("div",{class:"cl-modal"}),show=()=>{m.textContent="";const g=got[i];let l,tit,sub;
-    if(g.kind==="evo"){const d=W[g.id];l={ic:d.ic,n:d.n,d:d.d,c:d.c};tit="Evolution!";sub=g.from.map(x=>W[x].n).join(" + ")+" becomes"}
+    if(g.kind==="evo"){M.evo=M.evo||{};M.evo[g.id]=1;save();const d=W[g.id];l={ic:d.ic,n:d.n,d:d.d,c:d.c};tit="Evolution!";sub=g.from.map(x=>W[x].n).join(" + ")+" becomes"}
     else if(g.kind==="up"){l=run.label(g.ch);tit="The chest opens";sub=g.ch.lv>1?"Upgraded to level "+g.ch.lv:"New"}else{l={ic:"💰",n:"A purse of gold",d:"+50 gold",c:"#ffd24a"};tit="The chest opens";sub=""}
     m.append(E("h2",null,tit),E("div",{class:"mut"},sub),E("div",{class:"cl-cards"},E("div",{class:"cl-card"+(g.kind==="evo"?" evo":""),style:{"--cc":l.c,cursor:"default"}},E("div",{class:"cic",style:{fontSize:"54px"}},l.ic),E("b",null,l.n),E("small",null,l.d))),
       E("button",{type:"button",class:"pri",onclick:()=>{i++;if(i>=got.length){m.remove();go()}else show()}},i+1>=got.length?"Take it":"Next ("+(i+1)+"/"+got.length+")"))};

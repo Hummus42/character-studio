@@ -86,12 +86,13 @@ class Run{
  text(x,y,s,c="#fff",big){this.tx.push({x,y,s,c,l:.7,big})}
  /* ----- hits ----- */
  hurt(e,dmg,o={}){if(e.dead)return;if(this.stats&&o.src&&o.src.def&&o.src.def.b==="gale"&&rnd()<.05)dmg*=2;e.hp-=dmg;e.flash=.1;if(!o.quiet)this.text(e.x,e.y-e.r,Math.round(dmg),o.c||"#fff");
-  if(o.kb&&!e.boss&&!e.elite){const a=Math.atan2(e.y-this.py,e.x-this.px);e.kx+=Math.cos(a)*o.kb;e.ky+=Math.sin(a)*o.kb}
+  if(o.kb&&!e.boss&&!e.elite&&!e.rare){const a=Math.atan2(e.y-this.py,e.x-this.px);e.kx+=Math.cos(a)*o.kb;e.ky+=Math.sin(a)*o.kb}
   if(o.heal&&rnd()<.5)this.heal(o.heal);
   if(e.hp<=0)this.kill(e)}
  kill(e){if(e.dead)return;e.dead=true;this.kills++;this.burst(e.x,e.y,e.col||"#fff",e.boss?40:6,e.boss?260:120,.4);
   if(e.boss){this.won=true;this.bossE=null;this.drop("chest",e.x,e.y,3);this.flash=.8;this.flashC="#fff";this.shake=1;this.endAt=this.t+2.2;this.eb.length=0}
   else if(e.elite){this.drop("chest",e.x,e.y,1);this.shake=.4}
+  else if(e.rare){this.drop("chest",e.x,e.y,1);this.gems.push({x:e.x,y:e.y,v:e.xp,t:0});for(let i=0;i<4;i++)this.drop("coin",e.x+(i-1.5)*18,e.y+10);this.ring(e.x,e.y,160,"#ff7ae0",.6);this.shake=.3}
   else{if(EN[e.k]&&EN[e.k].split){for(let i=0;i<2;i++){const c=this.mk("blob",e.x+(i?14:-14),e.y,{});c.hp=c.mhp=c.mhp*.4;c.r*=.75;c.xp=1}}
    const xp=e.xp*(this.stats.curse>1?this.stats.curse:1);this.gems.push({x:e.x,y:e.y,v:xp,t:0});if(rnd()<.0025)this.drop("magnet",e.x,e.y);else if(rnd()<.002)this.drop("bomb",e.x,e.y);
    if(rnd()<.07*this.stats.luck){this.drop("coin",e.x,e.y,1)}else if(rnd()<.004*this.stats.luck)this.drop("chicken",e.x,e.y)}}
@@ -113,7 +114,7 @@ class Run{
   else if(b==="pool"){for(let i=0;i<s.amt;i++)this.later_(i*.2,()=>{const e=this.randE(380);const x=e?e.x:this.px+(rnd()*2-1)*220,y=e?e.y:this.py+(rnd()*2-1)*160;this.zn.push({shape:"circ",x,y,r:48*s.area,life:s.dur,m:s.dur,dmg:s.dmg,tick:s.iv,tt:0,wp:w,c:d.c,roam:d.roam,kind:"pool"})})}
   else if(b==="bounce"||b==="wander"){for(let i=0;i<s.amt;i++){const a=rnd()*TAU,sp=(b==="wander"?200:300)*s.speed;proj(this.px,this.py,Math.cos(a)*sp,Math.sin(a)*sp,{kind:"bnc",r:(b==="wander"?13:15)*s.area,life:s.dur,rehit:.45,hh:new Map(),boom:d.boom,erratic:b==="wander",ic:d.ic,pierce:9999,heal:d.lifesteal?1:0,kb:40})}}
   else if(b==="strike"){for(let i=0;i<s.amt;i++)this.later_(i*s.iv,()=>{const e=this.randE(500);const x=e?e.x:this.px+(rnd()*2-1)*260,y=e?e.y:this.py+(rnd()*2-1)*180;const hit=()=>{this.bolts.push({x,y,l:.25,m:.25,c:d.c});this.ring(x,y,38*s.area,d.c,.3);this.en.forEach(q=>{if(Math.hypot(q.x-x,q.y-y)<38*s.area+q.r)this.hurt(q,s.dmg,{c:d.c,kb:20,src:w})})};hit();if(d.twice)this.later_(.25,hit)})}
-  else if(b==="purge"){this.flash=.6;this.flashC=d.c;this.shake=.5;this.ring(this.px,this.py,520,d.c,.7);let k=0;this.en.slice().forEach(e=>{if(e.boss||e.elite)this.hurt(e,e.mhp*.1,{quiet:1});else{k++;this.kill(e)}});if(d.pull)this.gems.forEach(g=>g.pull=1)}
+  else if(b==="purge"){this.flash=.6;this.flashC=d.c;this.shake=.5;this.ring(this.px,this.py,520,d.c,.7);let k=0;this.en.slice().forEach(e=>{if(e.boss||e.elite||e.rare)this.hurt(e,e.mhp*.1,{quiet:1});else{k++;this.kill(e)}});if(d.pull){this.gems.forEach(g=>g.pull=1);this.pk.forEach(k=>{if(k.k==="coin")k.pull=1})}}
   else if(b==="spray"){const shots=Math.max(1,Math.round(s.amt)),dirs=d.both?[1,-1]:[d.dir];for(let i=0;i<shots;i++)this.later_(i*s.iv,()=>{dirs.forEach(dr=>{w.ang+=dr*.62;proj(this.px,this.py,Math.cos(w.ang)*300*s.speed,Math.sin(w.ang)*300*s.speed,{r:7*s.area,life:1.6,kb:30})})})}
   else if(b==="column"){for(let i=0;i<s.amt;i++)this.later_(i*.22,()=>{const x=this.px+(rnd()*2-1)*170,dir=rnd()<.5?1:-1;this.zn.push({shape:"rect",x:x,y:this.py,w:38*s.area,h:640,life:s.dur,m:s.dur,vx:dir*160,dmg:s.dmg,hit:new Set(),wp:w,c:d.c,kind:"col",kb:20})})}
   else if(b==="freeze"){this.ring(this.px,this.py,520*s.area,d.c,.6);this.en.forEach(e=>{if(!e.boss)e.fz=s.dur;else e.fz=s.dur*.3});this.freeze=s.dur;this.flash=.15;this.flashC=d.c}
@@ -143,7 +144,7 @@ class Run{
   if(this.endAt&&this.t>=this.endAt){this.ended=true;if(this.cb.end)this.cb.end(this.result())}
   if(this.xp>=need(this.lv)&&!this.paused&&!this.ended){this.xp-=need(this.lv);this.lv++;this.recompute();this.paused=true;this.ring(this.px,this.py,90,"#ffe27a",.6);if(this.cb.level)this.cb.level(this.choices(),()=>{this.paused=false})}}
  hit(d){const P=this.stats;const dmg=Math.max(1,d*(1+this.fi*.08)*(this.t>MAXT?2:1)-P.armor);this.hp-=dmg;this.invuln=.55;this.shake=.25;this.flash=.12;this.flashC="#ff3a3a";this.text(this.px,this.py-30,Math.round(dmg),"#ff6a6a");
-  if(this.hp<=0){if(this.revives>0){this.revives--;this.hp=P.maxhp*.6;this.invuln=2.5;this.flash=.6;this.flashC="#fff";this.ring(this.px,this.py,300,"#ffe9a0",.8);this.en.forEach(e=>{if(Math.hypot(e.x-this.px,e.y-this.py)<300&&!e.boss&&!e.elite)this.kill(e)});this.text(this.px,this.py-50,"Revived","#ffe9a0",1)}
+  if(this.hp<=0){if(this.revives>0){this.revives--;this.hp=P.maxhp*.6;this.invuln=2.5;this.flash=.6;this.flashC="#fff";this.ring(this.px,this.py,300,"#ffe9a0",.8);this.en.forEach(e=>{if(Math.hypot(e.x-this.px,e.y-this.py)<300&&!e.boss&&!e.elite&&!e.rare)this.kill(e)});this.text(this.px,this.py-50,"Revived","#ffe9a0",1)}
    else{this.dead=true;this.ended=true;if(this.cb.end)this.cb.end(this.result())}}}
  result(){const win=this.won&&!this.dead,F=this.fi;const gold=Math.round((this.gold+(win?100*(F+1):0))*P_g(this.stats));return {win,t:this.t,kills:this.kills,gold,lv:this.lv,hero:this.hero,boss:this.bossId,floor:this.fi,ess:Math.round(this.kills/12+this.t/8+(win?40+10*F:0))}}
  /* ----- enemies ----- */
@@ -151,7 +152,8 @@ class Run{
   if(!this.opened){this.opened=1;for(let i=0;i<16;i++){const a=rnd()*TAU,d=150+rnd()*130;this.mk(i%4?this.floor.en[0]:"bat",this.px+Math.cos(a)*d,this.py+Math.sin(a)*d)}}
   /* scripted moments */
   const ev=(k,at,fn)=>{if(t>=at&&!this.ev[k]){this.ev[k]=1;fn()}};
-  ev("e1",180,()=>this.mkElite());ev("e2",360,()=>this.mkElite());ev("boss",BOSS_T,()=>this.mkBoss());
+  ev("e1",180,()=>this.mkElite());ev("e2",360,()=>this.mkElite());
+  if(!this.rareAt)this.rareAt=60+rnd()*40;if(t>=this.rareAt&&t<BOSS_T-25){this.rareAt=t+75+rnd()*55;if(!this.en.some(e=>e.rare&&!e.dead))this.mkRare()}ev("boss",BOSS_T,()=>this.mkBoss());
   ev("s1",75,()=>this.swarm("bat",22));ev("s2",240,()=>this.swarm(this.floor.en[1],26));ev("ring1",300,()=>this.ringOf(this.floor.en[0],32));ev("s3",450,()=>this.swarm(this.floor.en[2],34));
   ev("hush",MAXT,()=>{this.hush={x:this.px+400,y:this.py,r:26};this.text(this.px,this.py-60,"The Hush arrives","#c8a8ff",1)});
   if(this.hush){const a=Math.atan2(this.py-this.hush.y,this.px-this.hush.x);this.hush.x+=Math.cos(a)*190*dt;this.hush.y+=Math.sin(a)*190*dt;if(this.invuln<=0&&Math.hypot(this.hush.x-this.px,this.hush.y-this.py)<this.hush.r+12)this.hit(40)}
@@ -162,6 +164,7 @@ class Run{
  mk(kind,x,y,o){const d=EN[kind],t=this.t/60,fi=this.fi,P=this.stats;const [ex,ey]=this.edge();const hm=(1+.3*t+.014*t*t)*(1+.2*fi)*P.curse;const e=Object.assign({id:this.nid++,k:kind,x:x==null?ex:x,y:y==null?ey:y,hp:d.hp*hm,mhp:d.hp*hm,sp:d.sp*(1+.1*(P.curse-1)*5)*(1+.01*fi),dmg:d.dmg*(1+.05*fi)*(1+.3*t*.1),r:d.r,xp:d.xp,kx:0,ky:0,flash:0,fz:0,col:this.floor.acc},o||{});this.en.push(e);return e}
  swarm(kind,n){const [ex,ey]=this.edge(),a=Math.atan2(this.py-ey,this.px-ex)+Math.PI/2;for(let i=0;i<n;i++){const o=(i/n-.5)*260;this.mk(kind,ex+Math.cos(a)*o,ey+Math.sin(a)*o)}}
  ringOf(kind,n){const R=Math.min(this.vw||640,this.vh||400)*.5+60;for(let i=0;i<n;i++){const a=i/n*TAU;this.mk(kind,this.px+Math.cos(a)*R,this.py+Math.sin(a)*R,{ringed:1})}}
+ mkRare(){const r=this.floor.en,k=r[Math.min(r.length-1,1)];const e=this.mk(k,null,null,{rare:1,col:"#ff7ae0"});e.hp=e.mhp=e.mhp*8;e.r*=1.5;e.dmg*=1.1;e.xp=25;e.sp*=1.3;this.text(this.px,this.py-60,"A rare one appears","#ff9aea",1)}
  mkElite(){const k=this.floor.en[this.floor.en.length-1]==="gear"?"gear":"shade";const e=this.mk(k,null,null,{elite:1});e.hp=e.mhp=e.mhp*(k==="gear"?7:16);e.r*=2;e.dmg*=1.4;e.xp=40;e.sp*=.85;this.text(this.px,this.py-60,"An elite approaches","#ffd24a",1)}
  mkBoss(){const fi=this.fi,e=this.mk("gear",null,null,{boss:1});e.hp=e.mhp=900*(1+.38*fi)*this.stats.curse;e.r=40;e.dmg=16+2*fi;e.sp=62;e.xp=0;e.bt=2;e.dashT=5;this.bossE=e;this.shake=.6;this.flash=.4;this.flashC="#ff3a3a";this.text(this.px,this.py-70,"The challenger arrives","#ff8a8a",1);if(this.cb.boss)this.cb.boss(this.bossId)}
  updEnemies(dt){const grid=this.grid=new Map(),CS=64;
@@ -180,7 +183,7 @@ class Run{
    e.x=clamp(e.x,-ARENA-10,ARENA+10);e.y=clamp(e.y,-ARENA-10,ARENA+10);
    if(e.kx||e.ky){e.x+=e.kx*dt*8;e.y+=e.ky*dt*8;e.kx*=.86;e.ky*=.86;if(Math.abs(e.kx)<.1)e.kx=0;if(Math.abs(e.ky)<.1)e.ky=0}
    /* stray enemies far off the screen are brought back to the edge so the pressure stays */
-   if(!e.boss&&!e.elite&&d>900){const a=rnd()*TAU,R=Math.max(this.vw||640,this.vh||400)*.62;e.x=px+Math.cos(a)*R;e.y=py+Math.sin(a)*R}}
+   if(!e.boss&&!e.elite&&!e.rare&&d>900){const a=rnd()*TAU,R=Math.max(this.vw||640,this.vh||400)*.62;e.x=px+Math.cos(a)*R;e.y=py+Math.sin(a)*R}}
   for(let i=this.eb.length-1;i>=0;i--){const b=this.eb[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;if(this.invuln<=0&&this.shield<=0&&Math.hypot(b.x-px,b.y-py)<b.r+11){this.hit(b.dmg);b.l=0}if(b.l<=0)this.eb.splice(i,1)}}
  inView(x,y,pad=40){const hw=(this.vw||640)/2/(this.sc||1)+pad,hh=(this.vh||400)/2/(this.sc||1)+pad;return Math.abs(x-this.px)<hw&&Math.abs(y-this.py)<hh}
  updProj(dt){const P=this.stats;for(let i=this.pr.length-1;i>=0;i--){const p=this.pr[i];p.t+=dt;p.life-=dt;
@@ -213,7 +216,8 @@ class Run{
    if(d<16){this.xp+=g.v*P.growth;this.gems.splice(i,1)}}
   if(this.gems.length>320){const a=this.gems.shift(),b=this.gems[0];if(b)b.v+=a.v}
   for(let i=this.pk.length-1;i>=0;i--){const k=this.pk[i];k.t+=dt;const d=Math.hypot(this.px-k.x,this.py-k.y);
-   if(d<(k.k==="chest"?26:mr*.7)){if(k.k==="coin"){this.gold+=Math.round(2*(1+P.greed-1)*(1+(P.curse-1)));this.pk.splice(i,1)}else if(k.k==="magnet"){this.gems.forEach(g=>g.pull=1);this.ring(this.px,this.py,300,"#7ad0ff",.5);this.pk.splice(i,1)}else if(k.k==="bomb"){this.flash=.5;this.flashC="#ffb15a";this.shake=.5;this.ring(this.px,this.py,520,"#ffb15a",.6);this.en.forEach(e=>{if(this.inView(e.x,e.y,0))this.hurt(e,e.boss||e.elite?e.mhp*.08:9999,{quiet:1})});this.pk.splice(i,1)}else if(k.k==="chicken"){this.heal(30);this.pk.splice(i,1)}
+   if(k.k==="coin"&&(k.pull||d<mr)&&d>=16){k.pull=1;const a=Math.atan2(this.py-k.y,this.px-k.x),s=(d>mr?700:380)+k.t*40;k.x+=Math.cos(a)*s*dt;k.y+=Math.sin(a)*s*dt}
+   if(d<(k.k==="chest"?26:k.k==="coin"?20:mr*.7)){if(k.k==="coin"){this.gold+=Math.round(2*(1+P.greed-1)*(1+(P.curse-1)));this.pk.splice(i,1)}else if(k.k==="magnet"){this.gems.forEach(g=>g.pull=1);this.pk.forEach(c=>{if(c.k==="coin")c.pull=1});this.ring(this.px,this.py,300,"#7ad0ff",.5);this.pk.splice(i,1)}else if(k.k==="bomb"){this.flash=.5;this.flashC="#ffb15a";this.shake=.5;this.ring(this.px,this.py,520,"#ffb15a",.6);this.en.forEach(e=>{if(this.inView(e.x,e.y,0))this.hurt(e,e.boss||e.elite||e.rare?e.mhp*.08:9999,{quiet:1})});this.pk.splice(i,1)}else if(k.k==="chicken"){this.heal(30);this.pk.splice(i,1)}
     else if(k.k==="chest"){this.pk.splice(i,1);const got=this.openChest(k.n);this.paused=true;if(this.cb.chest)this.cb.chest(got,()=>{this.paused=false})}}}}
  updFx(dt){for(let i=this.pt.length-1;i>=0;i--){const p=this.pt[i];p.l-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;if(p.l<=0)this.pt.splice(i,1)}
   for(let i=this.tx.length-1;i>=0;i--){const t=this.tx[i];t.l-=dt;t.y-=28*dt;if(t.l<=0)this.tx.splice(i,1)}
@@ -258,9 +262,9 @@ class Run{
      ctx.fillStyle="rgba(0,0,0,.35)";ctx.beginPath();ctx.ellipse(0,s*.42,e.r*.9,9,0,0,TAU);ctx.fill();if(this.bossImg.complete&&this.bossImg.naturalWidth){ctx.filter=e.flash>0?"brightness(2.2)":"saturate(1.1) hue-rotate(-10deg)";ctx.drawImage(this.bossImg,-s/2,-s/2+wob,s,s);ctx.filter="none"}ctx.restore();
      ctx.fillStyle="rgba(255,60,90,.5)";ctx.beginPath();ctx.arc(e.x,e.y,e.r+10+Math.sin(T*5)*3,0,TAU);ctx.globalAlpha=.25;ctx.fill();ctx.globalAlpha=1;continue}
    const sp=enemySprite(e.k,this.floor.acc,this.floor.tint[0]),sz=e.r*3.1,bob=Math.sin(T*6+e.id)*2;ctx.save();ctx.translate(e.x,e.y+bob);if(px<e.x)ctx.scale(-1,1);ctx.fillStyle="rgba(0,0,0,.3)";ctx.beginPath();ctx.ellipse(0,e.r*.8,e.r*.8,e.r*.3,0,0,TAU);ctx.fill();
-   if(e.fz>0)ctx.filter="hue-rotate(160deg) brightness(1.3)";if(e.flash>0)ctx.filter="brightness(3)";if(e.elite){ctx.shadowColor="#ffd24a";ctx.shadowBlur=12}ctx.drawImage(sp,-sz/2,-sz/2,sz,sz);ctx.restore();ctx.filter="none";
+   if(e.fz>0)ctx.filter="hue-rotate(160deg) brightness(1.3)";if(e.flash>0)ctx.filter="brightness(3)";if(e.elite){ctx.shadowColor="#ffd24a";ctx.shadowBlur=12}if(e.rare){ctx.shadowColor="#ff7ae0";ctx.shadowBlur=16+Math.sin(T*8)*5;ctx.filter=e.flash>0?"brightness(3)":"hue-rotate(-60deg) saturate(1.6) brightness(1.2)"}ctx.drawImage(sp,-sz/2,-sz/2,sz,sz);ctx.restore();ctx.filter="none";
    if(e.tel>0){ctx.strokeStyle="rgba(255,60,90,.7)";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.x+e.tdx*150,e.y+e.tdy*150);ctx.stroke()}
-   if(e.elite||e.boss){ctx.fillStyle="#000a";ctx.fillRect(e.x-26,e.y-e.r-12,52,5);ctx.fillStyle=e.boss?"#ff5a7a":"#ffd24a";ctx.fillRect(e.x-26,e.y-e.r-12,52*clamp(e.hp/e.mhp,0,1),5)}}
+   if(e.elite||e.boss||e.rare){ctx.fillStyle="#000a";ctx.fillRect(e.x-26,e.y-e.r-12,52,5);ctx.fillStyle=e.boss?"#ff5a7a":e.rare?"#ff7ae0":"#ffd24a";ctx.fillRect(e.x-26,e.y-e.r-12,52*clamp(e.hp/e.mhp,0,1),5)}}
   /* enemy bullets */
   ctx.globalCompositeOperation=add;for(const b of this.eb){const g=ctx.createRadialGradient(b.x,b.y,1,b.x,b.y,b.r*2);g.addColorStop(0,"#fff");g.addColorStop(.4,"#ff5a7a");g.addColorStop(1,"rgba(255,90,122,0)");ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,b.r*2,0,TAU);ctx.fill()}ctx.globalCompositeOperation="source-over";
   /* the hush */
