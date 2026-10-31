@@ -211,12 +211,12 @@ class Run{
    else{z.tt-=dt;if(z.tt<=0){z.tt=z.tick;for(const e of this.en){if(!e.dead&&Math.hypot(e.x-z.x,e.y-z.y)<z.r+e.r)this.hurt(e,z.dmg,{c:z.c,quiet:z.kind==="trail"&&rnd()<.5,src:z.wp})}}}
    if(z.life<=0)this.zn.splice(i,1)}}
  updPickups(dt){const P=this.stats,mr=70*P.magnet;
-  for(let i=this.gems.length-1;i>=0;i--){const g=this.gems[i];g.t+=dt;const d=Math.hypot(this.px-g.x,this.py-g.y);
-   if(g.pull||d<mr){g.pull=1;const a=Math.atan2(this.py-g.y,this.px-g.x),s=(g.pull&&d>mr?700:380)+g.t*60;g.x+=Math.cos(a)*s*dt;g.y+=Math.sin(a)*s*dt}
+  for(let i=this.gems.length-1;i>=0;i--){const g=this.gems[i];g.t+=dt;let d=Math.hypot(this.px-g.x,this.py-g.y);
+   if(g.pull||d<mr){g.pull=1;const a=Math.atan2(this.py-g.y,this.px-g.x),s=Math.min(1500,(d>mr?700:380)+g.t*60),m=Math.min(s*dt,d);g.x+=Math.cos(a)*m;g.y+=Math.sin(a)*m;d=Math.hypot(this.px-g.x,this.py-g.y)}
    if(d<16){this.xp+=g.v*P.growth;this.gems.splice(i,1)}}
   if(this.gems.length>320){const a=this.gems.shift(),b=this.gems[0];if(b)b.v+=a.v}
-  for(let i=this.pk.length-1;i>=0;i--){const k=this.pk[i];k.t+=dt;const d=Math.hypot(this.px-k.x,this.py-k.y);
-   if(k.k==="coin"&&(k.pull||d<mr)&&d>=16){k.pull=1;const a=Math.atan2(this.py-k.y,this.px-k.x),s=(d>mr?700:380)+k.t*40;k.x+=Math.cos(a)*s*dt;k.y+=Math.sin(a)*s*dt}
+  for(let i=this.pk.length-1;i>=0;i--){const k=this.pk[i];k.t+=dt;let d=Math.hypot(this.px-k.x,this.py-k.y);
+   if(k.k==="coin"&&(k.pull||d<mr)&&d>=16){k.pull=1;const a=Math.atan2(this.py-k.y,this.px-k.x),s=Math.min(1500,(d>mr?700:380)+k.t*40),m=Math.min(s*dt,d);k.x+=Math.cos(a)*m;k.y+=Math.sin(a)*m;d=Math.hypot(this.px-k.x,this.py-k.y)}
    if(d<(k.k==="chest"?26:k.k==="coin"?20:mr*.7)){if(k.k==="coin"){this.gold+=Math.round(2*(1+P.greed-1)*(1+(P.curse-1)));this.pk.splice(i,1)}else if(k.k==="magnet"){this.gems.forEach(g=>g.pull=1);this.pk.forEach(c=>{if(c.k==="coin")c.pull=1});this.ring(this.px,this.py,300,"#7ad0ff",.5);this.pk.splice(i,1)}else if(k.k==="bomb"){this.flash=.5;this.flashC="#ffb15a";this.shake=.5;this.ring(this.px,this.py,520,"#ffb15a",.6);this.en.forEach(e=>{if(this.inView(e.x,e.y,0))this.hurt(e,e.boss||e.elite||e.rare?e.mhp*.08:9999,{quiet:1})});this.pk.splice(i,1)}else if(k.k==="chicken"){this.heal(30);this.pk.splice(i,1)}
     else if(k.k==="chest"){this.pk.splice(i,1);const got=this.openChest(k.n);this.paused=true;if(this.cb.chest)this.cb.chest(got,()=>{this.paused=false})}}}}
  updFx(dt){for(let i=this.pt.length-1;i>=0;i--){const p=this.pt[i];p.l-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;if(p.l<=0)this.pt.splice(i,1)}
