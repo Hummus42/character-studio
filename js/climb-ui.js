@@ -6,6 +6,11 @@ const C=ACAD.climb,U=ACAD.gameUI,E=ENC.E,HN=ENC.HN,W=C.WEAPONS,PS=C.PASSIVES,PT=
 const KEY="everspire.climb.v1",TIER_AT=[0,60,200,500,1200],STARTERS=["kitsune","lioness","wolf"];
 const spr=(h,s)=>E("img",{src:"assets/sprites/"+h+".128.webp",alt:"",draggable:"false",width:s,height:s,onerror:ev=>{const u=ACAD.pixelURL?ACAD.pixelURL(h):"";if(u&&ev.target.src!==u)ev.target.src=u}});
 const fmt=n=>Math.round(n).toLocaleString();
+/* small synthesised sounds, on by default here, one switch in the run */
+const SND={on:true,ctx:null,last:{}};try{SND.on=localStorage.getItem("everspire.climb.snd")!=="0"}catch(e){}
+const TONES={gem:[[1500,.03]],coin:[[880,.05],[1320,.08]],hurt:[[150,.14]],kill:[[260,.025]],cast:[[400,.07],[700,.09],[1000,.12]],level:[[660,.08],[880,.08],[1100,.08],[1320,.16]],chest:[[523,.1],[659,.1],[784,.1],[1046,.25]],boss:[[110,.3],[98,.45]],win:[[523,.12],[659,.12],[784,.12],[1046,.4]],lose:[[300,.2],[220,.2],[160,.4]]};
+SND.play=(n,th)=>{if(!SND.on)return;const now=performance.now();if(th&&SND.last[n]&&now-SND.last[n]<th)return;SND.last[n]=now;try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;SND.ctx=SND.ctx||new A();if(SND.ctx.state==="suspended")SND.ctx.resume();let t=SND.ctx.currentTime+.005;(TONES[n]||[]).forEach(([f,d])=>{const o=SND.ctx.createOscillator(),g=SND.ctx.createGain();o.type=n==="hurt"||n==="boss"?"sawtooth":"triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(n==="kill"||n==="gem"?.025:.06,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(SND.ctx.destination);o.start(t);o.stop(t+d+.02);t+=d*.9})}catch(e){}};
+C.snd=SND;
 const members=g=>((ACAD.GROUPS||[]).find(x=>x.id===g)||{members:[]}).members.slice();
 
 /* ---------- saved progress ---------- */
@@ -53,6 +58,10 @@ const css=`
 #evRoot .cl-hud .it span b{position:absolute;right:1px;bottom:-1px;font:700 10px Georgia;color:#ffe27a}
 #evRoot .cl-hud .boss{position:absolute;left:50%;top:56px;transform:translateX(-50%);width:min(70vw,420px);text-align:center;font-size:13px;text-shadow:0 1px 3px #000;display:none}
 #evRoot .cl-hud .tip{position:absolute;left:50%;bottom:20%;transform:translateX(-50%);padding:6px 12px;background:#000a;border-radius:20px;font-size:14px;transition:opacity 1s}
+#evRoot .cl-ab{position:absolute;right:14px;bottom:44px;width:84px;height:84px;border-radius:50%;pointer-events:auto;border:2px solid var(--ac,#ffe27a);background:conic-gradient(var(--ac,#ffe27a) calc(var(--p,100)*1%),#14102e 0);color:#fff;font:700 11px Georgia,serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:pointer;box-shadow:0 0 14px #0009}
+#evRoot .cl-ab span{font-size:26px;line-height:1;background:#14102ecc;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center}
+#evRoot .cl-ab small{position:absolute;bottom:-17px;right:0;white-space:nowrap;text-shadow:0 1px 3px #000;font-size:11px}
+#evRoot .cl-ab.ready{animation:clGlow 1.2s ease-in-out infinite;--cc:var(--ac)}
 #evRoot .cl-stick{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid #ffffff55;background:#ffffff14;display:none;pointer-events:none}
 #evRoot .cl-stick i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#ffffff66}
 #evRoot .cl-modal{position:absolute;inset:0;background:#05031acc;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:14px;overflow:auto;z-index:5}
@@ -86,11 +95,11 @@ function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
     const hs=Object.keys(M.free).filter(h=>M.free[h]).sort((a,b)=>tierOf(b)-tierOf(a)||HN(a).localeCompare(HN(b)));
     panel.append(E("div",{class:"card",style:{marginTop:"10px"}},E("h3",{style:{marginTop:0}},"Your hero"),
       E("div",{class:"cl-kit"},spr(sel.hero,96),E("div",null,E("b",{style:{fontSize:"17px"}},HN(sel.hero)),E("span",{class:"chip",style:{marginLeft:"8px",borderColor:tc,color:tc}},PT[t].name),
-        E("div",{class:"mut"},wd.ic+" "+wd.n+" · "+wd.d),E("div",{class:"mut"},"Gift: "+kit.trait.d),E("div",{class:"mut"},"Health "+(kit.hp)+" · power ×"+(1+.08*t).toFixed(2)),
+        E("div",{class:"mut"},wd.ic+" "+wd.n+" · "+wd.d),E("div",{class:"mut"},"Gift: "+kit.trait.d),kit.x?E("div",{class:"mut"},"Heirloom: "+PS[kit.heir].n+" · "+PS[kit.heir].d):null,kit.x?E("div",{class:"mut"},"Ability: "+kit.x.an+" · "+C.ABILITIES[kit.x.ab].d):null,E("div",{class:"mut"},"Health "+(kit.hp)+" · power ×"+(1+.08*t).toFixed(2)),
         E("div",{class:"bar",style:{margin:"6px 0 2px"}},E("i",{style:{width:Math.min(100,100*((M.ess[sel.hero]||0)-TIER_AT[t])/((TIER_AT[t+1]||TIER_AT[t]+1)-TIER_AT[t]))+"%",background:tc}})),
         E("div",{class:"mut",style:{fontSize:"12px"}},TIER_AT[t+1]?"Essence "+Math.floor(M.ess[sel.hero]||0)+" / "+TIER_AT[t+1]+" to "+PT[t+1].name:"Mythic: the summit"))),
       E("div",{class:"cl-heroes"},...hs.map(h=>{const tt=tierOf(h),hk=C.heroKit(h);return E("button",{type:"button",class:"cl-h"+(h===sel.hero?" on":""),style:{"--tc":PT[tt].col},onclick:()=>{sel.hero=h;save();drawPanel()}},spr(h,64),E("div",{class:"nm"},HN(h)),E("small",null,W[hk.start].ic+" "+W[hk.start].n))}))));
-    panel.append(E("div",{class:"row",style:{marginTop:"12px"}},E("button",{type:"button",class:"pri",style:{fontSize:"17px",padding:"10px 22px"},onclick:()=>startRun(sel.hero,fi,sel.boss)},"Climb"),E("span",{class:"mut"},"One floor, about nine minutes. Move; she fights on her own.")))};
+    panel.append(E("div",{class:"row",style:{marginTop:"12px"}},E("button",{type:"button",class:"pri",style:{fontSize:"17px",padding:"10px 22px"},onclick:()=>startRun(sel.hero,fi,sel.boss)},"Climb"),C.story?E("button",{type:"button",onclick:()=>C.story.open(sel.hero,M,drawPanel)},"Her story"+(C.story.fresh(M,sel.hero).length?" ("+C.story.fresh(M,sel.hero).length+" new)":"")):null,E("span",{class:"mut"},"One floor, about nine minutes. Move; she fights on her own.")))};
   page(E("div",null,top,E("div",{class:"cl-grid"},tower,panel)));drawTower();drawPanel()}
 
 /* ---------- powers ---------- */
@@ -105,15 +114,18 @@ let RUN=null,raf=0,keys={},stickEl=null;
 function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure();U.show();injectCss();const r=root();
   const ov=E("div",{class:"cl-ov",id:"clOv"}),cv=E("canvas"),hud=E("div",{class:"cl-hud"});ov.append(cv,hud);r.append(ov);
   const run=RUN=new C.Run({hero,floor:f.g,floorIndex:fi,boss,meta:metaFor(hero)});
-  const xp=E("i"),xpb=E("div",{class:"xp"},xp),hpf=E("i",{style:{background:"linear-gradient(90deg,#ff4a6a,#ff8a9a)"}}),hpt=E("small"),lvt=E("b"),tm=E("div",{class:"tm"}),rt=E("div",{class:"rt"}),it=E("div",{class:"it"}),bossBar=E("div",{class:"boss"},E("div",{class:"bn"}),E("div",{class:"cl-bar"},E("i",{style:{background:"#ff5a7a"}}))),tip=E("div",{class:"tip"},"Drag or use WASD to move. She fights on her own.");
+  const xp=E("i"),xpb=E("div",{class:"xp"},xp),hpf=E("i",{style:{background:"linear-gradient(90deg,#ff4a6a,#ff8a9a)"}}),hpt=E("small"),lvt=E("b"),tm=E("div",{class:"tm"}),rt=E("div",{class:"rt"}),it=E("div",{class:"it"}),bossBar=E("div",{class:"boss"},E("div",{class:"bn"}),E("div",{class:"cl-bar"},E("i",{style:{background:"#ff5a7a"}}))),tip=E("div",{class:"tip"},"Drag or use WASD to move. She fights on her own."+(run.hzNote?" "+run.hzNote:""));
   stickEl=E("div",{class:"cl-stick"},E("i"));
   const pauseBtn=E("button",{type:"button",class:"sm",onclick:()=>pauseMenu()},"Pause");
-  rt.append(E("div",{class:"gd"}),E("div",{class:"kl"}),pauseBtn);
-  hud.append(xpb,E("div",{class:"hp"},E("div",null,lvt," ",hpt),E("div",{class:"cl-bar"},hpf)),tm,rt,it,bossBar,tip,stickEl);setTimeout(()=>{tip.style.opacity=0},5000);
+  const sndBtn=E("button",{type:"button",class:"sm",style:{marginLeft:"4px"},onclick:()=>{SND.on=!SND.on;try{localStorage.setItem("everspire.climb.snd",SND.on?"1":"0")}catch(e){}sndBtn.textContent=SND.on?"♪":"♪ off";SND.play("level")}},SND.on?"♪":"♪ off");
+  rt.append(E("div",{class:"gd"}),E("div",{class:"kl"}),E("div",null,pauseBtn,sndBtn));
+  const ABIC={nova:"💥",dash:"💨",heal:"💗",freeze:"❄️",summon:"👻",dome:"🔰",gravity:"🌀",blink:"✨",storm:"🌩️",meteor:"☄️",volley:"🎯",haste:"⚡"};
+  const abBtn=run.ab?E("button",{type:"button",class:"cl-ab",style:{"--ac":run.ab.col},title:run.ab.name+": "+run.ab.d,onclick:()=>run.cast()},E("span",null,ABIC[run.ab.arch]||"✦"),E("small",null,run.ab.name)):null;
+  hud.append(xpb,E("div",{class:"hp"},E("div",null,lvt," ",hpt),E("div",{class:"cl-bar"},hpf)),tm,rt,it,bossBar,tip,stickEl,...(abBtn?[abBtn]:[]));setTimeout(()=>{tip.style.opacity=0},5000);
   const ctx=cv.getContext("2d");let w=0,h=0;
   const fit=()=>{const dpr=Math.min(2,window.devicePixelRatio||1),b=ov.getBoundingClientRect();w=b.width;h=b.height;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);run.dpr=dpr};fit();addEventListener("resize",fit);ov._fit=fit;
   /* input: keys and a floating stick */
-  const kd=e=>{keys[e.key.toLowerCase()]=1;if(e.key==="Escape"||e.key==="p")pauseMenu();if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase()))e.preventDefault()},ku=e=>{keys[e.key.toLowerCase()]=0};
+  const kd=e=>{keys[e.key.toLowerCase()]=1;if(e.key==="Escape"||e.key==="p")pauseMenu();if(e.key===" "||e.key==="e"||e.key==="q")run.cast();if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase()))e.preventDefault()},ku=e=>{keys[e.key.toLowerCase()]=0};
   addEventListener("keydown",kd);addEventListener("keyup",ku);ov._off=()=>{removeEventListener("keydown",kd);removeEventListener("keyup",ku);removeEventListener("resize",fit)};
   let sid=null,sx=0,sy=0,sv=[0,0];
   ov.addEventListener("pointerdown",e=>{if(e.target.closest("button,.cl-modal"))return;sid=e.pointerId;sx=e.clientX;sy=e.clientY;sv=[0,0];stickEl.style.display="block";stickEl.style.left=sx+"px";stickEl.style.top=sy+"px";ov.setPointerCapture(e.pointerId)});
@@ -122,17 +134,23 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   const vis=()=>{if(document.hidden&&RUN&&!RUN.ended&&!RUN.paused)pauseMenu()};document.addEventListener("visibilitychange",vis);const prevOff=ov._off;ov._off=()=>{prevOff();document.removeEventListener("visibilitychange",vis)};
   /* what the run asks of the screen */
   run.cb.level=(ch,go)=>levelModal(ov,run,ch,go);run.cb.chest=(got,go)=>chestModal(ov,run,got,go);
-  run.cb.boss=id=>{bossBar.style.display="block"};run.cb.end=res=>{setTimeout(()=>finish(res,ov),run.won?400:900)};
+  run.cb.boss=id=>{bossBar.style.display="block";SND.play("boss")};run.cb.end=res=>{SND.play(res.win?"win":"lose");setTimeout(()=>finish(res,ov),run.won?400:900)};
   /* hud paint */
   let hudT=0,iconKey="";const hudPaint=()=>{const P=run.stats;xp.style.width=Math.min(100,100*run.xp/C.xpNeed(run.lv))+"%";hpf.style.width=Math.max(0,100*run.hp/P.maxhp)+"%";hpt.textContent=Math.ceil(Math.max(0,run.hp))+" / "+P.maxhp;lvt.textContent="Lv "+run.lv;
-    const s=Math.floor(run.t);tm.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");rt.firstChild.textContent="💰 "+run.gold;rt.children[1].textContent="☠ "+run.kills;
+    const s=Math.floor(run.t);tm.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");rt.firstChild.textContent="💰 "+run.gold;rt.children[1].textContent="☠ "+run.kills+" · 👾 "+run.en.length;
     const k=run.wp.map(x=>x.id+x.lv).join(",")+"|"+Object.entries(run.pa).join(",");if(k!==iconKey){iconKey=k;it.textContent="";run.wp.forEach(x=>it.append(E("span",{title:x.def.n,style:{borderColor:x.def.c}},x.def.ic,E("b",null,x.def.evolved?"★":x.lv>=C.maxLv(x.id)?"MAX":x.lv))));Object.keys(run.pa).forEach(id=>it.append(E("span",{title:PS[id].n},PS[id].ic,E("b",null,run.pa[id]))))}
+    if(abBtn){const a=run.ab,pc=a.cd>0?100*(1-a.cd/(a.max*run.stats.cooldown)):100;abBtn.style.setProperty("--p",Math.max(0,Math.min(100,pc)));abBtn.classList.toggle("ready",a.cd<=0);abBtn.lastChild.textContent=a.cd>0?a.name+" · "+Math.ceil(a.cd)+"s":a.name+" · ready"}
     if(run.bossE){bossBar.style.display="block";bossBar.firstChild.textContent=HN(run.bossId)+" · the challenger";bossBar.lastChild.firstChild.style.width=Math.max(0,100*run.bossE.hp/run.bossE.mhp)+"%"}else if(run.won)bossBar.style.display="none"};
   let last=performance.now(),acc=0;
+  let pv={xp:0,lv:1,gold:0,hp:run.hp,kills:0,cd:0};
   const frame=now=>{if(RUN!==run)return;const dt=Math.min(.1,(now-last)/1000);last=now;
     if(!run.ended){let dx=sv[0],dy=sv[1];if(keys.a||keys.arrowleft)dx-=1;if(keys.d||keys.arrowright)dx+=1;if(keys.w||keys.arrowup)dy-=1;if(keys.s||keys.arrowdown)dy+=1;run.dir=[dx,dy];acc+=dt;let n=0;while(acc>=1/60&&n++<4){run.step(1/60);acc-=1/60}}
-    ctx.setTransform(run.dpr||1,0,0,run.dpr||1,0,0);run.draw(ctx,w,h,now);hudT-=dt;if(hudT<=0){hudT=.1;hudPaint()}raf=requestAnimationFrame(frame)};
-  raf=requestAnimationFrame(frame);window.__climb=run}
+    ctx.setTransform(run.dpr||1,0,0,run.dpr||1,0,0);run.draw(ctx,w,h,now);
+    if(run.xp>pv.xp&&run.lv===pv.lv)SND.play("gem",70);if(run.gold>pv.gold)SND.play("coin",90);if(run.hp<pv.hp-.5)SND.play("hurt",160);if(run.kills>pv.kills)SND.play("kill",110);if(run.ab&&run.ab.cd>pv.cd+1)SND.play("cast");
+    pv={xp:run.xp,lv:run.lv,gold:run.gold,hp:run.hp,kills:run.kills,cd:run.ab?run.ab.cd:0};
+    hudT-=dt;if(hudT<=0){hudT=.1;hudPaint()}raf=requestAnimationFrame(frame)};
+  raf=requestAnimationFrame(frame);window.__climb=run;
+  if(!M.intro){run.paused=true;const m=E("div",{class:"cl-modal"},E("h2",null,"How a climb works"),E("div",{class:"cl-cards"},...[["🕹️","Move","Drag on the screen, or use WASD. Your weapons fire on their own."],["💎","Collect gems","Blue gems level you up. Pick one of the cards each time."],["🎁","Chests","Elites at 3:00 and 6:00 drop chests that upgrade or evolve your weapons."],["👑","The challenger","At 9:00 a girl blocks the floor. Beat her and she joins you."]].map(([i,t,d])=>E("div",{class:"cl-card",style:{cursor:"default","--cc":"#9ad8ff"}},E("div",{class:"cic"},i),E("b",null,t),E("small",null,d)))),E("div",{class:"mut"},"Space or E uses her ability. The ♪ button turns sound off."),E("button",{type:"button",class:"pri",onclick:()=>{M.intro=1;save();m.remove();run.paused=false}},"Begin"));ov.append(m)}}
 function stopRun(){cancelAnimationFrame(raf);raf=0;const ov=document.getElementById("clOv");if(ov){if(ov._off)ov._off();ov.remove()}RUN=null;keys={}}
 
 function pauseMenu(){const run=RUN,ov=document.getElementById("clOv");if(!run||!ov||run.ended||ov.querySelector(".cl-modal"))return;const was=run.paused;run.paused=true;
@@ -144,22 +162,24 @@ function levelModal(ov,run,ch,go){let cur=ch,banish=false;const m=E("div",{class
     const cards=E("div",{class:"cl-cards"});cur.forEach(c=>{const l=run.label(c),b=E("button",{type:"button",class:"cl-card",style:{"--cc":l.c},onclick:()=>{if(banish){run.banished[c.id]=true;run.bn--;banish=false;cur=run.choices();draw();return}run.apply(c);m.remove();go()}},E("div",{class:"cic"},l.ic),E("em",null,c.type==="weapon"?(c.lv===1?"New weapon":"Weapon · level "+c.lv):c.type==="passive"?(c.lv===1?"New item":"Item · level "+c.lv):"Reward"),E("b",null,l.n),E("small",null,l.d),l.evo?E("small",{style:{opacity:.8}},"Evolves with "+l.evo):null);cards.append(b)});
     m.append(cards);const row=E("div",{class:"row"});
     row.append(E("button",{type:"button",class:"sm",disabled:run.rr<=0,onclick:()=>{run.rr--;cur=run.choices();draw()}},"Reroll ("+run.rr+")"),E("button",{type:"button",class:"sm",disabled:run.sk<=0,onclick:()=>{run.sk--;m.remove();go()}},"Skip ("+run.sk+")"),E("button",{type:"button",class:"sm"+(banish?" on":""),disabled:run.bn<=0&&!banish,onclick:()=>{banish=!banish;draw()}},"Banish ("+run.bn+")"));m.append(row)};
-  draw();ov.append(m);if(ACAD.sfx)ACAD.sfx.play("chime")}
+  draw();ov.append(m);SND.play("level")}
 
 function chestModal(ov,run,got,go){let i=0;const m=E("div",{class:"cl-modal"}),show=()=>{m.textContent="";const g=got[i];let l,tit,sub;
     if(g.kind==="evo"){const d=W[g.id];l={ic:d.ic,n:d.n,d:d.d,c:d.c};tit="Evolution!";sub=g.from.map(x=>W[x].n).join(" + ")+" becomes"}
     else if(g.kind==="up"){l=run.label(g.ch);tit="The chest opens";sub=g.ch.lv>1?"Upgraded to level "+g.ch.lv:"New"}else{l={ic:"💰",n:"A purse of gold",d:"+50 gold",c:"#ffd24a"};tit="The chest opens";sub=""}
     m.append(E("h2",null,tit),E("div",{class:"mut"},sub),E("div",{class:"cl-cards"},E("div",{class:"cl-card"+(g.kind==="evo"?" evo":""),style:{"--cc":l.c,cursor:"default"}},E("div",{class:"cic",style:{fontSize:"54px"}},l.ic),E("b",null,l.n),E("small",null,l.d))),
       E("button",{type:"button",class:"pri",onclick:()=>{i++;if(i>=got.length){m.remove();go()}else show()}},i+1>=got.length?"Take it":"Next ("+(i+1)+"/"+got.length+")"))};
-  show();ov.append(m);if(ACAD.sfx)ACAD.sfx.play(got.some(x=>x.kind==="evo")?"fanfare":"chime")}
+  show();ov.append(m);SND.play("chest")}
 
 /* ---------- result ---------- */
 function finish(res,ov){load();const h=res.hero,bossId=res.boss,before=tierOf(h);M.gold+=res.gold;M.runs++;M.ess[h]=(M.ess[h]||0)+res.ess;
   let freed=false;if(res.win){M.wins++;M.best[res.floor]=Math.max(M.best[res.floor]||0,res.t);if(bossId&&!M.free[bossId]){M.free[bossId]=1;freed=true}}save();
+  const sa=C.story?C.story.award(M,res,freed):null;if(sa)save();
   const after=tierOf(h),m=E("div",{class:"cl-modal"},E("h2",null,res.win?"The floor is yours":"You fell"),
     freed?E("div",{style:{textAlign:"center"}},spr(bossId,120),E("div",{style:{fontSize:"18px",color:"#ffe27a"}},HN(bossId)+" joins you.")):null,
     E("div",{class:"chips"},E("span",{class:"chip hot"},"💰 +"+fmt(res.gold)),E("span",{class:"chip"},"☠ "+res.kills),E("span",{class:"chip"},"Level "+res.lv),E("span",{class:"chip"},Math.floor(res.t/60)+":"+String(Math.floor(res.t%60)).padStart(2,"0")),E("span",{class:"chip hot"},"✦ +"+res.ess+" essence for "+HN(h))),
     after>before?E("div",{style:{color:PT[after].col,fontSize:"18px"}},HN(h)+" ascends to "+PT[after].name+"."):null,
+    sa?E("div",{class:"chips"},...Object.keys(sa.gain).map(g=>E("span",{class:"chip"},"♥ "+HN(g)+" +"+sa.gain[g]+" bond")),...sa.newly.map(x=>E("span",{class:"chip hot"},"New scene"+(x.n>1?"s ("+x.n+")":"")+": "+HN(x.h)))):null,
     E("div",{class:"row"},E("button",{type:"button",class:"pri",onclick:()=>{stopRun();home()}},"Back to the tower"),E("button",{type:"button",onclick:()=>{stopRun();startRun(h,res.floor,bossId&&!M.free[bossId]?bossId:bossId)}},res.win?"Climb again":"Try again")));
   ov.append(m);if(after>before&&ACAD.head&&ACAD.head.ui&&ACAD.head.ui.flourish)ACAD.head.ui.flourish(h,after);else if(freed&&ACAD.sfx)ACAD.sfx.play("fanfare")}
 

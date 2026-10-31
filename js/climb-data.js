@@ -140,7 +140,7 @@ C.heroKit=h=>{if(kits[h])return kits[h];
 /* ---------- enemy kinds: hp, speed, touch damage, xp, size, drawn by climb-engine ---------- */
 C.ENEMY={
  bat:{hp:5,sp:78,dmg:5,xp:1,r:11,fly:1},blob:{hp:14,sp:46,dmg:6,xp:1,r:14},wisp:{hp:10,sp:62,dmg:6,xp:2,r:12,fly:1},
- shade:{hp:26,sp:54,dmg:8,xp:3,r:15},thorn:{hp:38,sp:38,dmg:9,xp:3,r:16},gear:{hp:90,sp:30,dmg:14,xp:8,r:22}};
+ shade:{hp:26,sp:54,dmg:8,xp:3,r:15},archer:{hp:18,sp:44,dmg:6,xp:3,r:13,shoot:1},charger:{hp:30,sp:40,dmg:12,xp:4,r:15,charge:1},splitter:{hp:34,sp:36,dmg:7,xp:3,r:17,split:1},thorn:{hp:38,sp:38,dmg:9,xp:3,r:16},gear:{hp:90,sp:30,dmg:14,xp:8,r:22}};
 
 /* ---------- the permanent powers bought between runs, rank 1-5 ---------- */
 C.UPGRADES=[
