@@ -18,7 +18,7 @@ Object.keys(C.KITX).forEach(h=>{const x=C.KITX[h],base=W[x.base];if(!base)return
   d.id="s_"+h;d.bid=x.base;d.n=x.wn;d.ic=x.wi;d.c=col;d.sig=h;d.twist=x.tw;d.rar=80;delete d.union;d.evo=["hr_"+h,"x_"+h];d.base.dmg=Math.round(d.base.dmg*v*(PW[x.base]||1)*10)/10;
   d.d=base.d+" "+C.TWISTS[x.tw][0]+": "+C.TWISTS[x.tw][1]+".";W[d.id]=d;
   const a=JSON.parse(JSON.stringify(base));a.id="x_"+h;a.bid=x.base;a.n="Awakened "+x.wn;a.ic=x.wi;a.c=col;a.sig=h;a.evolved=true;a.twist=x.tw;delete a.up;delete a.evo;delete a.union;
-  a.base.dmg=Math.round(a.base.dmg*v*(PW[x.base]||1)*1.9*10)/10;if(a.base.amt)a.base.amt+=1;if(a.base.cd)a.base.cd=Math.round(a.base.cd*.8*100)/100;a.base.area=(a.base.area||1)*1.2;
+  a.base.dmg=Math.round(a.base.dmg*v*(PW[x.base]||1)*3.8*10)/10;if(a.base.amt)a.base.amt+=2;if(a.base.cd)a.base.cd=Math.round(a.base.cd*.65*100)/100;a.base.area=(a.base.area||1)*1.3;if(a.base.pierce)a.base.pierce+=2;if(a.base.dur)a.base.dur*=1.2;
   a.d=x.wn+", awakened: stronger, quicker, and its "+C.TWISTS[x.tw][0].toLowerCase()+" doubled.";W[a.id]=a;
   const per={},txt=[];x.st.forEach(c=>{const s=STAT[c];per[s[0]]=(per[s[0]]||0)+s[1]});x.st.forEach(c=>{const s=STAT[c];txt.push(s[3](per[s[0]]))});
   PS["hr_"+h]={n:x.hn,ic:STAT[x.st[0]][4],max:5,per,d:txt.join(", "),heir:h}});
@@ -28,6 +28,8 @@ W.lancet.evo=["cooldown","infinite"];W.laurel.evo=["maxhp","crimson"];W.gale.evo
 W.infinite={id:"infinite",evolved:true,n:"Infinite Corridor",ic:"♾️",c:"#9affc8",b:"freeze",d:"Time stops for longer, and again sooner.",base:{dmg:0,cd:4.5,dur:3.2,area:1}};
 W.crimson={id:"crimson",evolved:true,n:"Crimson Shroud",ic:"🩸",c:"#ff5a7a",b:"shield",retal:1,d:"A longer ward that burns whoever stands close.",base:{dmg:0,cd:7,dur:4.5,area:1}};
 W.galeforce={id:"galeforce",evolved:true,n:"Gale Force",ic:"🌪️",c:"#c8f2ff",b:"gale",d:"A storm of blades.",base:{dmg:9,amt:9,cd:1.2,dur:.7,area:2,iv:.05}};
+/* a pinch more for the ordinary evolutions (the awakened ones are tuned above) */
+Object.keys(W).forEach(k=>{const w=W[k];if(!w.evolved||/^x_/.test(k)||!w.base||w.tuned)return;w.tuned=1;if(w.base.dmg)w.base.dmg=Math.round(w.base.dmg*1.2*10)/10;if(w.base.cd&&w.base.dmg)w.base.cd=Math.round(w.base.cd*.93*100)/100});
 
 /* ---------- the kit a hero gets ---------- */
 const kc={},oldKit=C.heroKit;
