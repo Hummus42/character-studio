@@ -204,8 +204,11 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   const xp=E("i"),xpb=E("div",{class:"xp"},xp),hpf=E("i",{style:{background:"linear-gradient(90deg,#ff4a6a,#ff8a9a)"}}),hpt=E("small"),lvt=E("b"),tm=E("div",{class:"tm"}),rt=E("div",{class:"rt"}),it=E("div",{class:"it"}),bossBar=E("div",{class:"boss"},E("div",{class:"bn"}),E("div",{class:"cl-bar"},E("i",{style:{background:"#ff5a7a"}}))),tip=E("div",{class:"tip"},"Drag or use WASD to move. She fights on her own."+(run.hzNote?" "+run.hzNote:""));
   stickEl=E("div",{class:"cl-stick"},E("i"));
   const pauseBtn=E("button",{type:"button",class:"sm",onclick:()=>pauseMenu()},"Pause");
+  let spd=1;try{spd=+localStorage.getItem("everspire.climb.speed")||1}catch(e){}if(![1,2,3].includes(spd))spd=1;
+  const spdBtn=E("button",{type:"button",class:"sm"+(spd>1?" on":""),style:{marginLeft:"4px",minWidth:"36px"},title:"Game speed (G)"},spd+"×");
+  const cycleSpd=()=>{spd=spd%3+1;spdBtn.textContent=spd+"×";spdBtn.classList.toggle("on",spd>1);try{localStorage.setItem("everspire.climb.speed",String(spd))}catch(e){}SND.play("cast")};spdBtn.onclick=cycleSpd;
   const sndBtn=E("button",{type:"button",class:"sm",style:{marginLeft:"4px"},onclick:()=>{SND.on=!SND.on;try{localStorage.setItem("everspire.climb.snd",SND.on?"1":"0")}catch(e){}sndBtn.textContent=SND.on?"♪":"♪ off";SND.play("level")}},SND.on?"♪":"♪ off");
-  rt.append(E("div",{class:"gd"}),E("div",{class:"kl"}),E("div",null,pauseBtn,sndBtn));
+  rt.append(E("div",{class:"gd"}),E("div",{class:"kl"}),E("div",null,pauseBtn,sndBtn,spdBtn));
   const ABIC={nova:"💥",dash:"💨",heal:"💗",freeze:"❄️",summon:"👻",dome:"🔰",gravity:"🌀",blink:"✨",storm:"🌩️",meteor:"☄️",volley:"🎯",haste:"⚡"};
   const abBtn=run.ab?E("button",{type:"button",class:"cl-ab",style:{"--ac":run.ab.col},title:run.ab.name+": "+run.ab.d,onclick:()=>run.cast()},E("span",null,ABIC[run.ab.arch]||"✦"),E("small",null,run.ab.name)):null;
   const petBtn=run.pet?E("button",{type:"button",class:"cl-ab",style:{"--ac":run.pdat.c,right:"110px",bottom:"54px",width:"70px",height:"70px"},title:C.PETS[run.petId].n+": "+C.PCMD[run.pdat.cmd].d+" (F)",onclick:()=>run.petCast()},C.petImg(run.petId,34),E("small",null,C.PCMD[run.pdat.cmd].n)):null;
@@ -213,7 +216,7 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   const ctx=cv.getContext("2d");let w=0,h=0;
   const fit=()=>{const dpr=Math.min(2,window.devicePixelRatio||1),b=ov.getBoundingClientRect();w=b.width;h=b.height;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);run.dpr=dpr};fit();addEventListener("resize",fit);ov._fit=fit;
   /* input: keys and a floating stick */
-  const kd=e=>{keys[e.key.toLowerCase()]=1;if(e.key==="Escape"||e.key==="p")pauseMenu();if(e.key===" "||e.key==="e"||e.key==="q")run.cast();if(e.key.toLowerCase()==="f"&&run.petCast)run.petCast();if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase()))e.preventDefault()},ku=e=>{keys[e.key.toLowerCase()]=0};
+  const kd=e=>{keys[e.key.toLowerCase()]=1;if(e.key==="Escape"||e.key==="p")pauseMenu();if(e.key===" "||e.key==="e"||e.key==="q")run.cast();if(e.key.toLowerCase()==="f"&&run.petCast)run.petCast();if(e.key.toLowerCase()==="g")cycleSpd();if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase()))e.preventDefault()},ku=e=>{keys[e.key.toLowerCase()]=0};
   addEventListener("keydown",kd);addEventListener("keyup",ku);ov._off=()=>{removeEventListener("keydown",kd);removeEventListener("keyup",ku);removeEventListener("resize",fit)};
   let sid=null,sx=0,sy=0,sv=[0,0];
   ov.addEventListener("pointerdown",e=>{if(e.target.closest("button,.cl-modal"))return;sid=e.pointerId;sx=e.clientX;sy=e.clientY;sv=[0,0];stickEl.style.display="block";stickEl.style.left=sx+"px";stickEl.style.top=sy+"px";ov.setPointerCapture(e.pointerId)});
@@ -233,7 +236,7 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   let last=performance.now(),acc=0;
   let pv={xp:0,lv:1,gold:0,hp:run.hp,kills:0,cd:0};
   const frame=now=>{if(RUN!==run)return;const dt=Math.min(.1,(now-last)/1000);last=now;
-    if(!run.ended){let dx=sv[0],dy=sv[1];if(keys.a||keys.arrowleft)dx-=1;if(keys.d||keys.arrowright)dx+=1;if(keys.w||keys.arrowup)dy-=1;if(keys.s||keys.arrowdown)dy+=1;run.dir=[dx,dy];acc+=dt;let n=0;while(acc>=1/60&&n++<4){run.step(1/60);acc-=1/60}}
+    if(!run.ended){let dx=sv[0],dy=sv[1];if(keys.a||keys.arrowleft)dx-=1;if(keys.d||keys.arrowright)dx+=1;if(keys.w||keys.arrowup)dy-=1;if(keys.s||keys.arrowdown)dy+=1;run.dir=[dx,dy];acc+=dt*spd;let n=0;while(acc>=1/60&&n++<4*spd){run.step(1/60);acc-=1/60}if(acc>.25)acc=.25}
     ctx.setTransform(run.dpr||1,0,0,run.dpr||1,0,0);run.draw(ctx,w,h,now);
     if(run.xp>pv.xp&&run.lv===pv.lv)SND.play("gem",70);if(run.gold>pv.gold)SND.play("coin",90);if(run.hp<pv.hp-.5)SND.play("hurt",160);if(run.kills>pv.kills)SND.play("kill",110);if(run.ab&&run.ab.cd>pv.cd+1)SND.play("cast");
     pv={xp:run.xp,lv:run.lv,gold:run.gold,hp:run.hp,kills:run.kills,cd:run.ab?run.ab.cd:0};
