@@ -254,7 +254,7 @@ class Run{
    else if(z.kind==="whip"){const k=1-f;ctx.save();ctx.translate(z.x,z.y);ctx.scale(z.side,1);ctx.globalCompositeOperation=add;ctx.globalAlpha=.9*(1-k*.6);ctx.strokeStyle=z.c;ctx.lineWidth=7*(1-k*.6);ctx.beginPath();ctx.moveTo(-z.w/2,8);ctx.quadraticCurveTo(0,-z.h*1.1,z.w/2,6);ctx.stroke();ctx.lineWidth=2.5;ctx.strokeStyle="#fff";ctx.stroke();ctx.restore();ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over"}
    else{const g=ctx.createLinearGradient(z.x-z.w/2,0,z.x+z.w/2,0);g.addColorStop(0,z.c+"00");g.addColorStop(.5,z.c+"cc");g.addColorStop(1,z.c+"00");ctx.globalCompositeOperation=add;ctx.globalAlpha=.7*Math.min(1,f*3);ctx.fillStyle=g;ctx.fillRect(z.x-z.w/2,z.y-z.h/2,z.w,z.h);ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over"}}
   /* garlic-style auras */
-  for(const wp of this.wp){if(wp.def.b==="aura"){const R=62*wp.s.area;const g=ctx.createRadialGradient(px,py,6,px,py,R);g.addColorStop(0,wp.def.c+"00");g.addColorStop(.85,wp.def.c+"33");g.addColorStop(1,wp.def.c+"88");ctx.fillStyle=g;ctx.beginPath();ctx.arc(px,py,R,0,TAU);ctx.fill()}}
+  for(const wp of this.wp){if(wp.def.b==="aura"){const R=62*wp.s.area;const g=ctx.createRadialGradient(px,py,6,px,py,R);g.addColorStop(0,wp.def.c+"00");g.addColorStop(.85,wp.def.c+"33");g.addColorStop(1,wp.def.c+"88");ctx.fillStyle=g;ctx.beginPath();ctx.arc(px,py,R,0,TAU);ctx.fill();if(wp.def.steady){ctx.strokeStyle=wp.def.c+"cc";ctx.lineWidth=2.5;ctx.stroke()}}}
   /* enemies, far to near */
   const list=this.en.slice().sort((a,b)=>a.y-b.y),T=tms/1000;
   for(const e of list){if(Math.abs(e.x-px)>hw+60||Math.abs(e.y-py)>hh+60)continue;

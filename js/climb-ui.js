@@ -30,7 +30,7 @@ const GU=["Kinship",{might:.03,maxhp:.04},"+3% damage and +4% health"];
 const GMAX=3,gCost=(base,r)=>Math.round(base*(1+r*.9));
 const gPerks=g=>{const f=GP[g]||["Heritage",{might:.03},"+3% damage"];return [{k:"u",n:GU[0],st:GU[1],d:GU[2],base:30,ic:"🤝"},{k:"f",n:f[0],st:f[1],d:f[2],base:50,ic:"⭐"}]};
 const gStats=h=>{const g=groupOf(h),o={};if(!g)return o;const pk=(M.gperk||{})[g]||{};gPerks(g).forEach(p=>{const r=pk[p.k]||0;for(const s in p.st)o[s]=(o[s]||0)+p.st[s]*r});return o};
-const metaFor=h=>({up:M.up,tierMul:1+.08*tierOf(h),gst:gStats(h)});
+const metaFor=h=>{const t=tierOf(h),up=Object.assign({},M.up),gst=Object.assign({},gStats(h));if(t>=3)up.reroll=(up.reroll||0)+1;if(t>=4){up.reroll=(up.reroll||0)+1;up.banish=(up.banish||0)+1;gst.growth=(gst.growth||0)+.12}return {up,tierMul:1+.08*t,gst,lock:M.lock||{}}};
 
 /* ---------- css ---------- */
 const css=`
@@ -90,7 +90,7 @@ function page(body){U.ensure();U.show();injectCss();const r=root();r.textContent
 /* ---------- home: the tower ---------- */
 let sel=null;
 function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
-  const top=E("div",{class:"cl-top"},E("button",{type:"button",onclick:()=>U.title()},"Menu"),E("h2",null,"Climb the Spire"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold)),E("button",{type:"button",onclick:powers},"Powers"),E("button",{type:"button",onclick:recipes},"Recipes"),E("button",{type:"button",onclick:()=>groups()},"Houses"),E("button",{type:"button",onclick:()=>ENC.open("home")},"Codex"));
+  const top=E("div",{class:"cl-top"},E("button",{type:"button",onclick:()=>U.title()},"Menu"),E("h2",null,"Climb the Spire"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold)),E("button",{type:"button",onclick:powers},"Powers"),E("button",{type:"button",onclick:recipes},"Recipes"),E("button",{type:"button",onclick:()=>groups()},"Houses"),E("button",{type:"button",onclick:locks},"Lock"),E("button",{type:"button",onclick:()=>ENC.open("home")},"Codex"));
   const tower=E("div",{class:"cl-tower"}),panel=E("div");
   const drawTower=()=>{tower.textContent="";for(let i=0;i<C.FLOORS.length;i++){const f=C.FLOORS[i],open=floorOpen(i),g=(ACAD.GROUPS||[]).find(x=>x.id===f.g)||{name:f.g},mem=members(f.g),n=mem.filter(h=>M.free[h]).length;
     const b=E("button",{type:"button",class:"cl-fl"+(i===sel.floor?" on":"")+(open?"":" lock"),style:{"--fc":f.acc},onclick:()=>{if(!open)return;sel.floor=i;sel.boss=null;save();drawTower();drawPanel()}},E("span",{class:"no"},String(i+1)),E("span",null,E("b",null,f.n),E("small",null,open?g.name+" · "+n+" of "+mem.length+" freed":"Free 3 girls on floor "+i+" to open")),E("span",{class:"mut"},M.best[i]?"✓":open?"":"🔒"));tower.append(b)}};
@@ -106,7 +106,7 @@ function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
       E("div",{class:"cl-kit"},spr(sel.hero,96),E("div",null,E("b",{style:{fontSize:"17px"}},HN(sel.hero)),E("span",{class:"chip",style:{marginLeft:"8px",borderColor:tc,color:tc}},PT[t].name),
         E("div",{class:"mut"},ico(kit.start,22)," "+wd.n+" · "+wd.d),E("div",{class:"mut"},"Gift: "+kit.trait.d),kit.x?E("div",{class:"mut"},"Heirloom: "+PS[kit.heir].n+" · "+PS[kit.heir].d):null,kit.x?E("div",{class:"mut"},"Ability: "+kit.x.an+" · "+C.ABILITIES[kit.x.ab].d):null,E("div",{class:"mut"},"Health "+(kit.hp)+" · power ×"+(1+.08*t).toFixed(2)),groupOf(sel.hero)?E("div",{class:"mut"},"House: ",E("a",{href:"#",onclick:ev=>{ev.preventDefault();groups(groupOf(sel.hero))}},gName(groupOf(sel.hero))+" ("+Math.floor((M.stand||{})[groupOf(sel.hero)]||0)+" standing)")):null,
         E("div",{class:"bar",style:{margin:"6px 0 2px"}},E("i",{style:{width:Math.min(100,100*((M.ess[sel.hero]||0)-TIER_AT[t])/((TIER_AT[t+1]||TIER_AT[t]+1)-TIER_AT[t]))+"%",background:tc}})),
-        E("div",{class:"mut",style:{fontSize:"12px"}},TIER_AT[t+1]?"Essence "+Math.floor(M.ess[sel.hero]||0)+" / "+TIER_AT[t+1]+" to "+PT[t+1].name:"Mythic: the summit"))),
+        E("div",{class:"mut",style:{fontSize:"12px"}},TIER_AT[t+1]?"Essence "+Math.floor(M.ess[sel.hero]||0)+" / "+TIER_AT[t+1]+" to "+PT[t+1].name:"Mythic: +32% damage and health, +2 rerolls, +1 banish, +12% experience"))),
       E("div",{class:"cl-heroes"},...hs.map(h=>{const tt=tierOf(h),hk=C.heroKit(h);return E("button",{type:"button",class:"cl-h"+(h===sel.hero?" on":""),style:{"--tc":PT[tt].col},onclick:()=>{sel.hero=h;save();drawPanel()}},spr(h,64),E("div",{class:"nm"},HN(h)),E("small",null,ico(hk.start,18)," "+W[hk.start].n),E("small",{style:{opacity:.65,display:"block"}},(gName(groupOf(h))||"").replace(/^The /,"")))}))));
     panel.append(E("div",{class:"row",style:{marginTop:"12px"}},E("button",{type:"button",class:"pri",style:{fontSize:"17px",padding:"10px 22px"},onclick:()=>startRun(sel.hero,fi,sel.boss)},"Climb"),C.story?E("button",{type:"button",onclick:()=>C.story.open(sel.hero,M,drawPanel)},"Her story"+(C.story.fresh(M,sel.hero).length?" ("+C.story.fresh(M,sel.hero).length+" new)":"")):null,E("span",{class:"mut"},"One floor, about nine minutes. Move; she fights on her own.")))};
   page(E("div",null,top,E("div",{class:"cl-grid"},tower,panel)));drawTower();drawPanel()}
@@ -131,14 +131,25 @@ function groups(open){load();M.stand=M.stand||{};M.gperk=M.gperk||{};const wrap=
   page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Houses"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold))),
     E("p",{class:"mut"},"Standing is earned only by climbing with a House's girls: more for a win, and a lot when you free one of its girls. It is spent here, on perks that help every girl of that House, and it is separate from gold."),wrap))}
 
+/* ---------- lock list: items you never want to see in a run ---------- */
+function locks(){load();M.lock=M.lock||{};
+  const ws=Object.keys(W).filter(id=>!W[id].evolved&&!W[id].sig),ps=Object.keys(PS).filter(id=>!PS[id].heir);
+  const tile=(id,d)=>{const on=!!M.lock[id];const b=E("button",{type:"button",class:"sm"+(on?" on":""),onclick:()=>{if(M.lock[id])delete M.lock[id];else M.lock[id]=1;save();locks()}},on?"🔒 Locked":"Allowed");
+    return E("div",{class:"card",style:{opacity:on?.6:1,display:"flex",alignItems:"center",gap:"8px"}},ico(id,34),E("div",{style:{flex:1,minWidth:0}},E("b",{style:{fontSize:"13px"}},d.n),E("div",{class:"mut",style:{fontSize:"11px"}},d.d||"")),b)};
+  const n=Object.keys(M.lock).length;
+  page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Lock list"),E("span",{class:"chip hot"},n+" locked"),E("button",{type:"button",class:"sm",onclick:()=>{M.lock={};save();locks()}},"Unlock all")),
+    E("p",{class:"mut"},"A locked weapon or item never shows up in level-ups or chests. Handy for thinning the pool toward a build. Locking an item also blocks the evolutions that need it, and your starting weapon is never locked."),
+    E("h3",null,"Weapons"),E("div",{class:"cl-up"},...ws.map(id=>tile(id,W[id]))),E("h3",null,"Items"),E("div",{class:"cl-up"},...ps.map(id=>tile(id,PS[id])))))}
+
 /* ---------- recipes: every weapon combination, found ones in full ---------- */
 function recipes(){load();const found=M.evo||{},ev=M.evo=found;
   const rows=[],seen={};
   Object.keys(W).forEach(id=>{const d=W[id];if(d.evolved||d.sig)return;
     if(d.evo&&W[d.evo[1]])rows.push({to:d.evo[1],a:[d],p:PS[d.evo[0]],pid:d.evo[0]});
     if(d.union&&W[d.union[1]]&&!seen[d.union[1]]){seen[d.union[1]]=1;rows.push({to:d.union[1],a:[d,W[d.union[0]]]})}});
+  (C.UNIONS||[]).forEach(u=>rows.push({to:u.to,a:[W[u.a],W[u.b]],u:1}));
   const sig=Object.keys(W).filter(id=>W[id].sig&&!W[id].evolved);
-  const card=r=>{const ok=found[r.to],t=W[r.to],how=r.p?r.a[0].n+" at full level, plus "+r.p.n+" (any level) in your slots":r.a.map(x=>x.n).join(" and ")+", both at full level";
+  const card=r=>{const ok=found[r.to],t=W[r.to],how=r.p?r.a[0].n+" at full level, plus "+r.p.n+" (any level) in your slots":r.a.map(x=>x.n).join(" and ")+(r.u?", both evolved (a union)":", both at full level");
     return E("div",{class:"card",style:{opacity:ok?1:.8}},E("div",null,ico(ok?r.to:"lock",40)),E("b",{style:{color:ok?t.c:"inherit"}},ok?t.n:"Unknown evolution"),
       E("div",{class:"mut",style:{fontSize:"12px",margin:"2px 0",display:"flex",alignItems:"center",gap:"4px",flexWrap:"wrap"}},...r.a.map(x=>ico(x.id,24)),...(r.p?["+",ico(r.pid,24)]:[]),"→",ico(ok?r.to:"lock",24)),
       E("div",{style:{fontSize:"13px"}},ok?t.d:"Discover it by opening a chest with the ingredients ready."),E("div",{class:"mut",style:{fontSize:"12px",marginTop:"4px"}},how+". Then open any chest."))};
@@ -196,7 +207,7 @@ function stopRun(){cancelAnimationFrame(raf);raf=0;const ov=document.getElementB
 
 function itemRows(run){const rows=[],own=id=>run.wp.find(w=>w.id===id);
   run.wp.forEach(w=>{const d=w.def,mx=C.maxLv(w.id),full=d.evolved||w.lv>=mx;let how="";
-    if(d.evolved)how="Evolved form.";
+    if(d.evolved){const u=(C.UNIONS||[]).find(u=>u.a===w.id||u.b===w.id);const oid=u&&(u.a===w.id?u.b:u.a);how="Evolved form."+(u?" Fuses with "+W[oid].n+" ("+(own(oid)?"owned ✓":"not owned ✗")+") into "+W[u.to].n+", then a chest.":"")}
     else if(d.evo&&PS[d.evo[0]]&&W[d.evo[1]]){const has=!!run.pa[d.evo[0]];how="Evolves into "+W[d.evo[1]].n+": reach full level"+(full?" ✓":" ("+w.lv+" of "+mx+")")+" and carry "+PS[d.evo[0]].n+(has?" ✓":" ✗")+", then open a chest."}
     else if(d.union&&W[d.union[1]]){const o=own(d.union[0]),of=o&&(o.def.evolved||o.lv>=C.maxLv(o.id));how="Pairs with "+W[d.union[0]].n+" to make "+W[d.union[1]].n+": both at full level"+(of&&full?" ✓":o?" (partner "+(of?"✓":"not full yet")+")":" (partner not owned ✗)")+", then a chest."}
     else how="No evolution.";rows.push({id:w.id,n:d.n,lv:d.evolved?"Evolved":w.lv>=mx?"MAX":"Lv "+w.lv+" of "+mx,how,c:d.c})});
@@ -218,12 +229,46 @@ function levelModal(ov,run,ch,go){let cur=ch,banish=false;const m=E("div",{class
     row.append(E("button",{type:"button",class:"sm",disabled:run.rr<=0,onclick:()=>{run.rr--;cur=run.choices();draw()}},"Reroll ("+run.rr+")"),E("button",{type:"button",class:"sm",disabled:run.sk<=0,onclick:()=>{run.sk--;m.remove();go()}},"Skip ("+run.sk+")"),E("button",{type:"button",class:"sm"+(banish?" on":""),disabled:run.bn<=0&&!banish,onclick:()=>{banish=!banish;draw()}},"Banish ("+run.bn+")"));m.append(row)};
   draw();ov.append(m);SND.play("level")}
 
-function chestModal(ov,run,got,go){let i=0;const m=E("div",{class:"cl-modal"}),show=()=>{m.textContent="";const g=got[i];let l,tit,sub;
-    if(g.kind==="evo"){M.evo=M.evo||{};M.evo[g.id]=1;save();const d=W[g.id];l={ic:d.ic,n:d.n,d:d.d,c:d.c};tit="Evolution!";sub=g.from.map(x=>W[x].n).join(" + ")+" becomes"}
-    else if(g.kind==="up"){l=run.label(g.ch);tit="The chest opens";sub=g.ch.lv>1?"Upgraded to level "+g.ch.lv:"New"}else{l={ic:"💰",n:"A purse of gold",d:"+50 gold",c:"#ffd24a"};tit="The chest opens";sub=""}
-    m.append(E("h2",null,tit),E("div",{class:"mut"},sub),E("div",{class:"cl-cards"},E("div",{class:"cl-card"+(g.kind==="evo"?" evo":""),style:{"--cc":l.c,cursor:"default"}},E("div",{class:"cic"},ico(g.kind==="evo"?g.id:g.kind==="up"?g.ch.id:"coin",56)),E("b",null,l.n),E("small",null,l.d))),
-      E("button",{type:"button",class:"pri",onclick:()=>{i++;if(i>=got.length){m.remove();go()}else show()}},i+1>=got.length?"Take it":"Next ("+(i+1)+"/"+got.length+")"))};
-  show();ov.append(m);SND.play("chest")}
+function chestModal(ov,run,got,go){
+  if(!document.getElementById("clChestCss"))document.head.append(E("style",{id:"clChestCss"},`
+#evRoot .cc-stage{position:relative;width:180px;height:150px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#evRoot .cc-rays{position:absolute;inset:-40px;border-radius:50%;opacity:0;background:repeating-conic-gradient(#ffe9a000 0 8deg,#ffe9a066 8deg 16deg);-webkit-mask:radial-gradient(circle,#000 20%,#0000 70%);mask:radial-gradient(circle,#000 20%,#0000 70%)}
+#evRoot .cc-stage.open .cc-rays{opacity:1;animation:ccspin 6s linear infinite}
+#evRoot .cc-chest.shake{animation:ccshake .45s ease-in-out infinite}
+#evRoot .cc-chest.pop{animation:ccpop .55s cubic-bezier(.2,1.6,.4,1) forwards}#evRoot .cc-chest.pop img{filter:drop-shadow(0 0 18px #ffe9a0)}
+#evRoot .cc-slots{max-width:900px;gap:8px;flex-wrap:wrap;justify-content:center}
+#evRoot .cc-card{flex:0 0 140px;perspective:700px;height:190px;position:relative}
+#evRoot .cc-card .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.3,1.3,.5,1)}
+#evRoot .cc-card.flip .in{transform:rotateY(180deg)}
+#evRoot .cc-card .f,#evRoot .cc-card .bk{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px;text-align:center}
+#evRoot .cc-card .bk{background:linear-gradient(145deg,#2a2250,#14102e);border:2px solid #d8b25a;font-size:40px;color:#d8b25a}
+#evRoot .cc-card .f{transform:rotateY(180deg);background:#14102ef2;border:2px solid var(--cc,#d8b25a);color:#f1ead8}
+#evRoot .cc-card.flip.evo .f{box-shadow:0 0 22px 4px var(--cc,#ffe9a0);animation:ccglow 1s ease-in-out infinite alternate}
+#evRoot .cc-card small{font-size:11px;opacity:.85}
+#evRoot .cc-count{font:700 28px Cinzel,Georgia,serif;color:#ffe9a0;text-shadow:0 2px 6px #000;animation:ccpop .5s cubic-bezier(.2,1.6,.4,1)}
+#evRoot .cc-count.five{font-size:36px;color:#ffd24a;text-shadow:0 0 14px #ff9a2e}
+@keyframes ccshake{0%,100%{transform:rotate(0) scale(1)}20%{transform:rotate(-7deg) scale(1.05)}40%{transform:rotate(6deg) scale(1.08)}60%{transform:rotate(-5deg) scale(1.05)}80%{transform:rotate(4deg) scale(1.02)}}
+@keyframes ccpop{0%{transform:scale(.6)}60%{transform:scale(1.35)}100%{transform:scale(1.15)}}
+@keyframes ccspin{to{transform:rotate(360deg)}}
+@keyframes ccglow{from{box-shadow:0 0 10px 1px var(--cc,#ffe9a0)}to{box-shadow:0 0 28px 8px var(--cc,#ffe9a0)}}`));
+  const n=got.length,m=E("div",{class:"cl-modal"}),timers=[],later=(f,t)=>{timers.push(setTimeout(f,t))};
+  got.forEach(g=>{if(g.kind==="evo"){M.evo=M.evo||{};M.evo[g.id]=1}});save();
+  const chest=E("div",{class:"cc-chest shake"},ico("chest",110)),stage=E("div",{class:"cc-stage"},E("div",{class:"cc-rays"}),chest),
+    head=E("h2",null,"A chest!"),count=E("div",null),slots=E("div",{class:"cl-cards cc-slots"}),btn=E("button",{type:"button",class:"pri",disabled:true},"Take it");
+  const cards=got.map(g=>{let l,sub;
+    if(g.kind==="evo"){const d=W[g.id];l={ic:d.ic,n:d.n,d:d.d,c:d.c};sub="Evolution! "+g.from.map(x=>W[x].n).join(" + ")}
+    else if(g.kind==="up"){l=run.label(g.ch);sub=g.ch.lv>1?"Upgraded to level "+g.ch.lv:"New"}else{l={n:"A purse of gold",d:"+50 gold",c:"#ffd24a"};sub=""}
+    const icon=g.kind==="evo"?g.id:g.kind==="up"?g.ch.id:"coin";
+    const el=E("div",{class:"cc-card"+(g.kind==="evo"?" evo":""),style:{"--cc":l.c}},E("div",{class:"in"},E("div",{class:"bk"},"?"),E("div",{class:"f"},E("div",null,ico(icon,48)),E("b",{style:{fontSize:"13px"}},l.n),E("small",null,sub),E("small",null,l.d))));
+    slots.append(el);return {el,evo:g.kind==="evo"}});
+  let done=false;
+  const finish=()=>{if(done)return;done=true;timers.forEach(clearTimeout);cards.forEach(c=>c.el.classList.add("flip"));chest.className="cc-chest pop";stage.classList.add("open");btn.disabled=false};
+  const opened=()=>{stage.classList.add("open");chest.className="cc-chest pop";SND.play("chest");head.textContent=n>=5?"Jackpot!":n>=3?"A fine chest!":"The chest opens";
+    count.append(E("div",{class:"cc-count"+(n>=5?" five":"")},n===1?"1 treasure":n+" treasures"));
+    cards.forEach((c,i)=>later(()=>{c.el.classList.add("flip");SND.play(c.evo?"level":"coin");if(i===cards.length-1)later(finish,450)},500+i*520))};
+  stage.onclick=()=>{if(!done)finish()};
+  btn.onclick=()=>{timers.forEach(clearTimeout);m.remove();go()};
+  m.append(head,stage,count,slots,btn);ov.append(m);SND.play("gem");later(opened,1000)}
 
 /* ---------- result ---------- */
 function finish(res,ov){load();const h=res.hero,bossId=res.boss,before=tierOf(h);M.gold+=res.gold;M.runs++;M.ess[h]=(M.ess[h]||0)+res.ess;M.stand=M.stand||{};const sg={};{const g0=groupOf(h);if(g0)sg[g0]=Math.round(10+Math.min(15,res.kills/150)+(res.win?30:0));const bg=res.win&&bossId&&!M.free[bossId]?groupOf(bossId):null;if(bg)sg[bg]=(sg[bg]||0)+25;Object.keys(sg).forEach(g=>M.stand[g]=(M.stand[g]||0)+sg[g])}
