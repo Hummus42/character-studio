@@ -31,7 +31,7 @@ const GMAX=3,gCost=(base,r)=>Math.round(base*(1+r*.9));
 const gPerks=g=>{const f=GP[g]||["Heritage",{might:.03},"+3% damage"];return [{k:"u",n:GU[0],st:GU[1],d:GU[2],base:30,ic:"🤝"},{k:"f",n:f[0],st:f[1],d:f[2],base:50,ic:"⭐"}]};
 const gStats=h=>{const g=groupOf(h),o={};if(!g)return o;const pk=(M.gperk||{})[g]||{};gPerks(g).forEach(p=>{const r=pk[p.k]||0;for(const s in p.st)o[s]=(o[s]||0)+p.st[s]*r});return o};
 const pTier=id=>{const e=(M.pess||{})[id]||0;let t=0;TIER_AT.forEach((v,i)=>{if(e>=v)t=i});return t};
-const metaFor=(h,pet)=>{const t=tierOf(h),up=Object.assign({},M.up),gst=Object.assign({},gStats(h));if(t>=3)up.reroll=(up.reroll||0)+1;if(t>=4){up.reroll=(up.reroll||0)+1;up.banish=(up.banish||0)+1;gst.growth=(gst.growth||0)+.12}if(pet&&C.PETS&&C.PETS[pet]){const b=C.petBearing(pet,pTier(pet),pet===h);for(const s in b)gst[s]=(gst[s]||0)+b[s]}
+const metaFor=(h,pet)=>{const t=tierOf(h),up=Object.assign({},M.up),gst=Object.assign({},gStats(h));if(t>=3)up.reroll=(up.reroll||0)+1;if(t>=4){up.reroll=(up.reroll||0)+1;up.banish=(up.banish||0)+1;gst.growth=(gst.growth||0)+.12}if(pet&&C.PETS&&C.PETS[pet]){const b=C.petBearing(pet,pTier(pet),pet===h);for(const s in b)gst[s]=(gst[s]||0)+b[s];const hp=gStats(pet);for(const s in hp)gst[s]=(gst[s]||0)+hp[s]*.5}
   return {up,tierMul:1+.08*t,gst,lock:M.lock||{}}};
 
 /* ---------- css ---------- */
@@ -158,7 +158,7 @@ function pets(pick){load();M.pess=M.pess||{};const ids=Object.keys(C.PETS);
           E("div",{style:{marginTop:"8px"}},E("b",null,"Command: "+cmd.n),E("div",{class:"mut",style:{fontSize:"13px"}},cmd.d+" Cooldown "+Math.round(cmd.cd*(t>=2?.85:1))+"s. Press F or tap its button.")),
           E("div",{style:{marginTop:"6px"}},E("b",null,"Bearing"),E("div",{class:"mut",style:{fontSize:"13px"}},bt(C.petBearing(cur,t,false))+(t<4?"  (Mythic adds "+bt(p.bear2)+")":""))),
           E("div",{style:{marginTop:"6px"}},E("b",null,"Tiers"),...C.PTIER.map((x,i)=>E("div",{class:"mut",style:{fontSize:"12px",color:i<=t?PT[i].col:""}},(i<=t?"✓ ":"· ")+x.n+": "+x.d))),
-          E("div",{class:"mut",style:{fontSize:"12px",marginTop:"6px"}},"Kin: bring "+HN(cur)+" with her own pet for +15% to its Bearing and Command."),
+          E("div",{class:"mut",style:{fontSize:"12px",marginTop:"6px"}},"Kin: bring "+HN(cur)+" with her own pet for +15% to its Bearing and Command. The perks you have bought for its House also reach it, at half strength."),
           E("div",{class:"row",style:{marginTop:"10px"}},E("button",{type:"button",class:on?"sm":"pri",disabled:!free,onclick:()=>{M.pet=on?null:cur;save();draw()}},!free?"Not yet joined":on?"Remove from climb":"Bring along"),on?E("span",{class:"chip hot"},"Coming along"):null))),
       E("h3",null,"Roster"),
       E("div",{class:"cl-heroes"},...hs.map(id=>{const f=!!M.free[id],tt=pTier(id);return E("button",{type:"button",class:"cl-h"+(id===cur?" on":""),style:{"--tc":PT[tt].col},onclick:()=>{cur=id;draw()}},E("div",{style:{filter:f?"none":"brightness(0) opacity(.5)"}},C.petImg(id,64,false)),E("div",{class:"nm"},f?C.PETS[id].n:"???"),E("small",null,f?PT[tt].name:"waiting"),M.pet===id?E("small",{style:{color:"#ffe9a0"}},"coming along"):null)}))))};
@@ -307,14 +307,15 @@ function chestModal(ov,run,got,go){
   m.append(head,stage,count,slots,btn);ov.append(m);SND.play("gem");later(opened,1000)}
 
 /* ---------- result ---------- */
-function finish(res,ov){load();const h=res.hero,bossId=res.boss,before=tierOf(h);M.gold+=res.gold;M.runs++;M.ess[h]=(M.ess[h]||0)+res.ess;M.pess=M.pess||{};if(res.pet)M.pess[res.pet]=(M.pess[res.pet]||0)+res.ess;M.stand=M.stand||{};const sg={};{const g0=groupOf(h);if(g0)sg[g0]=Math.round(10+Math.min(15,res.kills/150)+(res.win?30:0));const bg=res.win&&bossId&&!M.free[bossId]?groupOf(bossId):null;if(bg)sg[bg]=(sg[bg]||0)+25;Object.keys(sg).forEach(g=>M.stand[g]=(M.stand[g]||0)+sg[g])}
+function finish(res,ov){load();const h=res.hero,bossId=res.boss,before=tierOf(h),pb=res.pet?pTier(res.pet):0;M.gold+=res.gold;M.runs++;M.ess[h]=(M.ess[h]||0)+res.ess;M.pess=M.pess||{};if(res.pet)M.pess[res.pet]=(M.pess[res.pet]||0)+res.ess;M.stand=M.stand||{};const sg={};{const g0=groupOf(h);if(g0)sg[g0]=Math.round(10+Math.min(15,res.kills/150)+(res.win?30:0));const bg=res.win&&bossId&&!M.free[bossId]?groupOf(bossId):null;if(bg)sg[bg]=(sg[bg]||0)+25;Object.keys(sg).forEach(g=>M.stand[g]=(M.stand[g]||0)+sg[g])}
   let freed=false;if(res.win){M.wins++;M.best[res.floor]=Math.max(M.best[res.floor]||0,res.t);if(bossId&&!M.free[bossId]){M.free[bossId]=1;freed=true}}save();
   const sa=C.story?C.story.award(M,res,freed):null;if(sa)save();
-  const after=tierOf(h),m=E("div",{class:"cl-modal"},E("h2",null,res.win?"The floor is yours":"You fell"),
+  const after=tierOf(h),pa=res.pet?pTier(res.pet):0,m=E("div",{class:"cl-modal"},E("h2",null,res.win?"The floor is yours":"You fell"),
     freed?E("div",{style:{textAlign:"center"}},spr(bossId,120),E("div",{style:{fontSize:"18px",color:"#ffe27a"}},HN(bossId)+" joins you.")):null,
-    E("div",{class:"chips"},E("span",{class:"chip hot"},"💰 +"+fmt(res.gold)),E("span",{class:"chip"},"☠ "+res.kills),E("span",{class:"chip"},"Level "+res.lv),E("span",{class:"chip"},Math.floor(res.t/60)+":"+String(Math.floor(res.t%60)).padStart(2,"0")),E("span",{class:"chip hot"},"✦ +"+res.ess+" essence for "+HN(h))),
+    E("div",{class:"chips"},E("span",{class:"chip hot"},"💰 +"+fmt(res.gold)),E("span",{class:"chip"},"☠ "+res.kills),E("span",{class:"chip"},"Level "+res.lv),E("span",{class:"chip"},Math.floor(res.t/60)+":"+String(Math.floor(res.t%60)).padStart(2,"0")),E("span",{class:"chip hot"},"✦ +"+res.ess+" essence for "+HN(h)),...(res.pet&&C.PETS[res.pet]?[E("span",{class:"chip hot"},"🐾 +"+res.ess+" bond for "+C.PETS[res.pet].n)]:[])),
     E("div",{class:"chips"},...Object.keys(sg).map(g=>E("span",{class:"chip hot"},"✦ +"+sg[g]+" standing with "+gName(g)))),
     after>before?E("div",{style:{color:PT[after].col,fontSize:"18px"}},HN(h)+" ascends to "+PT[after].name+"."):null,
+     pa>pb?E("div",{style:{color:PT[pa].col,fontSize:"18px"}},C.PETS[res.pet].n+" grows to "+PT[pa].name+": "+C.PTIER[pa].d):null,
     sa?E("div",{class:"chips"},...Object.keys(sa.gain).map(g=>E("span",{class:"chip"},"♥ "+HN(g)+" +"+sa.gain[g]+" bond")),...sa.newly.map(x=>E("span",{class:"chip hot"},"New scene"+(x.n>1?"s ("+x.n+")":"")+": "+HN(x.h)))):null,
     E("div",{class:"row"},E("button",{type:"button",class:"pri",onclick:()=>{stopRun();home()}},"Back to the tower"),E("button",{type:"button",onclick:()=>{stopRun();startRun(h,res.floor,bossId&&!M.free[bossId]?bossId:bossId)}},res.win?"Climb again":"Try again")));
   ov.append(m);if(after>before&&ACAD.head&&ACAD.head.ui&&ACAD.head.ui.flourish)ACAD.head.ui.flourish(h,after);else if(freed&&ACAD.sfx)ACAD.sfx.play("fanfare")}
