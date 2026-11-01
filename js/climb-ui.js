@@ -5,6 +5,8 @@ if(typeof ACAD==="undefined"||!ACAD.climb||!ACAD.climb.Run||!ACAD.gameUI||!ENC.E
 const C=ACAD.climb,U=ACAD.gameUI,E=ENC.E,HN=ENC.HN,W=C.WEAPONS,PS=C.PASSIVES,PT=(ACAD.head&&ACAD.head.PT)||[{name:"Common",col:"#8b8ba2"},{name:"Uncommon",col:"#6fcf8e"},{name:"Rare",col:"#5aa9f0"},{name:"Legendary",col:"#e8b64a"},{name:"Mythic",col:"#e86bd8"}];
 const KEY="everspire.climb.v1",TIER_AT=[0,60,200,500,1200],STARTERS=["kitsune","lioness","wolf"];
 const skinOn=h=>{const e=((M&&M.skins)||{})[h];return e&&e.on&&(e.own||[]).includes(e.on)?e.on:null};
+C.petSkinOf=id=>{const e=((M&&M.pskins)||{})[id];return e&&e.on&&(e.own||[]).includes(e.on)?e.on:null};
+const ownedCos=()=>{const o=(M.cosOwn||{}),c=M.cos||{},r={};["trail","burst","arena"].forEach(k=>{if(c[k]&&(o[k]||[]).includes(c[k]))r[k]=c[k]});return r};
 const spr=(h,s,skin)=>{const sk=skin===undefined?skinOn(h):skin,i=E("img",{src:"assets/sprites/"+h+".128.webp",alt:"",draggable:"false",width:s,height:s,onerror:ev=>{const u=ACAD.pixelURL?ACAD.pixelURL(h):"";if(u&&ev.target.src!==u)ev.target.src=u}});if(sk&&C.skinURL){C.skinURL(h,sk,s,u=>{i.src=u});C.skinClass(i,sk)}return i};
 const fmt=n=>Math.round(n).toLocaleString();
 /* small synthesised sounds, on by default here, one switch in the run */
@@ -99,6 +101,8 @@ function page(body){U.ensure();U.show();injectCss();const r=root();r.textContent
 
 /* ---------- home: the tower ---------- */
 let sel=null;
+const framed=el=>{const f=C.FRAMES.find(x=>x.id===(M.cos||{}).frame&&x.ok(M));if(!f)return el;const w=E("span",{style:{display:"inline-block",borderRadius:"14px",padding:"3px",border:f.b,boxShadow:f.s,lineHeight:0}});w.append(el);return w};
+const titleLine=()=>{const t=C.TITLES.find(x=>x.id===(M.cos||{}).title&&x.ok(M));return t&&t.id!=="newcomer"?E("span",{class:"chip",style:{marginLeft:"6px"}},t.n):null};
 function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
   const top=E("div",{class:"cl-top"},E("button",{type:"button",onclick:()=>U.title()},"Menu"),E("h2",null,"Climb the Spire"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold)),E("button",{type:"button",onclick:powers},"Powers"),E("button",{type:"button",onclick:recipes},"Recipes"),E("button",{type:"button",onclick:()=>groups()},"Houses"),E("button",{type:"button",onclick:locks},"Lock"),E("button",{type:"button",class:"sm",title:"Cheats",onclick:cheatGate},"🔑"),E("button",{type:"button",onclick:()=>pets()},"Pets"),E("button",{type:"button",onclick:()=>wardrobe()},"Wardrobe"),E("button",{type:"button",onclick:()=>ENC.open("home")},"Codex"));
   const tower=E("div",{class:"cl-tower"}),panel=E("div");
@@ -113,7 +117,7 @@ function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
       locked.length>12?E("div",{class:"mut"},"…and "+(locked.length-12)+" more waiting"):null));
     const hs=Object.keys(M.free).filter(h=>M.free[h]).sort((a,b)=>tierOf(b)-tierOf(a)||HN(a).localeCompare(HN(b)));
     panel.append(E("div",{class:"card",style:{marginTop:"10px"}},E("h3",{style:{marginTop:0}},"Your hero"),
-      E("div",{class:"cl-kit"},spr(sel.hero,96),E("div",null,E("b",{style:{fontSize:"17px"}},HN(sel.hero)),E("span",{class:"chip",style:{marginLeft:"8px",borderColor:tc,color:tc}},PT[t].name),
+      E("div",{class:"cl-kit"},framed(spr(sel.hero,96)),E("div",null,E("b",{style:{fontSize:"17px"}},HN(sel.hero)),titleLine(),E("span",{class:"chip",style:{marginLeft:"8px",borderColor:tc,color:tc}},PT[t].name),
         E("div",{class:"mut"},ico(kit.start,22)," "+wd.n+" · "+wd.d),E("div",{class:"mut"},"Gift: "+kit.trait.d),kit.x?E("div",{class:"mut"},"Heirloom: "+PS[kit.heir].n+" · "+PS[kit.heir].d):null,kit.x?E("div",{class:"mut"},"Ability: "+kit.x.an+" · "+C.ABILITIES[kit.x.ab].d):null,E("div",{class:"mut"},"Health "+(kit.hp)+" · power ×"+(1+.08*t).toFixed(2)),groupOf(sel.hero)?E("div",{class:"mut"},"House: ",E("a",{href:"#",onclick:ev=>{ev.preventDefault();groups(groupOf(sel.hero))}},gName(groupOf(sel.hero))+" ("+Math.floor((M.stand||{})[groupOf(sel.hero)]||0)+" standing)")):null,
         E("div",{class:"bar",style:{margin:"6px 0 2px"}},E("i",{style:{width:Math.min(100,100*((M.ess[sel.hero]||0)-TIER_AT[t])/((TIER_AT[t+1]||TIER_AT[t]+1)-TIER_AT[t]))+"%",background:tc}})),
         E("div",{class:"mut",style:{fontSize:"12px"}},TIER_AT[t+1]?"Essence "+Math.floor(M.ess[sel.hero]||0)+" / "+TIER_AT[t+1]+" to "+PT[t+1].name:"Mythic: +32% damage and health, +2 rerolls, +1 banish, +12% experience"))),
@@ -161,16 +165,37 @@ function partners(){load();
       E("div",{class:"cl-heroes"},...hs.map(h=>{const tt=tierOf(h),pd=PS["hr_"+h],same=sel&&sel.hero===h;return E("button",{type:"button",class:"cl-h"+(h===cur?" on":""),disabled:same,style:{"--tc":PT[tt].col},onclick:()=>{M.partner=h;save();draw()}},spr(h,64),E("div",{class:"nm"},HN(h)),E("small",null,PT[tt].name),E("small",{style:{opacity:.75,display:"block"}},same?"your hero":pd.n+" ×"+(1+tt)))}))))};
   draw()}
 /* ---------- wardrobe: cosmetic skins, a gold sink ---------- */
-function wardrobe(pick){load();M.skins=M.skins||{};
-  const hs=Object.keys(M.free).filter(h=>M.free[h]).sort((a,b)=>HN(a).localeCompare(HN(b)));let cur=pick||(sel&&hs.includes(sel.hero)?sel.hero:hs[0]);
-  const draw=()=>{const e=M.skins[cur]=M.skins[cur]||{own:[],on:null},own=e.own||(e.own=[]),worn=skinOn(cur),re=fn=>()=>{fn();save();keepScroll(draw)};
-    const card=(sk)=>{const has=!sk||own.includes(sk.id),on=(sk?sk.id:null)===worn,cost=sk?C.SKIN_COST[sk.t]:0;
-      return E("div",{class:"card",style:{textAlign:"center",borderColor:on?"#ffe9a0":sk?sk.c+"88":""}},spr(cur,96,sk?sk.id:null),E("div",null,E("b",{style:{color:sk?sk.c:""}},sk?sk.n:"Original")),
-        E("button",{type:"button",class:!has&&M.gold>=cost?"pri sm":"sm",disabled:!has&&M.gold<cost||on&&!sk,onclick:re(()=>{if(!has){if(M.gold<cost)return;M.gold-=cost;own.push(sk.id)}e.on=sk?sk.id:null})},!has?"💰 "+fmt(cost):on?(sk?"Wearing":"Wearing"):"Wear"))};
+function wardrobe(tabIn,pick){load();M.skins=M.skins||{};M.pskins=M.pskins||{};M.cos=M.cos||{};M.cosOwn=M.cosOwn||{};["trail","burst","arena"].forEach(k=>M.cosOwn[k]=M.cosOwn[k]||[]);
+  const hs=Object.keys(M.free).filter(h=>M.free[h]).sort((a,b)=>HN(a).localeCompare(HN(b))),ps=Object.keys(C.PETS||{}).filter(i=>M.free[i]).sort((a,b)=>C.PETS[a].n.localeCompare(C.PETS[b].n));
+  let tab=tabIn||"skins",cur=pick||(sel&&hs.includes(sel.hero)?sel.hero:hs[0]),pcur=M.pet&&ps.includes(M.pet)?M.pet:ps[0];
+  const TABS=[["skins","Skins"],["pets","Pet skins"],["trail","Trails"],["burst","Bursts"],["arena","Arenas"],["title","Titles and frames"]],GL={petal:"✿",ember:"●",star:"✦",diamond:"◆",dot:"●"};
+  const top0=()=>{const p=document.querySelector(".page");if(p)p.scrollTop=0};
+  const draw=()=>{const re=fn=>()=>{fn();save();keepScroll(draw)};let body;
+    const tabs=E("div",{class:"row",style:{flexWrap:"wrap",margin:"6px 0 10px"}},...TABS.map(([k,n])=>E("button",{type:"button",class:"sm"+(k===tab?" on":""),onclick:()=>{tab=k;draw();top0()}},n)));
+    if(tab==="skins"||tab==="pets"){const isPet=tab==="pets",id=isPet?pcur:cur;
+      if(!id)body=E("p",{class:"mut"},isPet?"No pets have joined yet.":"No girls yet.");
+      else{const store=isPet?M.pskins:M.skins,e=store[id]=store[id]||{own:[],on:null},own=e.own||(e.own=[]),worn=e.on&&own.includes(e.on)?e.on:null;
+        const pic=(sid,sz)=>{if(!isPet)return spr(id,sz,sid);const i=C.petImg(id,sz,false,sid);if(sid)C.skinClass(i,sid);return i};
+        const card=sk=>{const has=!sk||own.includes(sk.id),on=(sk?sk.id:null)===worn,cost=sk?C.SKIN_COST[sk.t]:0;
+          return E("div",{class:"card",style:{textAlign:"center",borderColor:on?"#ffe9a0":sk?sk.c+"88":""}},pic(sk?sk.id:null,96),E("div",null,E("b",{style:{color:sk?sk.c:""}},sk?sk.n:"Original"),sk&&sk.fx?E("small",{class:"mut",style:{marginLeft:"6px"}},"✦ living"):null),
+            E("button",{type:"button",class:!has&&M.gold>=cost?"pri sm":"sm",disabled:!has&&M.gold<cost||on&&!sk,onclick:re(()=>{if(!has){if(M.gold<cost)return;M.gold-=cost;own.push(sk.id)}e.on=sk?sk.id:null})},!has?"💰 "+fmt(cost):on?"Wearing":"Wear"))};
+        const list=isPet?ps:hs,nm=x=>isPet?C.PETS[x].n:HN(x),cnt=x=>((store[x]||{}).own||[]).length;
+        body=E("div",null,E("div",{class:"card"},E("h3",{style:{marginTop:0}},nm(id)),E("div",{class:"cl-up"},card(null),...C.SKINS.map(card))),
+          E("h3",null,isPet?"Choose a pet":"Choose a girl"),E("div",{class:"cl-heroes"},...list.map(x=>E("button",{type:"button",class:"cl-h"+(x===id?" on":""),onclick:()=>{if(isPet)pcur=x;else cur=x;draw();top0()}},isPet?C.petImg(x,64,false):spr(x,64),E("div",{class:"nm"},nm(x)),E("small",null,cnt(x)+" of "+C.SKINS.length)))))}}
+    else if(tab==="title"){const T=C.TITLES,F=C.FRAMES,line=(it,key)=>{const ok=it.ok(M),on=(M.cos[key]||(key==="title"?"newcomer":"plain"))===it.id;
+        return E("div",{class:"card",style:{opacity:ok?1:.55,borderColor:on?"#ffe9a0":""}},E("b",null,it.n),E("div",{class:"mut",style:{fontSize:"12px"}},ok?it.d:"Locked: "+it.d),
+          key==="frame"?E("div",{style:{margin:"6px auto",width:"46px",height:"46px",borderRadius:"14px",border:it.b,boxShadow:it.s}}):null,
+          E("button",{type:"button",class:"sm",disabled:!ok||on,onclick:re(()=>{M.cos[key]=it.id})},on?"Wearing":"Wear"))};
+      body=E("div",null,E("h3",null,"Titles"),E("div",{class:"cl-up"},...T.map(t=>line(t,"title"))),E("h3",null,"Portrait frames"),E("div",{class:"cl-up"},...F.map(f=>line(f,"frame"))))}
+    else{const data={trail:C.TRAILS,burst:C.BURSTS,arena:C.ARENAS}[tab],own=M.cosOwn[tab],on0=M.cos[tab]&&own.includes(M.cos[tab])?M.cos[tab]:null,
+        blurb={trail:"A trail that follows her while she moves.",burst:"A flourish whenever you level up.",arena:"Recolors the floor of every climb."}[tab];
+      const card=(id,it)=>{const has=!it||own.includes(id),on=(it?id:null)===on0,cost=it?it.cost:0;
+        const pv=!it?E("div",{style:{height:"46px",fontSize:"22px"}},"–"):tab==="arena"?E("div",{style:{height:"46px",width:"90px",margin:"0 auto",borderRadius:"8px",background:"linear-gradient(135deg,"+it.tint[0]+","+it.tint[1]+")",border:"1px solid #3b3568"}}):E("div",{style:{height:"46px",fontSize:"30px",color:it.c,textShadow:"0 0 10px "+it.c}},GL[it.k]+" "+GL[it.k]+" "+GL[it.k]);
+        return E("div",{class:"card",style:{textAlign:"center",borderColor:on?"#ffe9a0":""}},pv,E("div",null,E("b",null,it?it.n:"None")),
+          E("button",{type:"button",class:!has&&M.gold>=cost?"pri sm":"sm",disabled:!has&&M.gold<cost||on&&!it,onclick:re(()=>{if(!has){if(M.gold<cost)return;M.gold-=cost;own.push(id)}M.cos[tab]=it?id:null})},!has?"💰 "+fmt(cost):on?"Wearing":"Wear"))};
+      body=E("div",null,E("p",{class:"mut"},blurb),E("div",{class:"cl-up"},card(null,null),...Object.keys(data).map(k=>card(k,data[k]))))}
     page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Wardrobe"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold))),
-      E("p",{class:"mut"},"Skins recolor a girl in the climb and on every screen. They are cosmetic and each girl buys her own. Cheaper tints first, rarer ones cost more."),
-      E("div",{class:"card"},E("h3",{style:{marginTop:0}},HN(cur)),E("div",{class:"cl-up"},card(null),...C.SKINS.map(card))),
-      E("h3",null,"Choose a girl"),E("div",{class:"cl-heroes"},...hs.map(h=>E("button",{type:"button",class:"cl-h"+(h===cur?" on":""),onclick:()=>{cur=h;draw();document.querySelector(".page").scrollTop=0}},spr(h,64),E("div",{class:"nm"},HN(h)),E("small",null,((M.skins[h]||{}).own||[]).length+" of "+C.SKINS.length))))))};
+      E("p",{class:"mut"},"Everything here is cosmetic. Skins recolor a girl or a pet; the rest follow every climb."),tabs,body))};
   draw()}
 function pets(pick){load();M.pess=M.pess||{};const ids=Object.keys(C.PETS);
   let cur=pick||(M.pet&&C.PETS[M.pet]?M.pet:ids.find(i=>M.free[i]))||ids[0];
@@ -284,7 +309,8 @@ let RUN=null,raf=0,keys={},stickEl=null;
 function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure();U.show();injectCss();const r=root();
   const ov=E("div",{class:"cl-ov",id:"clOv"}),cv=E("canvas"),hud=E("div",{class:"cl-hud"});ov.append(cv,hud);r.append(ov);
   const petId=M.pet&&C.PETS&&C.PETS[M.pet]&&M.free[M.pet]?M.pet:null;
-  const run=RUN=new C.Run({hero,skin:skinOn(hero),floor:f.g,floorIndex:fi,boss,pet:petId,petTier:petId?pTier(petId):0,kin:petId===hero,meta:metaFor(hero,petId)});
+  const pn=partnerOf()&&partnerOf()!==hero?partnerOf():null;
+  const run=RUN=new C.Run({hero,skin:skinOn(hero),partner:pn,partnerSkin:pn?skinOn(pn):null,cos:ownedCos(),floor:f.g,floorIndex:fi,boss,pet:petId,petTier:petId?pTier(petId):0,kin:petId===hero,meta:metaFor(hero,petId)});
   const xp=E("i"),xpb=E("div",{class:"xp"},xp),hpf=E("i",{style:{background:"linear-gradient(90deg,#ff4a6a,#ff8a9a)"}}),hpt=E("small"),lvt=E("b"),tm=E("div",{class:"tm"}),rt=E("div",{class:"rt"}),it=E("div",{class:"it"}),bossBar=E("div",{class:"boss"},E("div",{class:"bn"}),E("div",{class:"cl-bar"},E("i",{style:{background:"#ff5a7a"}}))),tip=E("div",{class:"tip"},"Drag or use WASD to move. She fights on her own."+(run.hzNote?" "+run.hzNote:""));
   stickEl=E("div",{class:"cl-stick"},E("i"));
   const pauseBtn=E("button",{type:"button",class:"sm",onclick:()=>pauseMenu()},"Pause");

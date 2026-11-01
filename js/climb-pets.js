@@ -72,7 +72,7 @@ class Run4 extends Base{
   if(P.down>0){ctx.globalAlpha=.5;ctx.fillStyle="#fff";ctx.font="700 12px Georgia";ctx.textAlign="center";ctx.fillText("z z z",this.px,this.py-30);ctx.restore();return}
   ctx.fillStyle="rgba(0,0,0,.3)";ctx.beginPath();ctx.ellipse(P.x,P.y+S*.4,S*.32,S*.1,0,0,TAU);ctx.fill();
   ctx.translate(P.x,P.y+bob);if(P.face<0)ctx.scale(-1,1);if(P.hit>0)ctx.globalAlpha=.7;
-  const art=C.petArt(this.petId);ctx.imageSmoothingEnabled=true;ctx.drawImage(art,-S/2,-S/2-4,S,S);ctx.restore();
+  const art=C.petArt(this.petId),psk=C.petSkinOf&&C.skinDef(C.petSkinOf(this.petId)),pT=tms/1000;ctx.imageSmoothingEnabled=true;if(psk&&psk.fx)C.skinFx(ctx,psk,pT,0);ctx.drawImage(art,-S/2,-S/2-4,S,S);if(psk&&psk.fx)C.skinFx(ctx,psk,pT,1);ctx.restore();
   ctx.save();ctx.setTransform(sc*D,0,0,sc*D,(w/2-this.px*sc)*D,(h/2-this.py*sc)*D);
   if(P.hp<P.mhp){ctx.fillStyle="#000a";ctx.fillRect(P.x-14,P.y+S*.5,28,4);ctx.fillStyle=this.pdat.c;ctx.fillRect(P.x-14,P.y+S*.5,28*Math.max(0,P.hp/P.mhp),4)}
   ctx.restore()}
@@ -84,7 +84,12 @@ const cache={};
 function loadInto(cv,src){const im=new Image();im.onload=()=>{const g=cv.getContext("2d");g.clearRect(0,0,cv.width,cv.height);g.imageSmoothingQuality="high";g.drawImage(im,0,0,cv.width,cv.height);cv.__u=null;cv.__art=1;(cv.__subs||[]).forEach(f=>f())};im.src=src}
 function fallback(id,kind){const cv=document.createElement("canvas");cv.width=cv.height=kind==="pp"?192:128;const g=cv.getContext("2d"),c=(C.PETS[id]||{}).c||"#fff";
   g.fillStyle=c;g.beginPath();g.arc(cv.width/2,cv.height/2,cv.width*.32,0,TAU);g.fill();g.fillStyle="#150d24";g.beginPath();g.arc(cv.width*.42,cv.height*.46,cv.width*.04,0,TAU);g.arc(cv.width*.58,cv.height*.46,cv.width*.04,0,TAU);g.fill();return cv}
-C.petArt=id=>{const k="p_"+id;if(cache[k])return cache[k];const cv=cache[k]=fallback(id,"p");loadInto(cv,"assets/climb/i_p_"+id+".png");return cv};
-C.petPortrait=id=>{const k="pp_"+id;if(cache[k])return cache[k];const cv=cache[k]=fallback(id,"pp");loadInto(cv,"assets/climb/i_pp_"+id+".png");return cv};
-C.petImg=(id,size,portrait)=>{const cv=portrait?C.petPortrait(id):C.petArt(id),i=new Image(size,size);const set=()=>{i.src=cv.toDataURL()};set();if(!cv.__art)(cv.__subs=cv.__subs||[]).push(set);i.alt="";i.style.cssText="width:"+size+"px;height:"+size+"px;vertical-align:middle;flex:none;image-rendering:auto";return i};
+/* a pet's worn skin is a recolored copy that repaints itself once the art has loaded */
+function skinned(base,k,skin){const sk=C.skinDef&&C.skinDef(skin);if(!sk)return base;const k2=k+"|"+skin;if(cache[k2])return cache[k2];const cv=cache[k2]=document.createElement("canvas");cv.width=base.width;cv.height=base.height;
+  const paint=()=>{const g=cv.getContext("2d");g.clearRect(0,0,cv.width,cv.height);try{g.drawImage(C.recolor(base,sk),0,0)}catch(e){g.drawImage(base,0,0)}};paint();
+  if(base.__art)cv.__art=1;else(base.__subs=base.__subs||[]).push(()=>{paint();cv.__art=1;(cv.__subs||[]).forEach(f=>f())});return cv}
+const worn=(id,s)=>s===undefined?(C.petSkinOf?C.petSkinOf(id):null):s;
+C.petArt=(id,skin)=>{const k="p_"+id;let cv=cache[k];if(!cv){cv=cache[k]=fallback(id,"p");loadInto(cv,"assets/climb/i_p_"+id+".png")}const s=worn(id,skin);return s?skinned(cv,k,s):cv};
+C.petPortrait=(id,skin)=>{const k="pp_"+id;let cv=cache[k];if(!cv){cv=cache[k]=fallback(id,"pp");loadInto(cv,"assets/climb/i_pp_"+id+".png")}const s=worn(id,skin);return s?skinned(cv,k,s):cv};
+C.petImg=(id,size,portrait,skin)=>{const cv=portrait?C.petPortrait(id,skin):C.petArt(id,skin),i=new Image(size,size);const set=()=>{i.src=cv.toDataURL()};set();if(!cv.__art)(cv.__subs=cv.__subs||[]).push(set);i.alt="";i.style.cssText="width:"+size+"px;height:"+size+"px;vertical-align:middle;flex:none;image-rendering:auto";return i};
 })();
