@@ -34,7 +34,7 @@ class Run{
   this.en=[];this.pr=[];this.zn=[];this.gems=[];this.pk=[];this.tx=[];this.pt=[];this.eb=[];this.later=[];this.rings=[];this.bolts=[];
   this.wp=[];this.pa={};this.nid=1;this.shake=0;this.flash=0;this.flashC="#fff";this.freeze=0;this.spawnT=0;this.ev={};this.bossE=null;this.stats=null;this.hush=null;
   this.rr=(this.meta.up&&this.meta.up.reroll)||0;this.sk=(this.meta.up&&this.meta.up.skip)||0;this.bn=(this.meta.up&&this.meta.up.banish)||0;this.banished={};
-  this.img=new Image();this.img.src="assets/sprites/"+o.hero+".256.webp";this.bossImg=null;if(o.boss){this.bossImg=new Image();this.bossImg.src="assets/sprites/"+o.boss+".256.webp"}
+  this.img=new Image();this.img.src="assets/sprites/"+o.hero+".256.webp";if(o.skin&&C.skinURL){C.skinURL(o.hero,o.skin,256,u=>{this.img.src=u});const sd=C.skinDef(o.skin);this.skinFx=sd&&sd.fx?sd:null}this.bossImg=null;if(o.boss){this.bossImg=new Image();this.bossImg.src="assets/sprites/"+o.boss+".256.webp"}
   this.recompute();this.hp=this.stats.maxhp;this.revives=this.stats.revive;this.addWeapon(this.kit.start);this.tile=null;this.cb={}}
  /* ----- stats ----- */
  recompute(){const k=this.kit,P={might:k.might,armor:k.armor,maxhp:1,regen:0,cooldown:1,area:1,speed:1,dur:1,amount:0,move:k.move,magnet:1,luck:1,growth:1,greed:1,curse:1,revive:0};
@@ -270,8 +270,8 @@ class Run{
   /* the hush */
   if(this.hush){const hs=this.hush;ctx.globalAlpha=.85;ctx.fillStyle="#1a0c2c";ctx.beginPath();ctx.arc(hs.x,hs.y,hs.r+Math.sin(T*8)*3,0,TAU);ctx.fill();ctx.strokeStyle="#c8a8ff";ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1}
   /* the hero */
-  const blink=this.invuln>0&&((tms/60)|0)%2===0;ctx.save();ctx.translate(px,py);ctx.fillStyle="rgba(0,0,0,.35)";ctx.beginPath();ctx.ellipse(0,22,15,6,0,0,TAU);ctx.fill();
-  const mv=this.dir[0]||this.dir[1],hb=mv?Math.sin(tms/70)*3:Math.sin(tms/300)*1.2;if(this.face<0)ctx.scale(-1,1);if(blink)ctx.globalAlpha=.45;if(this.img.complete&&this.img.naturalWidth)ctx.drawImage(this.img,-30,-34+hb,60,60);else{ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(0,0,14,0,TAU);ctx.fill()}ctx.restore();
+  const blink=this.invuln>0&&((tms/60)|0)%2===0;ctx.save();ctx.translate(px,py);ctx.fillStyle="rgba(0,0,0,.35)";ctx.beginPath();ctx.ellipse(0,22,15,6,0,0,TAU);ctx.fill();if(this.skinFx)C.skinFx(ctx,this.skinFx,T,0);
+  const mv=this.dir[0]||this.dir[1],hb=mv?Math.sin(tms/70)*3:Math.sin(tms/300)*1.2;if(this.face<0)ctx.scale(-1,1);if(blink)ctx.globalAlpha=.45;if(this.img.complete&&this.img.naturalWidth)ctx.drawImage(this.img,-30,-34+hb,60,60);else{ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(0,0,14,0,TAU);ctx.fill()}if(this.skinFx)C.skinFx(ctx,this.skinFx,T,1);ctx.restore();
   if(this.shield>0){ctx.strokeStyle="#9aff9a";ctx.globalAlpha=.7;ctx.lineWidth=3;ctx.beginPath();ctx.arc(px,py-2,34+Math.sin(T*8)*2,0,TAU);ctx.stroke();ctx.fillStyle="#9aff9a22";ctx.fill();ctx.globalAlpha=1}
   /* books */
   for(const wp of this.wp){if(wp.books&&wp.books.length){ctx.font="26px serif";ctx.textAlign="center";ctx.textBaseline="middle";wp.books.forEach(b=>{ctx.globalCompositeOperation=add;ctx.fillStyle=wp.def.c+"55";ctx.beginPath();ctx.arc(b.x,b.y,b.r+4,0,TAU);ctx.fill();ctx.globalCompositeOperation="source-over";ctx.fillText(wp.def.ic,b.x,b.y)})}}
