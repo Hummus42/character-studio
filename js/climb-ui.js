@@ -31,7 +31,11 @@ const GMAX=3,gCost=(base,r)=>Math.round(base*(1+r*.9));
 const gPerks=g=>{const f=GP[g]||["Heritage",{might:.03},"+3% damage"];return [{k:"u",n:GU[0],st:GU[1],d:GU[2],base:30,ic:"🤝"},{k:"f",n:f[0],st:f[1],d:f[2],base:50,ic:"⭐"}]};
 const gStats=h=>{const g=groupOf(h),o={};if(!g)return o;const pk=(M.gperk||{})[g]||{};gPerks(g).forEach(p=>{const r=pk[p.k]||0;for(const s in p.st)o[s]=(o[s]||0)+p.st[s]*r});return o};
 const pTier=id=>{const e=(M.pess||{})[id]||0;let t=0;TIER_AT.forEach((v,i)=>{if(e>=v)t=i});return t};
+const PARTNER_K=.6;
+const partnerOf=()=>{const p=M.partner;return p&&M.free[p]&&C.heroKit(p)&&PS["hr_"+p]?p:null};
+const partnerBearing=p=>{const o={},pd=PS["hr_"+p],lv=1+tierOf(p);if(pd)for(const s in pd.per)o[s]=pd.per[s]*lv*PARTNER_K;const hp=gStats(p);for(const s in hp)o[s]=(o[s]||0)+hp[s]*PARTNER_K;return o};
 const metaFor=(h,pet)=>{const t=tierOf(h),up=Object.assign({},M.up),gst=Object.assign({},gStats(h));if(t>=3)up.reroll=(up.reroll||0)+1;if(t>=4){up.reroll=(up.reroll||0)+1;up.banish=(up.banish||0)+1;gst.growth=(gst.growth||0)+.12}if(pet&&C.PETS&&C.PETS[pet]){const b=C.petBearing(pet,pTier(pet),pet===h);for(const s in b)gst[s]=(gst[s]||0)+b[s];const hp=gStats(pet);for(const s in hp)gst[s]=(gst[s]||0)+hp[s]*.5}
+  {const pp=partnerOf();if(pp&&pp!==h){const b=partnerBearing(pp);for(const s in b)gst[s]=(gst[s]||0)+b[s]}}
   return {up,tierMul:1+.08*t,gst,lock:M.lock||{}}};
 
 /* ---------- css ---------- */
@@ -111,6 +115,11 @@ function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
         E("div",{class:"bar",style:{margin:"6px 0 2px"}},E("i",{style:{width:Math.min(100,100*((M.ess[sel.hero]||0)-TIER_AT[t])/((TIER_AT[t+1]||TIER_AT[t]+1)-TIER_AT[t]))+"%",background:tc}})),
         E("div",{class:"mut",style:{fontSize:"12px"}},TIER_AT[t+1]?"Essence "+Math.floor(M.ess[sel.hero]||0)+" / "+TIER_AT[t+1]+" to "+PT[t+1].name:"Mythic: +32% damage and health, +2 rerolls, +1 banish, +12% experience"))),
       E("div",{class:"cl-heroes"},...hs.map(h=>{const tt=tierOf(h),hk=C.heroKit(h);return E("button",{type:"button",class:"cl-h"+(h===sel.hero?" on":""),style:{"--tc":PT[tt].col},onclick:()=>{sel.hero=h;save();drawPanel()}},spr(h,64),E("div",{class:"nm"},HN(h)),E("small",null,ico(hk.start,18)," "+W[hk.start].n),E("small",{style:{opacity:.65,display:"block"}},(gName(groupOf(h))||"").replace(/^The /,"")))}))));
+    {const pp=partnerOf(),ph=pp&&pp!==sel.hero?pp:null;
+      panel.append(E("div",{class:"card",style:{marginTop:"10px",display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap"}},ph?spr(ph,64):E("div",{style:{width:"64px",height:"64px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"28px"}},"♥"),
+        E("div",{style:{flex:1,minWidth:"160px"}},E("b",null,ph?HN(ph):"No partner"),ph?E("span",{class:"chip",style:{marginLeft:"8px"}},PT[tierOf(ph)].name):null,
+          E("div",{class:"mut",style:{fontSize:"13px"}},ph?PS["hr_"+ph].n+" ×"+(1+tierOf(ph))+" at "+Math.round(PARTNER_K*100)+"%: "+PS["hr_"+ph].d+". She earns essence too.":"Bring a second girl for her heirloom. She earns essence alongside your hero.")),
+        E("button",{type:"button",onclick:partners},ph?"Change partner":"Choose a partner")))}
     {const pid=M.pet&&C.PETS&&C.PETS[M.pet]&&M.free[M.pet]?M.pet:null,pd=pid&&C.PETS[pid];
       panel.append(E("div",{class:"card",style:{marginTop:"10px",display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap"}},pid?C.petImg(pid,64,true):E("div",{style:{width:"64px",height:"64px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"28px"}},"🐾"),
         E("div",{style:{flex:1,minWidth:"160px"}},E("b",null,pid?pd.n:"No pet"),pid?E("span",{class:"chip",style:{marginLeft:"8px"}},C.PTIER[pTier(pid)].n):null,
@@ -140,6 +149,14 @@ function groups(open){load();M.stand=M.stand||{};M.gperk=M.gperk||{};const wrap=
     E("p",{class:"mut"},"Standing is earned only by climbing with a House's girls: more for a win, and a lot when you free one of its girls. It is spent here, on perks that help every girl of that House, and it is separate from gold."),wrap))}
 
 /* ---------- pets: a second roster that mirrors the girls ---------- */
+function partners(){load();
+  const hs=Object.keys(M.free).filter(h=>M.free[h]&&PS["hr_"+h]).sort((a,b)=>tierOf(b)-tierOf(a)||HN(a).localeCompare(HN(b)));
+  const draw=()=>{const cur=partnerOf();
+    page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Partner")),
+      E("p",{class:"mut"},"A second girl who comes along. She does not fight or take a slot: her heirloom works for you at "+Math.round(PARTNER_K*100)+"% and grows with her tier, and she earns the same essence you do, so two girls level at once."),
+      cur?E("div",{class:"row",style:{marginBottom:"10px"}},E("span",{class:"chip hot"},"Partner: "+HN(cur)),E("button",{type:"button",class:"sm",onclick:()=>{M.partner=null;save();draw()}},"Send her home")):null,
+      E("div",{class:"cl-heroes"},...hs.map(h=>{const tt=tierOf(h),pd=PS["hr_"+h],same=sel&&sel.hero===h;return E("button",{type:"button",class:"cl-h"+(h===cur?" on":""),disabled:same,style:{"--tc":PT[tt].col},onclick:()=>{M.partner=h;save();draw()}},spr(h,64),E("div",{class:"nm"},HN(h)),E("small",null,PT[tt].name),E("small",{style:{opacity:.75,display:"block"}},same?"your hero":pd.n+" ×"+(1+tt)))}))))};
+  draw()}
 function pets(pick){load();M.pess=M.pess||{};const ids=Object.keys(C.PETS);
   let cur=pick||(M.pet&&C.PETS[M.pet]?M.pet:ids.find(i=>M.free[i]))||ids[0];
   const SN={might:"damage",armor:"armor",maxhp:"max health",regen:"health a second",cooldown:"cooldown",area:"area",speed:"projectile speed",dur:"duration",move:"move speed",magnet:"pickup range",luck:"luck",growth:"experience",greed:"gold"};
@@ -263,6 +280,8 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   const ABIC={nova:"💥",dash:"💨",heal:"💗",freeze:"❄️",summon:"👻",dome:"🔰",gravity:"🌀",blink:"✨",storm:"🌩️",meteor:"☄️",volley:"🎯",haste:"⚡"};
   const abBtn=run.ab?E("button",{type:"button",class:"cl-ab",style:{"--ac":run.ab.col},title:run.ab.name+": "+run.ab.d,onclick:()=>run.cast()},E("span",null,ABIC[run.ab.arch]||"✦"),E("small",null,run.ab.name)):null;
   const petBtn=run.pet?E("button",{type:"button",class:"cl-ab",style:{"--ac":run.pdat.c,right:"110px",bottom:"54px",width:"70px",height:"70px"},title:C.PETS[run.petId].n+": "+C.PCMD[run.pdat.cmd].d+" (F)",onclick:()=>run.petCast()},C.petImg(run.petId,34),E("small",null,C.PCMD[run.pdat.cmd].n)):null;
+  const ptn=partnerOf()&&partnerOf()!==hero?partnerOf():null;
+  if(ptn)hud.append(E("div",{class:"chip",style:{position:"absolute",left:"8px",top:"64px",display:"flex",alignItems:"center",gap:"4px",pointerEvents:"none"},title:HN(ptn)+" tags along"},spr(ptn,26),E("small",null,"♥ "+HN(ptn))));
   hud.append(xpb,E("div",{class:"hp"},E("div",null,lvt," ",hpt),E("div",{class:"cl-bar"},hpf)),tm,rt,it,bossBar,tip,stickEl,...(abBtn?[abBtn]:[]),...(petBtn?[petBtn]:[]));setTimeout(()=>{tip.style.opacity=0},5000);
   const ctx=cv.getContext("2d");let w=0,h=0;
   const fit=()=>{const dpr=Math.min(2,window.devicePixelRatio||1),b=ov.getBoundingClientRect();w=b.width;h=b.height;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);run.dpr=dpr};fit();addEventListener("resize",fit);ov._fit=fit;
@@ -276,7 +295,7 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   const vis=()=>{if(document.hidden&&RUN&&!RUN.ended&&!RUN.paused)pauseMenu()};document.addEventListener("visibilitychange",vis);const prevOff=ov._off;ov._off=()=>{prevOff();document.removeEventListener("visibilitychange",vis)};
   /* what the run asks of the screen */
   run.cb.level=(ch,go)=>levelModal(ov,run,ch,go);run.cb.chest=(got,go)=>chestModal(ov,run,got,go);
-  run.cb.boss=id=>{bossBar.style.display="block";SND.play("boss")};run.cb.end=res=>{res.pet=run.petId;SND.play(res.win?"win":"lose");setTimeout(()=>finish(res,ov),run.won?400:900)};
+  run.cb.boss=id=>{bossBar.style.display="block";SND.play("boss")};run.cb.end=res=>{res.pet=run.petId;res.partner=ptn;SND.play(res.win?"win":"lose");setTimeout(()=>finish(res,ov),run.won?400:900)};
   /* hud paint */
   let hudT=0,iconKey="";const hudPaint=()=>{const P=run.stats;xp.style.width=Math.min(100,100*run.xp/C.xpNeed(run.lv))+"%";hpf.style.width=Math.max(0,100*run.hp/P.maxhp)+"%";hpt.textContent=Math.ceil(Math.max(0,run.hp))+" / "+P.maxhp;lvt.textContent="Lv "+run.lv;
     const s=Math.floor(run.t);tm.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");rt.firstChild.textContent="💰 "+run.gold;rt.children[1].textContent="☠ "+run.kills+" · 👾 "+run.en.length;
@@ -367,14 +386,15 @@ function chestModal(ov,run,got,go){
   m.append(head,stage,count,slots,btn);ov.append(m);SND.play("gem");later(opened,1000)}
 
 /* ---------- result ---------- */
-function finish(res,ov){load();const h=res.hero,bossId=res.boss,before=tierOf(h),pb=res.pet?pTier(res.pet):0;M.gold+=res.gold;M.runs++;M.ess[h]=(M.ess[h]||0)+res.ess;M.pess=M.pess||{};if(res.pet)M.pess[res.pet]=(M.pess[res.pet]||0)+res.ess;M.stand=M.stand||{};const sg={};{const g0=groupOf(h);if(g0)sg[g0]=Math.round(10+Math.min(15,res.kills/150)+(res.win?30:0));const bg=res.win&&bossId&&!M.free[bossId]?groupOf(bossId):null;if(bg)sg[bg]=(sg[bg]||0)+25;Object.keys(sg).forEach(g=>M.stand[g]=(M.stand[g]||0)+sg[g])}
+function finish(res,ov){load();const h=res.hero,bossId=res.boss,before=tierOf(h),pb=res.pet?pTier(res.pet):0;M.gold+=res.gold;M.runs++;M.ess[h]=(M.ess[h]||0)+res.ess;const pb2=res.partner?tierOf(res.partner):0;if(res.partner&&M.free[res.partner])M.ess[res.partner]=(M.ess[res.partner]||0)+res.ess;M.pess=M.pess||{};if(res.pet)M.pess[res.pet]=(M.pess[res.pet]||0)+res.ess;M.stand=M.stand||{};const sg={};{const g0=groupOf(h);if(g0)sg[g0]=Math.round(10+Math.min(15,res.kills/150)+(res.win?30:0));const bg=res.win&&bossId&&!M.free[bossId]?groupOf(bossId):null;if(bg)sg[bg]=(sg[bg]||0)+25;Object.keys(sg).forEach(g=>M.stand[g]=(M.stand[g]||0)+sg[g])}
   let freed=false;if(res.win){M.wins++;M.best[res.floor]=Math.max(M.best[res.floor]||0,res.t);if(bossId&&!M.free[bossId]){M.free[bossId]=1;freed=true}}save();
   const sa=C.story?C.story.award(M,res,freed):null;if(sa)save();
   const after=tierOf(h),pa=res.pet?pTier(res.pet):0,m=E("div",{class:"cl-modal"},E("h2",null,res.win?"The floor is yours":"You fell"),
     freed?E("div",{style:{textAlign:"center"}},spr(bossId,120),E("div",{style:{fontSize:"18px",color:"#ffe27a"}},HN(bossId)+" joins you.")):null,
-    E("div",{class:"chips"},E("span",{class:"chip hot"},"💰 +"+fmt(res.gold)),E("span",{class:"chip"},"☠ "+res.kills),E("span",{class:"chip"},"Level "+res.lv),E("span",{class:"chip"},Math.floor(res.t/60)+":"+String(Math.floor(res.t%60)).padStart(2,"0")),E("span",{class:"chip hot"},"✦ +"+res.ess+" essence for "+HN(h)),...(res.pet&&C.PETS[res.pet]?[E("span",{class:"chip hot"},"🐾 +"+res.ess+" bond for "+C.PETS[res.pet].n)]:[])),
+    E("div",{class:"chips"},E("span",{class:"chip hot"},"💰 +"+fmt(res.gold)),E("span",{class:"chip"},"☠ "+res.kills),E("span",{class:"chip"},"Level "+res.lv),E("span",{class:"chip"},Math.floor(res.t/60)+":"+String(Math.floor(res.t%60)).padStart(2,"0")),E("span",{class:"chip hot"},"✦ +"+res.ess+" essence for "+HN(h)),...(res.partner?[E("span",{class:"chip hot"},"♥ +"+res.ess+" essence for "+HN(res.partner))]:[]),...(res.pet&&C.PETS[res.pet]?[E("span",{class:"chip hot"},"🐾 +"+res.ess+" bond for "+C.PETS[res.pet].n)]:[])),
     E("div",{class:"chips"},...Object.keys(sg).map(g=>E("span",{class:"chip hot"},"✦ +"+sg[g]+" standing with "+gName(g)))),
     after>before?E("div",{style:{color:PT[after].col,fontSize:"18px"}},HN(h)+" ascends to "+PT[after].name+"."):null,
+     res.partner&&tierOf(res.partner)>pb2?E("div",{style:{color:PT[tierOf(res.partner)].col,fontSize:"18px"}},HN(res.partner)+" ascends to "+PT[tierOf(res.partner)].name+"."):null,
      pa>pb?E("div",{style:{color:PT[pa].col,fontSize:"18px"}},C.PETS[res.pet].n+" grows to "+PT[pa].name+": "+C.PTIER[pa].d):null,
     sa?E("div",{class:"chips"},...Object.keys(sa.gain).map(g=>E("span",{class:"chip"},"♥ "+HN(g)+" +"+sa.gain[g]+" bond")),...sa.newly.map(x=>E("span",{class:"chip hot"},"New scene"+(x.n>1?"s ("+x.n+")":"")+": "+HN(x.h)))):null,
     E("div",{class:"row"},E("button",{type:"button",class:"pri",onclick:()=>{stopRun();home()}},"Back to the tower"),E("button",{type:"button",onclick:()=>{stopRun();startRun(h,res.floor,bossId&&!M.free[bossId]?bossId:bossId)}},res.win?"Climb again":"Try again")));
