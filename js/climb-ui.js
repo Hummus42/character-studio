@@ -75,6 +75,7 @@ const css=`
 #evRoot .cl-ab.ready{animation:clGlow 1.2s ease-in-out infinite;--cc:var(--ac)}
 #evRoot .cl-stick{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid #ffffff55;background:#ffffff14;display:none;pointer-events:none}
 #evRoot .cl-stick i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#ffffff66}
+#evRoot .cl-card.link{box-shadow:0 0 16px 3px #ffe9a066}
 #evRoot .cl-modal{position:absolute;inset:0;background:#05031acc;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:14px;overflow:auto;z-index:5}
 #evRoot .cl-modal h2{margin:0;font-family:Cinzel,Georgia,serif;color:#ffe27a;text-shadow:0 0 14px #ffd24a88}
 #evRoot .cl-cards{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:880px}
@@ -132,7 +133,7 @@ function groups(open){load();M.stand=M.stand||{};M.gperk=M.gperk||{};const wrap=
     const card=E("div",{class:"card",style:{borderColor:g===open?f.acc:""}},E("b",{style:{color:f.acc}},gName(g)),E("div",{class:"mut"},fr+" of "+mem.length+" joined · "+st+" standing"),
       E("div",{style:{display:"flex",gap:"3px",flexWrap:"wrap",margin:"6px 0"}},...mem.filter(h=>M.free[h]).slice(0,10).map(h=>spr(h,28))));
     gPerks(g).forEach(p=>{const r=pk[p.k]||0,cost=gCost(p.base,r),can=r<GMAX&&st>=cost;
-      card.append(E("div",{style:{borderTop:"1px solid #fff2",paddingTop:"6px",marginTop:"6px"}},E("b",null,ico(p.k==="u"?"crest":"star",22)," "+p.n),E("div",{style:{fontSize:"13px"}},p.d+" per rank, for every girl of this House"),E("div",{class:"mut",style:{fontSize:"12px"}},"Rank "+r+" of "+GMAX+(r?" · now "+p.d.replace(/(d+(.d+)?)/g,m=>String(Math.round(m*r*100)/100)):"")),
+      card.append(E("div",{style:{borderTop:"1px solid #fff2",paddingTop:"6px",marginTop:"6px"}},E("b",null,ico(p.k==="u"?"crest":"star",22)," "+p.n),E("div",{style:{fontSize:"13px"}},p.d+" per rank, for every girl of this House"),E("div",{class:"mut",style:{fontSize:"12px"}},"Rank "+r+" of "+GMAX+(r?" · now "+p.d.replace(/[0-9]+([.][0-9]+)?/g,m=>String(Math.round(m*r*100)/100)):"")),
         E("button",{type:"button",class:can?"pri sm":"sm",disabled:!can,onclick:()=>{M.stand[g]=(M.stand[g]||0)-cost;pk[p.k]=r+1;save();groups(g)}},r>=GMAX?"Maxed":"✦ "+cost+" standing")))});
     wrap.append(card)});
   page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Houses"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold))),
@@ -248,7 +249,7 @@ function itemRows(run){const rows=[],own=id=>run.wp.find(w=>w.id===id);
     else if(d.union&&W[d.union[1]]){const o=own(d.union[0]),of=o&&(o.def.evolved||o.lv>=C.maxLv(o.id));how="Pairs with "+W[d.union[0]].n+" to make "+W[d.union[1]].n+": both at full level"+(of&&full?" ✓":o?" (partner "+(of?"✓":"not full yet")+")":" (partner not owned ✗)")+", then a chest."}
     else how="No evolution.";rows.push({id:w.id,n:d.n,lv:d.evolved?"Evolved":w.lv>=mx?"MAX":"Lv "+w.lv+" of "+mx,how,c:d.c})});
   Object.keys(run.pa).forEach(id=>{const p=PS[id],l=run.pa[id],mx=p.max,ev=Object.keys(W).filter(k=>W[k].evo&&W[k].evo[0]===id&&!W[k].evolved);
-    const how=ev.length?"Evolves: "+ev.map(k=>W[k].n+(own(k)?" (you have it"+(own(k).lv>=C.maxLv(k)?", full ✓":", not full yet")+")":" (not owned)")).join("; "):p.d;
+    const how=ev.length?"Evolves: "+ev.map(k=>W[k].n+(own(k)?" (you have it"+(own(k).lv>=C.maxLv(k)?", full ✓":", not full yet")+")":W[k].evo&&own(W[k].evo[1])?" (already evolved ✓)":" (not owned)")).join("; "):p.d;
     rows.push({id,n:p.n,lv:l>=mx?"MAX":"Lv "+l+" of "+mx,how:(p.d?p.d+". ":"")+(ev.length?how:"No weapon evolves with it."),c:"#9ab0e8"})});
   return rows}
 function pauseMenu(){const run=RUN,ov=document.getElementById("clOv");if(!run||!ov||run.ended||ov.querySelector(".cl-modal"))return;const was=run.paused;run.paused=true;
@@ -259,8 +260,13 @@ function pauseMenu(){const run=RUN,ov=document.getElementById("clOv");if(!run||!
   m.append(E("div",{class:"mut",style:{fontSize:"12px"}},"Your items and what they need to evolve. ✓ means you already have it."),list,E("div",{class:"mut",style:{maxWidth:"420px",textAlign:"center",fontSize:"12px"}},"Move with WASD, the arrow keys, or by dragging on the screen. Your weapons fire on their own."));
   ov.append(m)}
 
+/* a card whose weapon and item belong together gets a quiet glow once you hold the other half */
+function evoLink(run,c){
+  if(c.type==="weapon"){const d=W[c.id];if(d&&!d.evolved&&d.evo&&PS[d.evo[0]]&&run.pa[d.evo[0]])return "Evolves with your "+PS[d.evo[0]].n;return null}
+  if(c.type==="passive"){const w=run.wp.find(x=>!x.def.evolved&&x.def.evo&&x.def.evo[0]===c.id);if(w)return "Evolves your "+w.def.n;return null}
+  return null}
 function levelModal(ov,run,ch,go){let cur=ch,banish=false;const m=E("div",{class:"cl-modal"}),draw=()=>{m.textContent="";m.append(E("h2",null,banish?"Choose one to banish":"Level "+run.lv+"!"));
-    const cards=E("div",{class:"cl-cards"});cur.forEach(c=>{const l=run.label(c),b=E("button",{type:"button",class:"cl-card",style:{"--cc":l.c},onclick:()=>{if(banish){run.banished[c.id]=true;run.bn--;banish=false;cur=run.choices();draw();return}run.apply(c);m.remove();go()}},E("div",{class:"cic"},ico(c.type==="heal"?"chicken":c.type==="gold"?"coin":c.id,56)),E("em",null,c.type==="weapon"?(c.lv===1?"New weapon":"Weapon · level "+c.lv):c.type==="passive"?(c.lv===1?"New item":"Item · level "+c.lv):"Reward"),E("b",null,l.n),E("small",null,l.d),l.evo?E("small",{style:{opacity:.8}},"Evolves with "+l.evo):null);cards.append(b)});
+    const cards=E("div",{class:"cl-cards"});cur.forEach(c=>{const l=run.label(c),lk=evoLink(run,c),b=E("button",{type:"button",class:"cl-card"+(lk?" link":""),style:{"--cc":l.c},onclick:()=>{if(banish){run.banished[c.id]=true;run.bn--;banish=false;cur=run.choices();draw();return}run.apply(c);m.remove();go()}},E("div",{class:"cic"},ico(c.type==="heal"?"chicken":c.type==="gold"?"coin":c.id,56)),E("em",null,c.type==="weapon"?(c.lv===1?"New weapon":"Weapon · level "+c.lv):c.type==="passive"?(c.lv===1?"New item":"Item · level "+c.lv):"Reward"),E("b",null,l.n),E("small",null,l.d),l.evo?E("small",{style:{opacity:.8}},"Evolves with "+l.evo):null,lk?E("small",{style:{color:"#ffe9a0"}},"✦ "+lk):null);cards.append(b)});
     m.append(cards);const row=E("div",{class:"row"});
     row.append(E("button",{type:"button",class:"sm",disabled:run.rr<=0,onclick:()=>{run.rr--;cur=run.choices();draw()}},"Reroll ("+run.rr+")"),E("button",{type:"button",class:"sm",disabled:run.sk<=0,onclick:()=>{run.sk--;m.remove();go()}},"Skip ("+run.sk+")"),E("button",{type:"button",class:"sm"+(banish?" on":""),disabled:run.bn<=0&&!banish,onclick:()=>{banish=!banish;draw()}},"Banish ("+run.bn+")"));m.append(row)};
   draw();ov.append(m);SND.play("level")}
