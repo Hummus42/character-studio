@@ -30,7 +30,9 @@ const GU=["Kinship",{might:.03,maxhp:.04},"+3% damage and +4% health"];
 const GMAX=3,gCost=(base,r)=>Math.round(base*(1+r*.9));
 const gPerks=g=>{const f=GP[g]||["Heritage",{might:.03},"+3% damage"];return [{k:"u",n:GU[0],st:GU[1],d:GU[2],base:30,ic:"🤝"},{k:"f",n:f[0],st:f[1],d:f[2],base:50,ic:"⭐"}]};
 const gStats=h=>{const g=groupOf(h),o={};if(!g)return o;const pk=(M.gperk||{})[g]||{};gPerks(g).forEach(p=>{const r=pk[p.k]||0;for(const s in p.st)o[s]=(o[s]||0)+p.st[s]*r});return o};
-const metaFor=h=>{const t=tierOf(h),up=Object.assign({},M.up),gst=Object.assign({},gStats(h));if(t>=3)up.reroll=(up.reroll||0)+1;if(t>=4){up.reroll=(up.reroll||0)+1;up.banish=(up.banish||0)+1;gst.growth=(gst.growth||0)+.12}return {up,tierMul:1+.08*t,gst,lock:M.lock||{}}};
+const pTier=id=>{const e=(M.pess||{})[id]||0;let t=0;TIER_AT.forEach((v,i)=>{if(e>=v)t=i});return t};
+const metaFor=(h,pet)=>{const t=tierOf(h),up=Object.assign({},M.up),gst=Object.assign({},gStats(h));if(t>=3)up.reroll=(up.reroll||0)+1;if(t>=4){up.reroll=(up.reroll||0)+1;up.banish=(up.banish||0)+1;gst.growth=(gst.growth||0)+.12}if(pet&&C.PETS&&C.PETS[pet]){const b=C.petBearing(pet,pTier(pet),pet===h);for(const s in b)gst[s]=(gst[s]||0)+b[s]}
+  return {up,tierMul:1+.08*t,gst,lock:M.lock||{}}};
 
 /* ---------- css ---------- */
 const css=`
@@ -90,7 +92,7 @@ function page(body){U.ensure();U.show();injectCss();const r=root();r.textContent
 /* ---------- home: the tower ---------- */
 let sel=null;
 function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
-  const top=E("div",{class:"cl-top"},E("button",{type:"button",onclick:()=>U.title()},"Menu"),E("h2",null,"Climb the Spire"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold)),E("button",{type:"button",onclick:powers},"Powers"),E("button",{type:"button",onclick:recipes},"Recipes"),E("button",{type:"button",onclick:()=>groups()},"Houses"),E("button",{type:"button",onclick:locks},"Lock"),E("button",{type:"button",onclick:()=>ENC.open("home")},"Codex"));
+  const top=E("div",{class:"cl-top"},E("button",{type:"button",onclick:()=>U.title()},"Menu"),E("h2",null,"Climb the Spire"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold)),E("button",{type:"button",onclick:powers},"Powers"),E("button",{type:"button",onclick:recipes},"Recipes"),E("button",{type:"button",onclick:()=>groups()},"Houses"),E("button",{type:"button",onclick:locks},"Lock"),E("button",{type:"button",onclick:()=>pets()},"Pets"),E("button",{type:"button",onclick:()=>ENC.open("home")},"Codex"));
   const tower=E("div",{class:"cl-tower"}),panel=E("div");
   const drawTower=()=>{tower.textContent="";for(let i=0;i<C.FLOORS.length;i++){const f=C.FLOORS[i],open=floorOpen(i),g=(ACAD.GROUPS||[]).find(x=>x.id===f.g)||{name:f.g},mem=members(f.g),n=mem.filter(h=>M.free[h]).length;
     const b=E("button",{type:"button",class:"cl-fl"+(i===sel.floor?" on":"")+(open?"":" lock"),style:{"--fc":f.acc},onclick:()=>{if(!open)return;sel.floor=i;sel.boss=null;save();drawTower();drawPanel()}},E("span",{class:"no"},String(i+1)),E("span",null,E("b",null,f.n),E("small",null,open?g.name+" · "+n+" of "+mem.length+" freed":"Free 3 girls on floor "+i+" to open")),E("span",{class:"mut"},M.best[i]?"✓":open?"":"🔒"));tower.append(b)}};
@@ -108,6 +110,11 @@ function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
         E("div",{class:"bar",style:{margin:"6px 0 2px"}},E("i",{style:{width:Math.min(100,100*((M.ess[sel.hero]||0)-TIER_AT[t])/((TIER_AT[t+1]||TIER_AT[t]+1)-TIER_AT[t]))+"%",background:tc}})),
         E("div",{class:"mut",style:{fontSize:"12px"}},TIER_AT[t+1]?"Essence "+Math.floor(M.ess[sel.hero]||0)+" / "+TIER_AT[t+1]+" to "+PT[t+1].name:"Mythic: +32% damage and health, +2 rerolls, +1 banish, +12% experience"))),
       E("div",{class:"cl-heroes"},...hs.map(h=>{const tt=tierOf(h),hk=C.heroKit(h);return E("button",{type:"button",class:"cl-h"+(h===sel.hero?" on":""),style:{"--tc":PT[tt].col},onclick:()=>{sel.hero=h;save();drawPanel()}},spr(h,64),E("div",{class:"nm"},HN(h)),E("small",null,ico(hk.start,18)," "+W[hk.start].n),E("small",{style:{opacity:.65,display:"block"}},(gName(groupOf(h))||"").replace(/^The /,"")))}))));
+    {const pid=M.pet&&C.PETS&&C.PETS[M.pet]&&M.free[M.pet]?M.pet:null,pd=pid&&C.PETS[pid];
+      panel.append(E("div",{class:"card",style:{marginTop:"10px",display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap"}},pid?C.petImg(pid,64,true):E("div",{style:{width:"64px",height:"64px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"28px"}},"🐾"),
+        E("div",{style:{flex:1,minWidth:"160px"}},E("b",null,pid?pd.n:"No pet"),pid?E("span",{class:"chip",style:{marginLeft:"8px"}},C.PTIER[pTier(pid)].n):null,
+          E("div",{class:"mut",style:{fontSize:"13px"}},pid?C.PCMD[pd.cmd].n+": "+C.PCMD[pd.cmd].d+(pid===sel.hero?" Kin of "+HN(pid)+": +15%.":""):"Bring a pet along. Any pet goes with any girl.")),
+        E("button",{type:"button",onclick:()=>pets()},pid?"Change pet":"Choose a pet")))}
     panel.append(E("div",{class:"row",style:{marginTop:"12px"}},E("button",{type:"button",class:"pri",style:{fontSize:"17px",padding:"10px 22px"},onclick:()=>startRun(sel.hero,fi,sel.boss)},"Climb"),C.story?E("button",{type:"button",onclick:()=>C.story.open(sel.hero,M,drawPanel)},"Her story"+(C.story.fresh(M,sel.hero).length?" ("+C.story.fresh(M,sel.hero).length+" new)":"")):null,E("span",{class:"mut"},"One floor, about nine minutes. Move; she fights on her own.")))};
   page(E("div",null,top,E("div",{class:"cl-grid"},tower,panel)));drawTower();drawPanel()}
 
@@ -130,6 +137,32 @@ function groups(open){load();M.stand=M.stand||{};M.gperk=M.gperk||{};const wrap=
     wrap.append(card)});
   page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Houses"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold))),
     E("p",{class:"mut"},"Standing is earned only by climbing with a House's girls: more for a win, and a lot when you free one of its girls. It is spent here, on perks that help every girl of that House, and it is separate from gold."),wrap))}
+
+/* ---------- pets: a second roster that mirrors the girls ---------- */
+function pets(pick){load();M.pess=M.pess||{};const ids=Object.keys(C.PETS);
+  let cur=pick||(M.pet&&C.PETS[M.pet]?M.pet:ids.find(i=>M.free[i]))||ids[0];
+  const SN={might:"damage",armor:"armor",maxhp:"max health",regen:"health a second",cooldown:"cooldown",area:"area",speed:"projectile speed",dur:"duration",move:"move speed",magnet:"pickup range",luck:"luck",growth:"experience",greed:"gold"};
+  const fmt1=(s,v)=>s==="armor"?"+"+Math.round(v*10)/10+" armor":s==="regen"?"+"+Math.round(v*100)/100+" health a second":(v<0?"":"+")+Math.round(v*100)+"% "+SN[s];
+  const bt=(o)=>Object.keys(o).map(s=>fmt1(s,o[s])).join(", ");
+  const draw=()=>{const p=C.PETS[cur],t=pTier(cur),tc=PT[t].col,free=!!M.free[cur],kin=sel&&sel.hero===cur,cmd=C.PCMD[p.cmd];
+    const e=M.pess[cur]||0,hs=ids.slice().sort((a,b)=>(M.free[b]?1:0)-(M.free[a]?1:0)||pTier(b)-pTier(a)||HN(a).localeCompare(HN(b)));
+    const on=M.pet===cur;
+    page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Pets"),E("span",{class:"chip hot"},ids.filter(i=>M.free[i]).length+" / "+ids.length+" joined")),
+      E("p",{class:"mut"},"Every girl has a pet that mirrors her, and it joins you when she does. Bring one along with any girl: it follows, fights on its own and answers to one Command. Pets earn bond from the essence you climb for, and grow through the same five tiers as the girls."),
+      E("div",{class:"card",style:{display:"flex",gap:"14px",flexWrap:"wrap",alignItems:"flex-start"}},
+        E("div",{style:{filter:free?"none":"brightness(0) opacity(.55)"}},C.petImg(cur,150,true)),
+        E("div",{style:{flex:1,minWidth:"220px"}},E("b",{style:{fontSize:"19px"}},free?p.n:"???"),E("span",{class:"chip",style:{marginLeft:"8px",borderColor:tc,color:tc}},PT[t].name),
+          E("div",{class:"mut"},"Mirrors "+(free?HN(cur):"a girl you have not met")+" · "+p.sp),
+          free?E("div",{class:"bar",style:{margin:"6px 0 2px"}},E("i",{style:{width:Math.min(100,100*(e-TIER_AT[t])/((TIER_AT[t+1]||TIER_AT[t]+1)-TIER_AT[t]))+"%",background:tc}})):null,
+          free?E("div",{class:"mut",style:{fontSize:"12px"}},TIER_AT[t+1]?"Bond "+Math.floor(e)+" / "+TIER_AT[t+1]+" to "+PT[t+1].name:"Mythic: bond complete"):null,
+          E("div",{style:{marginTop:"8px"}},E("b",null,"Command: "+cmd.n),E("div",{class:"mut",style:{fontSize:"13px"}},cmd.d+" Cooldown "+Math.round(cmd.cd*(t>=2?.85:1))+"s. Press F or tap its button.")),
+          E("div",{style:{marginTop:"6px"}},E("b",null,"Bearing"),E("div",{class:"mut",style:{fontSize:"13px"}},bt(C.petBearing(cur,t,false))+(t<4?"  (Mythic adds "+bt(p.bear2)+")":""))),
+          E("div",{style:{marginTop:"6px"}},E("b",null,"Tiers"),...C.PTIER.map((x,i)=>E("div",{class:"mut",style:{fontSize:"12px",color:i<=t?PT[i].col:""}},(i<=t?"✓ ":"· ")+x.n+": "+x.d))),
+          E("div",{class:"mut",style:{fontSize:"12px",marginTop:"6px"}},"Kin: bring "+HN(cur)+" with her own pet for +15% to its Bearing and Command."),
+          E("div",{class:"row",style:{marginTop:"10px"}},E("button",{type:"button",class:on?"sm":"pri",disabled:!free,onclick:()=>{M.pet=on?null:cur;save();draw()}},!free?"Not yet joined":on?"Remove from climb":"Bring along"),on?E("span",{class:"chip hot"},"Coming along"):null))),
+      E("h3",null,"Roster"),
+      E("div",{class:"cl-heroes"},...hs.map(id=>{const f=!!M.free[id],tt=pTier(id);return E("button",{type:"button",class:"cl-h"+(id===cur?" on":""),style:{"--tc":PT[tt].col},onclick:()=>{cur=id;draw()}},E("div",{style:{filter:f?"none":"brightness(0) opacity(.5)"}},C.petImg(id,64,false)),E("div",{class:"nm"},f?C.PETS[id].n:"???"),E("small",null,f?PT[tt].name:"waiting"),M.pet===id?E("small",{style:{color:"#ffe9a0"}},"coming along"):null)}))))};
+  draw()}
 
 /* ---------- lock list: items you never want to see in a run ---------- */
 function locks(){load();M.lock=M.lock||{};
@@ -165,7 +198,8 @@ function recipes(){load();const found=M.evo||{},ev=M.evo=found;
 let RUN=null,raf=0,keys={},stickEl=null;
 function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure();U.show();injectCss();const r=root();
   const ov=E("div",{class:"cl-ov",id:"clOv"}),cv=E("canvas"),hud=E("div",{class:"cl-hud"});ov.append(cv,hud);r.append(ov);
-  const run=RUN=new C.Run({hero,floor:f.g,floorIndex:fi,boss,meta:metaFor(hero)});
+  const petId=M.pet&&C.PETS&&C.PETS[M.pet]&&M.free[M.pet]?M.pet:null;
+  const run=RUN=new C.Run({hero,floor:f.g,floorIndex:fi,boss,pet:petId,petTier:petId?pTier(petId):0,kin:petId===hero,meta:metaFor(hero,petId)});
   const xp=E("i"),xpb=E("div",{class:"xp"},xp),hpf=E("i",{style:{background:"linear-gradient(90deg,#ff4a6a,#ff8a9a)"}}),hpt=E("small"),lvt=E("b"),tm=E("div",{class:"tm"}),rt=E("div",{class:"rt"}),it=E("div",{class:"it"}),bossBar=E("div",{class:"boss"},E("div",{class:"bn"}),E("div",{class:"cl-bar"},E("i",{style:{background:"#ff5a7a"}}))),tip=E("div",{class:"tip"},"Drag or use WASD to move. She fights on her own."+(run.hzNote?" "+run.hzNote:""));
   stickEl=E("div",{class:"cl-stick"},E("i"));
   const pauseBtn=E("button",{type:"button",class:"sm",onclick:()=>pauseMenu()},"Pause");
@@ -173,11 +207,12 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   rt.append(E("div",{class:"gd"}),E("div",{class:"kl"}),E("div",null,pauseBtn,sndBtn));
   const ABIC={nova:"💥",dash:"💨",heal:"💗",freeze:"❄️",summon:"👻",dome:"🔰",gravity:"🌀",blink:"✨",storm:"🌩️",meteor:"☄️",volley:"🎯",haste:"⚡"};
   const abBtn=run.ab?E("button",{type:"button",class:"cl-ab",style:{"--ac":run.ab.col},title:run.ab.name+": "+run.ab.d,onclick:()=>run.cast()},E("span",null,ABIC[run.ab.arch]||"✦"),E("small",null,run.ab.name)):null;
-  hud.append(xpb,E("div",{class:"hp"},E("div",null,lvt," ",hpt),E("div",{class:"cl-bar"},hpf)),tm,rt,it,bossBar,tip,stickEl,...(abBtn?[abBtn]:[]));setTimeout(()=>{tip.style.opacity=0},5000);
+  const petBtn=run.pet?E("button",{type:"button",class:"cl-ab",style:{"--ac":run.pdat.c,right:"110px",bottom:"54px",width:"70px",height:"70px"},title:C.PETS[run.petId].n+": "+C.PCMD[run.pdat.cmd].d+" (F)",onclick:()=>run.petCast()},C.petImg(run.petId,34),E("small",null,C.PCMD[run.pdat.cmd].n)):null;
+  hud.append(xpb,E("div",{class:"hp"},E("div",null,lvt," ",hpt),E("div",{class:"cl-bar"},hpf)),tm,rt,it,bossBar,tip,stickEl,...(abBtn?[abBtn]:[]),...(petBtn?[petBtn]:[]));setTimeout(()=>{tip.style.opacity=0},5000);
   const ctx=cv.getContext("2d");let w=0,h=0;
   const fit=()=>{const dpr=Math.min(2,window.devicePixelRatio||1),b=ov.getBoundingClientRect();w=b.width;h=b.height;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);run.dpr=dpr};fit();addEventListener("resize",fit);ov._fit=fit;
   /* input: keys and a floating stick */
-  const kd=e=>{keys[e.key.toLowerCase()]=1;if(e.key==="Escape"||e.key==="p")pauseMenu();if(e.key===" "||e.key==="e"||e.key==="q")run.cast();if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase()))e.preventDefault()},ku=e=>{keys[e.key.toLowerCase()]=0};
+  const kd=e=>{keys[e.key.toLowerCase()]=1;if(e.key==="Escape"||e.key==="p")pauseMenu();if(e.key===" "||e.key==="e"||e.key==="q")run.cast();if(e.key.toLowerCase()==="f"&&run.petCast)run.petCast();if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase()))e.preventDefault()},ku=e=>{keys[e.key.toLowerCase()]=0};
   addEventListener("keydown",kd);addEventListener("keyup",ku);ov._off=()=>{removeEventListener("keydown",kd);removeEventListener("keyup",ku);removeEventListener("resize",fit)};
   let sid=null,sx=0,sy=0,sv=[0,0];
   ov.addEventListener("pointerdown",e=>{if(e.target.closest("button,.cl-modal"))return;sid=e.pointerId;sx=e.clientX;sy=e.clientY;sv=[0,0];stickEl.style.display="block";stickEl.style.left=sx+"px";stickEl.style.top=sy+"px";ov.setPointerCapture(e.pointerId)});
@@ -186,11 +221,12 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   const vis=()=>{if(document.hidden&&RUN&&!RUN.ended&&!RUN.paused)pauseMenu()};document.addEventListener("visibilitychange",vis);const prevOff=ov._off;ov._off=()=>{prevOff();document.removeEventListener("visibilitychange",vis)};
   /* what the run asks of the screen */
   run.cb.level=(ch,go)=>levelModal(ov,run,ch,go);run.cb.chest=(got,go)=>chestModal(ov,run,got,go);
-  run.cb.boss=id=>{bossBar.style.display="block";SND.play("boss")};run.cb.end=res=>{SND.play(res.win?"win":"lose");setTimeout(()=>finish(res,ov),run.won?400:900)};
+  run.cb.boss=id=>{bossBar.style.display="block";SND.play("boss")};run.cb.end=res=>{res.pet=run.petId;SND.play(res.win?"win":"lose");setTimeout(()=>finish(res,ov),run.won?400:900)};
   /* hud paint */
   let hudT=0,iconKey="";const hudPaint=()=>{const P=run.stats;xp.style.width=Math.min(100,100*run.xp/C.xpNeed(run.lv))+"%";hpf.style.width=Math.max(0,100*run.hp/P.maxhp)+"%";hpt.textContent=Math.ceil(Math.max(0,run.hp))+" / "+P.maxhp;lvt.textContent="Lv "+run.lv;
     const s=Math.floor(run.t);tm.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");rt.firstChild.textContent="💰 "+run.gold;rt.children[1].textContent="☠ "+run.kills+" · 👾 "+run.en.length;
     const k=run.wp.map(x=>x.id+x.lv).join(",")+"|"+Object.entries(run.pa).join(",");if(k!==iconKey){iconKey=k;it.textContent="";run.wp.forEach(x=>it.append(E("span",{title:x.def.n,style:{borderColor:x.def.c}},ico(x.id,28),E("b",null,x.def.evolved?"★":x.lv>=C.maxLv(x.id)?"MAX":x.lv))));Object.keys(run.pa).forEach(id=>it.append(E("span",{title:PS[id].n},ico(id,28),E("b",null,run.pa[id]))))}
+    if(petBtn){const P=run.pet,pc=P.down>0?0:P.cd>0?100*(1-P.cd/P.max):100;petBtn.style.setProperty("--p",Math.max(0,Math.min(100,pc)));petBtn.lastChild.textContent=P.down>0?"resting":P.cd>0?Math.ceil(P.cd)+"s":C.PCMD[run.pdat.cmd].n}
     if(abBtn){const a=run.ab,pc=a.cd>0?100*(1-a.cd/(a.max*run.stats.cooldown)):100;abBtn.style.setProperty("--p",Math.max(0,Math.min(100,pc)));abBtn.classList.toggle("ready",a.cd<=0);abBtn.lastChild.textContent=a.cd>0?a.name+" · "+Math.ceil(a.cd)+"s":a.name+" · ready"}
     if(run.bossE){bossBar.style.display="block";bossBar.firstChild.textContent=HN(run.bossId)+" · the challenger";bossBar.lastChild.firstChild.style.width=Math.max(0,100*run.bossE.hp/run.bossE.mhp)+"%"}else if(run.won)bossBar.style.display="none"};
   let last=performance.now(),acc=0;
@@ -271,7 +307,7 @@ function chestModal(ov,run,got,go){
   m.append(head,stage,count,slots,btn);ov.append(m);SND.play("gem");later(opened,1000)}
 
 /* ---------- result ---------- */
-function finish(res,ov){load();const h=res.hero,bossId=res.boss,before=tierOf(h);M.gold+=res.gold;M.runs++;M.ess[h]=(M.ess[h]||0)+res.ess;M.stand=M.stand||{};const sg={};{const g0=groupOf(h);if(g0)sg[g0]=Math.round(10+Math.min(15,res.kills/150)+(res.win?30:0));const bg=res.win&&bossId&&!M.free[bossId]?groupOf(bossId):null;if(bg)sg[bg]=(sg[bg]||0)+25;Object.keys(sg).forEach(g=>M.stand[g]=(M.stand[g]||0)+sg[g])}
+function finish(res,ov){load();const h=res.hero,bossId=res.boss,before=tierOf(h);M.gold+=res.gold;M.runs++;M.ess[h]=(M.ess[h]||0)+res.ess;M.pess=M.pess||{};if(res.pet)M.pess[res.pet]=(M.pess[res.pet]||0)+res.ess;M.stand=M.stand||{};const sg={};{const g0=groupOf(h);if(g0)sg[g0]=Math.round(10+Math.min(15,res.kills/150)+(res.win?30:0));const bg=res.win&&bossId&&!M.free[bossId]?groupOf(bossId):null;if(bg)sg[bg]=(sg[bg]||0)+25;Object.keys(sg).forEach(g=>M.stand[g]=(M.stand[g]||0)+sg[g])}
   let freed=false;if(res.win){M.wins++;M.best[res.floor]=Math.max(M.best[res.floor]||0,res.t);if(bossId&&!M.free[bossId]){M.free[bossId]=1;freed=true}}save();
   const sa=C.story?C.story.award(M,res,freed):null;if(sa)save();
   const after=tierOf(h),m=E("div",{class:"cl-modal"},E("h2",null,res.win?"The floor is yours":"You fell"),
