@@ -93,7 +93,7 @@ function page(body){U.ensure();U.show();injectCss();const r=root();r.textContent
 /* ---------- home: the tower ---------- */
 let sel=null;
 function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
-  const top=E("div",{class:"cl-top"},E("button",{type:"button",onclick:()=>U.title()},"Menu"),E("h2",null,"Climb the Spire"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold)),E("button",{type:"button",onclick:powers},"Powers"),E("button",{type:"button",onclick:recipes},"Recipes"),E("button",{type:"button",onclick:()=>groups()},"Houses"),E("button",{type:"button",onclick:locks},"Lock"),E("button",{type:"button",onclick:()=>pets()},"Pets"),E("button",{type:"button",onclick:()=>ENC.open("home")},"Codex"));
+  const top=E("div",{class:"cl-top"},E("button",{type:"button",onclick:()=>U.title()},"Menu"),E("h2",null,"Climb the Spire"),E("span",{class:"chip hot"},"💰 "+fmt(M.gold)),E("button",{type:"button",onclick:powers},"Powers"),E("button",{type:"button",onclick:recipes},"Recipes"),E("button",{type:"button",onclick:()=>groups()},"Houses"),E("button",{type:"button",onclick:locks},"Lock"),E("button",{type:"button",class:"sm",title:"Cheats",onclick:cheatGate},"🔑"),E("button",{type:"button",onclick:()=>pets()},"Pets"),E("button",{type:"button",onclick:()=>ENC.open("home")},"Codex"));
   const tower=E("div",{class:"cl-tower"}),panel=E("div");
   const drawTower=()=>{tower.textContent="";for(let i=0;i<C.FLOORS.length;i++){const f=C.FLOORS[i],open=floorOpen(i),g=(ACAD.GROUPS||[]).find(x=>x.id===f.g)||{name:f.g},mem=members(f.g),n=mem.filter(h=>M.free[h]).length;
     const b=E("button",{type:"button",class:"cl-fl"+(i===sel.floor?" on":"")+(open?"":" lock"),style:{"--fc":f.acc},onclick:()=>{if(!open)return;sel.floor=i;sel.boss=null;save();drawTower();drawPanel()}},E("span",{class:"no"},String(i+1)),E("span",null,E("b",null,f.n),E("small",null,open?g.name+" · "+n+" of "+mem.length+" freed":"Free 3 girls on floor "+i+" to open")),E("span",{class:"mut"},M.best[i]?"✓":open?"":"🔒"));tower.append(b)}};
@@ -164,6 +164,57 @@ function pets(pick){load();M.pess=M.pess||{};const ids=Object.keys(C.PETS);
       E("h3",null,"Roster"),
       E("div",{class:"cl-heroes"},...hs.map(id=>{const f=!!M.free[id],tt=pTier(id);return E("button",{type:"button",class:"cl-h"+(id===cur?" on":""),style:{"--tc":PT[tt].col},onclick:()=>{cur=id;draw()}},E("div",{style:{filter:f?"none":"brightness(0) opacity(.5)"}},C.petImg(id,64,false)),E("div",{class:"nm"},f?C.PETS[id].n:"???"),E("small",null,f?PT[tt].name:"waiting"),M.pet===id?E("small",{style:{color:"#ffe9a0"}},"coming along"):null)}))))};
   draw()}
+
+/* ---------- cheats: behind a password ---------- */
+let cheatOn=false;
+const cheatHash=s=>{let x=5381;for(const c of s)x=((x<<5)+x+c.charCodeAt(0))>>>0;return x};
+function cheatGate(){if(cheatOn){cheats();return}
+  const ov=E("div",{style:{position:"fixed",inset:0,background:"#05031acc",zIndex:900,display:"flex",alignItems:"center",justifyContent:"center"}}),
+    inp=E("input",{type:"password",placeholder:"Password",autocomplete:"off",style:{padding:"8px 10px",borderRadius:"8px",border:"1px solid #d8b25a",background:"#14102e",color:"#f1ead8",fontSize:"16px"}}),
+    msg=E("div",{class:"mut",style:{minHeight:"18px",fontSize:"13px"}},""),
+    go=()=>{if(cheatHash(inp.value.trim())===2765372283){cheatOn=true;ov.remove();cheats()}else{msg.textContent="That is not it.";inp.value="";inp.focus()}};
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")go();else if(e.key==="Escape")ov.remove()});
+  ov.append(E("div",{class:"card",style:{display:"flex",flexDirection:"column",gap:"8px",alignItems:"center",padding:"16px"}},E("b",null,"Cheats"),E("div",{class:"mut",style:{fontSize:"13px"}},"Enter the password."),inp,msg,E("div",{class:"row"},E("button",{type:"button",class:"pri sm",onclick:go},"Enter"),E("button",{type:"button",class:"sm",onclick:()=>ov.remove()},"Cancel"))));
+  document.body.append(ov);setTimeout(()=>inp.focus(),50)}
+function cheats(note){load();M.pess=M.pess||{};M.bond=M.bond||{};M.stand=M.stand||{};M.up=M.up||{};
+  const btn=(label,fn)=>E("button",{type:"button",class:"sm",onclick:()=>{fn();save();cheats("Done: "+label)}},label);
+  const allGirls=Object.keys(C.PETS||{});
+  page(E("div",null,E("div",{class:"cl-top"},E("button",{type:"button",onclick:home},"Back"),E("h2",null,"Cheats"),note?E("span",{class:"chip hot"},note):null),
+    E("p",{class:"mut"},"For testing. Everything here changes your save."),
+    E("div",{class:"card"},E("h3",{style:{marginTop:0}},"Gold and powers"),E("div",{class:"row",style:{flexWrap:"wrap"}},
+      btn("+1,000 gold",()=>{M.gold+=1000}),btn("+25,000 gold",()=>{M.gold+=25000}),btn("Max every Power",()=>{(C.UPGRADES||[]).forEach(u=>{M.up[u.k]=u.max||M.up[u.k]||0})}))),
+    E("div",{class:"card",style:{marginTop:"10px"}},E("h3",{style:{marginTop:0}},"Girls and pets"),E("div",{class:"row",style:{flexWrap:"wrap"}},
+      btn("Free every girl",()=>{allGirls.forEach(g=>M.free[g]=1)}),
+      btn("Every girl to Mythic",()=>{Object.keys(M.free).filter(g=>M.free[g]).forEach(g=>M.ess[g]=Math.max(M.ess[g]||0,1200))}),
+      btn("Every pet to Mythic",()=>{allGirls.forEach(g=>M.pess[g]=1200)}),
+      btn("+500 bond for every girl",()=>{Object.keys(M.free).filter(g=>M.free[g]).forEach(g=>M.bond[g]=(M.bond[g]||0)+500)}),
+      btn("+"+500+" essence for the chosen hero",()=>{const h=M.sel&&M.sel.hero;if(h)M.ess[h]=(M.ess[h]||0)+500}))),
+    E("div",{class:"card",style:{marginTop:"10px"}},E("h3",{style:{marginTop:0}},"Houses and the pool"),E("div",{class:"row",style:{flexWrap:"wrap"}},
+      btn("+500 standing everywhere",()=>{(ACAD.GROUPS||[]).forEach(g=>M.stand[g.id]=(M.stand[g.id]||0)+500)}),
+      btn("Clear the lock list",()=>{M.lock={}}),
+      btn("Forget found recipes",()=>{M.evo={}}))),
+    E("p",{class:"mut",style:{fontSize:"12px",marginTop:"10px"}},"During a climb, open Pause and press Cheats for god mode, levels, weapons and more.")))}
+function runCheats(run,under){
+  const ov=document.getElementById("clOv"),cm=E("div",{class:"cl-modal",style:{zIndex:9}}),maxItems=()=>{Object.keys(run.pa).forEach(id=>{run.pa[id]=PS[id].max});run.recompute()};
+  const b=(label,fn)=>E("button",{type:"button",class:"sm",onclick:()=>{fn();SND.play("level");msg.textContent="Done: "+label}},label);
+  const msg=E("div",{class:"mut",style:{minHeight:"18px"}},"");
+  const wsel=E("select",null,...Object.keys(W).filter(id=>!/^s_|^x_/.test(id)||W[id].sig===run.hero).map(id=>E("option",{value:id},W[id].n+(W[id].evolved?" (evolved)":""))));
+  const psel=E("select",null,...Object.keys(PS).filter(id=>!PS[id].heir||PS[id].heir===run.hero).map(id=>E("option",{value:id},PS[id].n)));
+  cm.append(E("h2",null,"Cheats"),
+    E("div",{class:"row",style:{flexWrap:"wrap",justifyContent:"center",maxWidth:"560px"}},
+      b(run.god?"God mode: off":"God mode: on",()=>{run.god=!run.god;if(run.god){run._hit=run.hit;run.hit=()=>{}}else if(run._hit){run.hit=run._hit;delete run._hit}}),
+      b("+5 levels",()=>{for(let i=0;i<5;i++)run.xp+=C.xpNeed(run.lv+i)}),
+      b("Max every weapon",()=>{run.wp.forEach(w=>{if(!w.def.evolved)run.weaponLv(w.id,run.maxLvW(w))})}),
+      b("Max every item",maxItems),
+      b("Heal fully",()=>{run.hp=run.stats.maxhp}),
+      b("5-item chest",()=>{run.pk.push({k:"chest",x:run.px,y:run.py,n:5,t:0})}),
+      b("Clear the screen",()=>{run.en.slice().forEach(e=>{if(!e.boss)run.kill(e)})}),
+      b("Jump to the challenger",()=>{run.t=Math.max(run.t,535)}),
+      b("+1,000 gold",()=>{run.gold+=1000})),
+    E("div",{class:"row"},wsel,E("button",{type:"button",class:"sm",onclick:()=>{const id=wsel.value;if(run.wp.find(w=>w.id===id)){msg.textContent="Already carried.";return}if(run.wp.length>=6){msg.textContent="Six weapons already.";return}run.addWeapon(id);msg.textContent="Added "+W[id].n}},"Add weapon")),
+    E("div",{class:"row"},psel,E("button",{type:"button",class:"sm",onclick:()=>{const id=psel.value;if(Object.keys(run.pa).length>=6&&!run.pa[id]){msg.textContent="Six items already.";return}run.pa[id]=Math.min(PS[id].max,(run.pa[id]||0)+1);run.recompute();msg.textContent=PS[id].n+" level "+run.pa[id]}},"Add item level")),
+    msg,E("button",{type:"button",class:"pri",onclick:()=>cm.remove()},"Close"));
+  ov.append(cm)}
 
 /* ---------- lock list: items you never want to see in a run ---------- */
 function locks(){load();M.lock=M.lock||{};
@@ -256,7 +307,7 @@ function itemRows(run){const rows=[],own=id=>run.wp.find(w=>w.id===id);
     rows.push({id,n:p.n,lv:l>=mx?"MAX":"Lv "+l+" of "+mx,how:(p.d?p.d+". ":"")+(ev.length?how:"No weapon evolves with it."),c:"#9ab0e8"})});
   return rows}
 function pauseMenu(){const run=RUN,ov=document.getElementById("clOv");if(!run||!ov||run.ended||ov.querySelector(".cl-modal"))return;const was=run.paused;run.paused=true;
-  const m=E("div",{class:"cl-modal"},E("h2",null,"Paused"),E("div",{class:"row"},E("button",{type:"button",class:"pri",onclick:()=>{m.remove();run.paused=was}},"Resume"),E("button",{type:"button",onclick:()=>{if(confirm("Leave this climb? You keep nothing from it.")){stopRun();home()}}},"Leave the climb")));
+  const m=E("div",{class:"cl-modal"},E("h2",null,"Paused"),E("div",{class:"row"},E("button",{type:"button",class:"pri",onclick:()=>{m.remove();run.paused=was}},"Resume"),E("button",{type:"button",onclick:()=>{if(confirm("Leave this climb? You keep nothing from it.")){stopRun();home()}}},"Leave the climb"),cheatOn?E("button",{type:"button",onclick:()=>runCheats(run,m)},"Cheats"):null));
   const rows=itemRows(run),list=E("div",{style:{width:"min(560px,94vw)",maxHeight:"46vh",overflowY:"auto",textAlign:"left",border:"1px solid #fff2",borderRadius:"10px",padding:"6px 10px"}});
   if(!rows.length)list.append(E("div",{class:"mut"},"You carry nothing yet."));
   rows.forEach(r=>list.append(E("div",{style:{display:"grid",gridTemplateColumns:"34px 1fr",gap:"8px",alignItems:"center",padding:"6px 0",borderTop:"1px solid #fff1"}},ico(r.id,32),E("div",null,E("b",{style:{color:r.c}},r.n),E("span",{class:"mut",style:{marginLeft:"8px",fontSize:"12px"}},r.lv),E("div",{class:"mut",style:{fontSize:"12px"}},r.how)))));
