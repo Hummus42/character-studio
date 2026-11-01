@@ -4,8 +4,8 @@
 "use strict";
 if(typeof ACAD==="undefined"||!ACAD.climb||!ACAD.climb.WEAPONS)return;
 const C=ACAD.climb,W=C.WEAPONS,PS=C.PASSIVES,EN=C.ENEMY,rnd=Math.random,TAU=Math.PI*2,hypot=Math.hypot;
-const XPS=.38,SLOTS=6,MAXT=600,BOSS_T=540,ARENA=1100;
-const need=L=>Math.max(L===1?7:0,Math.round((L<=19?10*L-5:195+13*(L-19)+1.6*(L-19)*(L-19)+(L===20?600:0))*XPS));
+const GEMX=2,XPS=.38,SLOTS=6,MAXT=600,BOSS_T=540,ARENA=1100;
+const need=L=>Math.max(L===1?17:0,Math.round(L<=19?(10*L-5)*.95:(195+13*(L-19)+(L-19)*(L-19)+(L===20?600:0))*XPS));
 C.xpNeed=need;
 const pick=a=>a[Math.floor(rnd()*a.length)];
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
@@ -213,7 +213,7 @@ class Run{
  updPickups(dt){const P=this.stats,mr=70*P.magnet;
   for(let i=this.gems.length-1;i>=0;i--){const g=this.gems[i];g.t+=dt;let d=Math.hypot(this.px-g.x,this.py-g.y);
    if(g.pull||d<mr){g.pull=1;const a=Math.atan2(this.py-g.y,this.px-g.x),s=Math.min(1500,(d>mr?700:380)+g.t*60),m=Math.min(s*dt,d);g.x+=Math.cos(a)*m;g.y+=Math.sin(a)*m;d=Math.hypot(this.px-g.x,this.py-g.y)}
-   if(d<16){this.xp+=g.v*P.growth;this.gems.splice(i,1)}}
+   if(d<16){this.xp+=g.v*GEMX*P.growth;this.gems.splice(i,1)}}
   if(this.gems.length>320){const a=this.gems.shift(),b=this.gems[0];if(b)b.v+=a.v}
   for(let i=this.pk.length-1;i>=0;i--){const k=this.pk[i];k.t+=dt;let d=Math.hypot(this.px-k.x,this.py-k.y);
    if(k.k==="coin"&&(k.pull||d<mr)&&d>=16){k.pull=1;const a=Math.atan2(this.py-k.y,this.px-k.x),s=Math.min(1500,(d>mr?700:380)+k.t*40),m=Math.min(s*dt,d);k.x+=Math.cos(a)*m;k.y+=Math.sin(a)*m;d=Math.hypot(this.px-k.x,this.py-k.y)}
