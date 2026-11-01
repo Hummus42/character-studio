@@ -169,13 +169,13 @@ function pets(pick){load();M.pess=M.pess||{};const ids=Object.keys(C.PETS);
 let cheatOn=false;
 const cheatHash=s=>{let x=5381;for(const c of s)x=((x<<5)+x+c.charCodeAt(0))>>>0;return x};
 function cheatGate(){if(cheatOn){cheats();return}
-  const ov=E("div",{style:{position:"fixed",inset:0,background:"#05031acc",zIndex:900,display:"flex",alignItems:"center",justifyContent:"center"}}),
+  const ov=E("div",{style:{position:"fixed",inset:0,background:"#05031acc",zIndex:50,display:"flex",alignItems:"center",justifyContent:"center"}}),
     inp=E("input",{type:"password",placeholder:"Password",autocomplete:"off",style:{padding:"8px 10px",borderRadius:"8px",border:"1px solid #d8b25a",background:"#14102e",color:"#f1ead8",fontSize:"16px"}}),
     msg=E("div",{class:"mut",style:{minHeight:"18px",fontSize:"13px"}},""),
     go=()=>{if(cheatHash(inp.value.trim())===2765372283){cheatOn=true;ov.remove();cheats()}else{msg.textContent="That is not it.";inp.value="";inp.focus()}};
   inp.addEventListener("keydown",e=>{if(e.key==="Enter")go();else if(e.key==="Escape")ov.remove()});
-  ov.append(E("div",{class:"card",style:{display:"flex",flexDirection:"column",gap:"8px",alignItems:"center",padding:"16px"}},E("b",null,"Cheats"),E("div",{class:"mut",style:{fontSize:"13px"}},"Enter the password."),inp,msg,E("div",{class:"row"},E("button",{type:"button",class:"pri sm",onclick:go},"Enter"),E("button",{type:"button",class:"sm",onclick:()=>ov.remove()},"Cancel"))));
-  document.body.append(ov);setTimeout(()=>inp.focus(),50)}
+  ov.append(E("div",{class:"card",style:{display:"flex",flexDirection:"column",gap:"8px",alignItems:"center",padding:"16px",background:"#14102e",width:"min(300px,88vw)"}},E("b",null,"Cheats"),E("div",{class:"mut",style:{fontSize:"13px"}},"Enter the password."),inp,msg,E("div",{class:"row"},E("button",{type:"button",class:"pri sm",onclick:go},"Enter"),E("button",{type:"button",class:"sm",onclick:()=>ov.remove()},"Cancel"))));
+  root().append(ov);setTimeout(()=>inp.focus(),50)}
 function cheats(note){load();M.pess=M.pess||{};M.bond=M.bond||{};M.stand=M.stand||{};M.up=M.up||{};
   const btn=(label,fn)=>E("button",{type:"button",class:"sm",onclick:()=>{fn();save();cheats("Done: "+label)}},label);
   const allGirls=Object.keys(C.PETS||{});
