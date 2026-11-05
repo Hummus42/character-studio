@@ -16,7 +16,7 @@ function speck(ctx,p,a){ctx.globalAlpha=a;ctx.fillStyle=p.c;ctx.save();ctx.trans
   else{ctx.beginPath();ctx.arc(0,0,p.r*(p.k==="ember"?1:1.3),0,TAU);ctx.fill()}ctx.restore()}
 class Run5 extends C.Run{
  constructor(o){super(o);const cs=this.cos=o.cos||{};this.skinD=o.skin?C.skinDef(o.skin):null;this.fxp=[];this._lv=this.lv;this._tr=0;this._dt=0;
-  if(o.partner){const im=new Image(),sd=o.partnerSkin?C.skinDef(o.partnerSkin):null;im.src="assets/sprites/"+o.partner+".256.webp";if(sd&&C.skinURL)C.skinURL(o.partner,o.partnerSkin,256,u=>{im.src=u});this.ptn={id:o.partner,x:this.px-34,y:this.py+10,img:im,fx:sd&&sd.fx?sd:null,face:1,bob:0}}
+  if(o.partner){const im=new Image(),sd=o.partnerSkin&&!o.partnerMini?C.skinDef(o.partnerSkin):null;im.src=o.partnerMini||"assets/sprites/"+o.partner+".256.webp";if(sd&&C.skinURL)C.skinURL(o.partner,o.partnerSkin,256,u=>{im.src=u});this.ptn={mini:!!o.partnerMini,id:o.partner,x:this.px-34,y:this.py+10,img:im,fx:sd&&sd.fx?sd:null,face:1,bob:0}}
   if(cs.arena&&C.ARENAS[cs.arena]){this.floor=Object.assign({},this.floor,{tint:C.ARENAS[cs.arena].tint});this.tile=null;this.pat=null}}
  step(dt){super.step(dt);if(this.ended)return;
   const sk=this.skinD;if(sk&&this.pr)for(const p of this.pr)if(!p.__t){p.__t=1;if(p.c)p.c=C.mixHex(p.c,sk.c,.55)}
@@ -30,7 +30,7 @@ class Run5 extends C.Run{
   this.fxp=this.fxp.filter(p=>(p.t+=dt)<p.l);for(const p of this.fxp){p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;if(p.k!=="ember")p.vx*=1-dt*1.5;speck(ctx,p,Math.max(0,1-p.t/p.l)*.85)}
   ctx.globalCompositeOperation=add;ctx.globalAlpha=1;
   const P=this.ptn;if(P&&P.img.complete&&P.img.naturalWidth){const bob=Math.sin(P.bob*6)*1.6;ctx.fillStyle="rgba(0,0,0,.3)";ctx.beginPath();ctx.ellipse(P.x,P.y+16,11,4,0,0,TAU);ctx.fill();
-   ctx.save();ctx.translate(P.x,P.y);if(P.fx)C.skinFx(ctx,P.fx,T,0);if(P.face<0)ctx.scale(-1,1);ctx.globalAlpha=.95;ctx.drawImage(P.img,-22,-26+bob,44,44);ctx.globalAlpha=1;if(P.fx)C.skinFx(ctx,P.fx,T,1);ctx.restore()}
+   ctx.save();ctx.translate(P.x,P.y);if(P.fx)C.skinFx(ctx,P.fx,T,0);if(P.face<0)ctx.scale(-1,1);ctx.globalAlpha=.95;if(P.mini){const MH=70,MW=MH*P.img.naturalWidth/P.img.naturalHeight;ctx.drawImage(P.img,-MW/2,19-MH+bob,MW,MH)}else ctx.drawImage(P.img,-22,-26+bob,44,44);ctx.globalAlpha=1;if(P.fx)C.skinFx(ctx,P.fx,T,1);ctx.restore()}
   ctx.restore()}
 }
 C.Run=Run5;

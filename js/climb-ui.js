@@ -7,7 +7,8 @@ const KEY="everspire.climb.v1",TIER_AT=[0,60,200,500,1200],STARTERS=["kitsune","
 const skinOn=h=>{const e=((M&&M.skins)||{})[h];return e&&e.on&&(e.own||[]).includes(e.on)?e.on:null};
 C.petSkinOf=id=>{const e=((M&&M.pskins)||{})[id];return e&&e.on&&(e.own||[]).includes(e.on)?e.on:null};
 const ownedCos=()=>{const o=(M.cosOwn||{}),c=M.cos||{},r={};["trail","burst","arena"].forEach(k=>{if(c[k]&&(o[k]||[]).includes(c[k]))r[k]=c[k]});return r};
-const spr=(h,s,skin)=>{const sk=skin===undefined?skinOn(h):skin,i=E("img",{src:"assets/sprites/"+h+".128.webp",alt:"",draggable:"false",width:s,height:s,onerror:ev=>{const u=ACAD.pixelURL?ACAD.pixelURL(h):"";if(u&&ev.target.src!==u)ev.target.src=u}});if(sk&&C.skinURL){C.skinURL(h,sk,s,u=>{i.src=u});C.skinClass(i,sk)}return i};
+const miniOn=h=>{const m=mskinOn(h);return m&&C.mspriteHave(h,m)?C.mspriteURL(h,m):null};
+const spr=(h,s,skin)=>{const mi=skin===undefined?miniOn(h):null;if(mi)return E("img",{src:mi,alt:"",draggable:"false",width:s,height:s,style:{objectFit:"contain",objectPosition:"50% 100%"}});const sk=skin===undefined?skinOn(h):skin,i=E("img",{src:"assets/sprites/"+h+".128.webp",alt:"",draggable:"false",width:s,height:s,onerror:ev=>{const u=ACAD.pixelURL?ACAD.pixelURL(h):"";if(u&&ev.target.src!==u)ev.target.src=u}});if(sk&&C.skinURL){C.skinURL(h,sk,s,u=>{i.src=u});C.skinClass(i,sk)}return i};
 const fmt=n=>Math.round(n).toLocaleString();
 /* small synthesised sounds, on by default here, one switch in the run */
 const SND={on:true,ctx:null,last:{}};try{SND.on=localStorage.getItem("everspire.climb.snd")!=="0"}catch(e){}
@@ -101,6 +102,10 @@ function page(body){U.ensure();U.show();injectCss();const r=root();r.textContent
 
 /* ---------- home: the tower ---------- */
 let sel=null;
+/* mature skins: worn only when owned, the art exists, and the Mature Content setting allows it */
+const mskinOn=h=>{const e=((M&&M.mskins)||{})[h];if(!e||!e.on||!(e.own||[]).includes(e.on))return null;const d=C.MSKINS.find(x=>x.id===e.on);return d&&(+M.mature||0)>=d.lvl&&C.mskinHave(h,e.on)?e.on:null};
+function lightbox(src,t){const ov=E("div",{style:{position:"absolute",inset:0,zIndex:60,background:"#05031af0",display:"flex",alignItems:"center",justifyContent:"center",cursor:"zoom-out"},onclick:()=>ov.remove()},E("img",{src,alt:t||"",style:{maxWidth:"96%",maxHeight:"96%",borderRadius:"8px"}}));root().append(ov)}
+const heroPic=(h,s)=>{const m=mskinOn(h);if(!m)return spr(h,s);return E("img",{src:C.mskinURL(h,m),alt:"",draggable:"false",title:"Tap to see her large",style:{width:s+"px",height:Math.round(s*1.4)+"px",objectFit:"cover",objectPosition:"50% 8%",borderRadius:"10px",cursor:"zoom-in",display:"block"},onclick:()=>lightbox(C.mskinURL(h,m),HN(h))})};
 const framed=el=>{const f=C.FRAMES.find(x=>x.id===(M.cos||{}).frame&&x.ok(M));if(!f)return el;const w=E("span",{style:{display:"inline-block",borderRadius:"14px",padding:"3px",border:f.b,boxShadow:f.s,lineHeight:0}});w.append(el);return w};
 const titleLine=()=>{const t=C.TITLES.find(x=>x.id===(M.cos||{}).title&&x.ok(M));return t&&t.id!=="newcomer"?E("span",{class:"chip",style:{marginLeft:"6px"}},t.n):null};
 function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
@@ -117,7 +122,7 @@ function home(){load();sel=M.sel;if(!floorOpen(sel.floor))sel.floor=0;
       locked.length>12?E("div",{class:"mut"},"…and "+(locked.length-12)+" more waiting"):null));
     const hs=Object.keys(M.free).filter(h=>M.free[h]).sort((a,b)=>tierOf(b)-tierOf(a)||HN(a).localeCompare(HN(b)));
     panel.append(E("div",{class:"card",style:{marginTop:"10px"}},E("h3",{style:{marginTop:0}},"Your hero"),
-      E("div",{class:"cl-kit"},framed(spr(sel.hero,96)),E("div",null,E("b",{style:{fontSize:"17px"}},HN(sel.hero)),titleLine(),E("span",{class:"chip",style:{marginLeft:"8px",borderColor:tc,color:tc}},PT[t].name),
+      E("div",{class:"cl-kit"},framed(heroPic(sel.hero,96)),E("div",null,E("b",{style:{fontSize:"17px"}},HN(sel.hero)),titleLine(),E("span",{class:"chip",style:{marginLeft:"8px",borderColor:tc,color:tc}},PT[t].name),
         E("div",{class:"mut"},ico(kit.start,22)," "+wd.n+" · "+wd.d),E("div",{class:"mut"},"Gift: "+kit.trait.d),kit.x?E("div",{class:"mut"},"Heirloom: "+PS[kit.heir].n+" · "+PS[kit.heir].d):null,kit.x?E("div",{class:"mut"},"Ability: "+kit.x.an+" · "+C.ABILITIES[kit.x.ab].d):null,E("div",{class:"mut"},"Health "+(kit.hp)+" · power ×"+(1+.08*t).toFixed(2)),groupOf(sel.hero)?E("div",{class:"mut"},"House: ",E("a",{href:"#",onclick:ev=>{ev.preventDefault();groups(groupOf(sel.hero))}},gName(groupOf(sel.hero))+" ("+Math.floor((M.stand||{})[groupOf(sel.hero)]||0)+" standing)")):null,
         E("div",{class:"bar",style:{margin:"6px 0 2px"}},E("i",{style:{width:Math.min(100,100*((M.ess[sel.hero]||0)-TIER_AT[t])/((TIER_AT[t+1]||TIER_AT[t]+1)-TIER_AT[t]))+"%",background:tc}})),
         E("div",{class:"mut",style:{fontSize:"12px"}},TIER_AT[t+1]?"Essence "+Math.floor(M.ess[sel.hero]||0)+" / "+TIER_AT[t+1]+" to "+PT[t+1].name:"Mythic: +32% damage and health, +2 rerolls, +1 banish, +12% experience"))),
@@ -168,7 +173,7 @@ function partners(){load();
 function wardrobe(tabIn,pick){load();M.skins=M.skins||{};M.pskins=M.pskins||{};M.cos=M.cos||{};M.cosOwn=M.cosOwn||{};["trail","burst","arena"].forEach(k=>M.cosOwn[k]=M.cosOwn[k]||[]);
   const hs=Object.keys(M.free).filter(h=>M.free[h]).sort((a,b)=>HN(a).localeCompare(HN(b))),ps=Object.keys(C.PETS||{}).filter(i=>M.free[i]).sort((a,b)=>C.PETS[a].n.localeCompare(C.PETS[b].n));
   let tab=tabIn||"skins",cur=pick||(sel&&hs.includes(sel.hero)?sel.hero:hs[0]),pcur=M.pet&&ps.includes(M.pet)?M.pet:ps[0];
-  const TABS=[["skins","Skins"],["pets","Pet skins"],["trail","Trails"],["burst","Bursts"],["arena","Arenas"],["title","Titles and frames"]],GL={petal:"✿",ember:"●",star:"✦",diamond:"◆",dot:"●"};
+  const TABS=[["skins","Skins"],["pets","Pet skins"],["trail","Trails"],["burst","Bursts"],["arena","Arenas"],["title","Titles and frames"],["mature","Mature (18+)"]],GL={petal:"✿",ember:"●",star:"✦",diamond:"◆",dot:"●"};
   const top0=()=>{const p=document.querySelector(".page");if(p)p.scrollTop=0};
   const draw=()=>{const re=fn=>()=>{fn();save();keepScroll(draw)};let body;
     const tabs=E("div",{class:"row",style:{flexWrap:"wrap",margin:"6px 0 10px"}},...TABS.map(([k,n])=>E("button",{type:"button",class:"sm"+(k===tab?" on":""),onclick:()=>{tab=k;draw();top0()}},n)));
@@ -182,6 +187,19 @@ function wardrobe(tabIn,pick){load();M.skins=M.skins||{};M.pskins=M.pskins||{};M
         const list=isPet?ps:hs,nm=x=>isPet?C.PETS[x].n:HN(x),cnt=x=>((store[x]||{}).own||[]).length;
         body=E("div",null,E("div",{class:"card"},E("h3",{style:{marginTop:0}},nm(id)),E("div",{class:"cl-up"},card(null),...C.SKINS.map(card))),
           E("h3",null,isPet?"Choose a pet":"Choose a girl"),E("div",{class:"cl-heroes"},...list.map(x=>E("button",{type:"button",class:"cl-h"+(x===id?" on":""),onclick:()=>{if(isPet)pcur=x;else cur=x;draw();top0()}},isPet?C.petImg(x,64,false):spr(x,64),E("div",{class:"nm"},nm(x)),E("small",null,cnt(x)+" of "+C.SKINS.length)))))}}
+    else if(tab==="mature"){const lvl=+M.mature||0;M.mskins=M.mskins||{};
+      const setBtn=(n,v)=>E("button",{type:"button",class:"sm"+(lvl===v?" on":""),onclick:re(()=>{M.mature=v})},n);
+      if(!M.matureOk)body=E("div",{class:"card"},E("h3",{style:{marginTop:0}},"Adults only"),E("p",{class:"mut"},"This tab holds sexually suggestive and explicit art of the girls, every one of whom is 18 or older. Confirm that you are 18 or over to open it. You can turn it off again here at any time."),
+        E("div",{class:"row"},E("button",{type:"button",class:"pri",onclick:re(()=>{M.matureOk=1;M.mature=1})},"I am 18 or older")));
+      else{const id=cur,e=M.mskins[id]=M.mskins[id]||{own:[],on:null},own=e.own||(e.own=[]);
+        const card=d=>{const allowed=lvl>=d.lvl,has=own.includes(d.id),art=C.mskinHave(id,d.id),on=e.on===d.id&&mskinOn(id)===d.id,url=C.mskinURL(id,d.id);
+          const pic=!art?E("div",{class:"mut",style:{height:"220px",display:"flex",alignItems:"center",justifyContent:"center"}},"Art on its way"):!allowed?E("div",{class:"mut",style:{height:"220px",display:"flex",alignItems:"center",justifyContent:"center"}},"Needs the Full setting"):
+            E("img",{src:url,alt:"",draggable:"false",style:{width:"100%",height:"220px",objectFit:"cover",objectPosition:"50% 15%",borderRadius:"8px",filter:has?"none":"blur(18px) brightness(.75)",cursor:has?"zoom-in":"default"},onclick:()=>{if(has)lightbox(url,d.n)}});
+          return E("div",{class:"card",style:{textAlign:"center",borderColor:on?"#ffe9a0":""}},pic,(allowed&&C.mspriteHave(id,d.id)?E("img",{src:C.mspriteURL(id,d.id),alt:"",title:"In the climb",style:{height:"76px",marginTop:"6px",filter:has?"none":"blur(10px) brightness(.75)"}}):null),E("div",{style:{marginTop:"6px"}},E("b",null,d.n)),E("div",{class:"mut",style:{fontSize:"12px"}},d.d),
+            E("button",{type:"button",class:!has&&allowed&&art&&M.gold>=d.cost?"pri sm":"sm",disabled:!allowed||!art||(!has&&M.gold<d.cost),onclick:re(()=>{if(!has){if(M.gold<d.cost)return;M.gold-=d.cost;own.push(d.id);e.on=d.id}else e.on=on?null:d.id})},!has?"💰 "+fmt(d.cost):on?"Take off":"Wear"))};
+        body=E("div",null,E("div",{class:"row",style:{marginBottom:"8px"}},E("span",{class:"mut"},"Mature content"),setBtn("Off",0),setBtn("On",1)),
+          lvl===0?E("p",{class:"mut"},"Mature content is off. Turn it on to see these."):E("div",null,E("div",{class:"card"},E("h3",{style:{marginTop:0}},HN(id)),E("div",{class:"cl-up"},...C.MSKINS.map(card))),
+            E("h3",null,"Choose a girl"),E("div",{class:"cl-heroes"},...hs.map(x=>E("button",{type:"button",class:"cl-h"+(x===id?" on":""),onclick:()=>{cur=x;draw();top0()}},spr(x,64),E("div",{class:"nm"},HN(x)),E("small",null,C.MSKINS.filter(d=>C.mskinHave(x,d.id)).length?"art ready":"…"))))))}}
     else if(tab==="title"){const T=C.TITLES,F=C.FRAMES,line=(it,key)=>{const ok=it.ok(M),on=(M.cos[key]||(key==="title"?"newcomer":"plain"))===it.id;
         return E("div",{class:"card",style:{opacity:ok?1:.55,borderColor:on?"#ffe9a0":""}},E("b",null,it.n),E("div",{class:"mut",style:{fontSize:"12px"}},ok?it.d:"Locked: "+it.d),
           key==="frame"?E("div",{style:{margin:"6px auto",width:"46px",height:"46px",borderRadius:"14px",border:it.b,boxShadow:it.s}}):null,
@@ -310,7 +328,8 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   const ov=E("div",{class:"cl-ov",id:"clOv"}),cv=E("canvas"),hud=E("div",{class:"cl-hud"});ov.append(cv,hud);r.append(ov);
   const petId=M.pet&&C.PETS&&C.PETS[M.pet]&&M.free[M.pet]?M.pet:null;
   const pn=partnerOf()&&partnerOf()!==hero?partnerOf():null;
-  const run=RUN=new C.Run({hero,skin:skinOn(hero),partner:pn,partnerSkin:pn?skinOn(pn):null,cos:ownedCos(),floor:f.g,floorIndex:fi,boss,pet:petId,petTier:petId?pTier(petId):0,kin:petId===hero,meta:metaFor(hero,petId)});
+  const mini=miniOn(hero);
+  const run=RUN=new C.Run({hero,skin:mini?null:skinOn(hero),mini,partner:pn,partnerSkin:pn?skinOn(pn):null,partnerMini:pn?miniOn(pn):null,cos:ownedCos(),floor:f.g,floorIndex:fi,boss,pet:petId,petTier:petId?pTier(petId):0,kin:petId===hero,meta:metaFor(hero,petId)});
   const xp=E("i"),xpb=E("div",{class:"xp"},xp),hpf=E("i",{style:{background:"linear-gradient(90deg,#ff4a6a,#ff8a9a)"}}),hpt=E("small"),lvt=E("b"),tm=E("div",{class:"tm"}),rt=E("div",{class:"rt"}),it=E("div",{class:"it"}),bossBar=E("div",{class:"boss"},E("div",{class:"bn"}),E("div",{class:"cl-bar"},E("i",{style:{background:"#ff5a7a"}}))),tip=E("div",{class:"tip"},"Drag or use WASD to move. She fights on her own."+(run.hzNote?" "+run.hzNote:""));
   stickEl=E("div",{class:"cl-stick"},E("i"));
   const pauseBtn=E("button",{type:"button",class:"sm",onclick:()=>pauseMenu()},"Pause");

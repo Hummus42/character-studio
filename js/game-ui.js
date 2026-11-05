@@ -332,6 +332,8 @@ const bh=ENC.buildHouse;if(bh)ENC.buildHouse=(el,h)=>{bh(el,h);
   {const bn=el.querySelector(".enc-banner");if(bn&&!bn.querySelector(".ev-chibi")){if(getComputedStyle(bn).position==="static")bn.style.position="relative";
     const c=E("img",{class:"ev-chibi",src:"assets/sprites/"+h+".256.webp",alt:HN(h)+" as a chibi",title:"Her chibi",loading:"lazy",draggable:"false",style:{position:"absolute",right:"18px",bottom:"0",height:"min(150px,70%)",width:"auto",filter:"drop-shadow(0 4px 6px #0008)",pointerEvents:"auto"},onerror:ev=>ev.target.remove()});bn.append(c)}}
   const bar=el.querySelector(".enc-chairbar");if(bar)bar.append(E("button",{type:"button",class:"enc-load",onclick:()=>{ENC.close();G.open({sponsor:h})}},"Take her on as a protégée"))};
+/* loading a look from the Codex means going to the studio: lift the game screen so it is not left covering it */
+if(ENC.load&&!ENC.load.__ev){const ld=ENC.load;ENC.load=function(){const r=ld.apply(this,arguments);if(root&&!root.classList.contains("off"))hide();return r};ENC.load.__ev=1}
 /* Everspire opens first: the title screen covers the studio until the player chooses the Character Creator */
 ACAD.gameUI={ensure,show,hide,title:()=>title(),root:()=>root,codex,spr,col,dispose,say:m=>say(m)};
 function boot(){ensure();title()}

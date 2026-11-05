@@ -34,7 +34,8 @@ class Run{
   this.en=[];this.pr=[];this.zn=[];this.gems=[];this.pk=[];this.tx=[];this.pt=[];this.eb=[];this.later=[];this.rings=[];this.bolts=[];
   this.wp=[];this.pa={};this.nid=1;this.shake=0;this.flash=0;this.flashC="#fff";this.freeze=0;this.spawnT=0;this.ev={};this.bossE=null;this.stats=null;this.hush=null;
   this.rr=(this.meta.up&&this.meta.up.reroll)||0;this.sk=(this.meta.up&&this.meta.up.skip)||0;this.bn=(this.meta.up&&this.meta.up.banish)||0;this.banished={};
-  this.img=new Image();this.img.src="assets/sprites/"+o.hero+".256.webp";if(o.skin&&C.skinURL){C.skinURL(o.hero,o.skin,256,u=>{this.img.src=u});const sd=C.skinDef(o.skin);this.skinFx=sd&&sd.fx?sd:null}this.bossImg=null;if(o.boss){this.bossImg=new Image();this.bossImg.src="assets/sprites/"+o.boss+".256.webp"}
+  this.img=new Image();this.img.src="assets/sprites/"+o.hero+".256.webp";if(o.mini){this.mini=new Image();this.mini.src=o.mini}
+  if(o.skin&&C.skinURL){C.skinURL(o.hero,o.skin,256,u=>{this.img.src=u});const sd=C.skinDef(o.skin);this.skinFx=sd&&sd.fx?sd:null}this.bossImg=null;if(o.boss){this.bossImg=new Image();this.bossImg.src="assets/sprites/"+o.boss+".256.webp"}
   this.recompute();this.hp=this.stats.maxhp;this.revives=this.stats.revive;this.addWeapon(this.kit.start);this.tile=null;this.cb={}}
  /* ----- stats ----- */
  recompute(){const k=this.kit,P={might:k.might,armor:k.armor,maxhp:1,regen:0,cooldown:1,area:1,speed:1,dur:1,amount:0,move:k.move,magnet:1,luck:1,growth:1,greed:1,curse:1,revive:0};
@@ -142,7 +143,10 @@ class Run{
   if(this.invuln<=0&&this.shield<=0){for(const e of this.en){if(e.fz>0)continue;if(Math.hypot(e.x-this.px,e.y-this.py)<e.r+12){this.hit(e.dmg);break}}}
   else if(this.shield>0&&this.invuln<=0){for(const e of this.en){if(e.fz>0)continue;if(Math.hypot(e.x-this.px,e.y-this.py)<e.r+12){this.invuln=.4;this.burst(this.px,this.py,"#9aff9a",8,120);break}}}
   if(this.endAt&&this.t>=this.endAt){this.ended=true;if(this.cb.end)this.cb.end(this.result())}
-  if(this.xp>=need(this.lv)&&!this.paused&&!this.ended){this.xp-=need(this.lv);this.lv++;this.recompute();this.paused=true;this.ring(this.px,this.py,90,"#ffe27a",.6);if(this.cb.level)this.cb.level(this.choices(),()=>{this.paused=false})}}
+  if(this.xp>=need(this.lv)&&!this.paused&&!this.ended){this.xp-=need(this.lv);this.lv++;this.recompute();const ch=this.choices();
+   /* nothing left to pick but food or gold: take it without stopping the run, gold unless she is hurt */
+   if(ch.length&&ch.every(c=>c.type==="heal"||c.type==="gold")){const hurt=this.hp<this.stats.maxhp,c=ch.find(x=>x.type===(hurt?"heal":"gold"))||ch[0];this.apply(c);this.ring(this.px,this.py,60,"#ffe27a",.4);this.text(this.px,this.py-46,c.type==="heal"?"+40 health":"+25 gold",c.type==="heal"?"#9aff9a":"#ffe27a")}
+   else{this.paused=true;this.ring(this.px,this.py,90,"#ffe27a",.6);if(this.cb.level)this.cb.level(ch,()=>{this.paused=false})}}}
  hit(d){const P=this.stats;const dmg=Math.max(1,d*(1+this.fi*.08)*(this.t>MAXT?2:1)-P.armor);this.hp-=dmg;this.invuln=.55;this.shake=.25;this.flash=.12;this.flashC="#ff3a3a";this.text(this.px,this.py-30,Math.round(dmg),"#ff6a6a");
   if(this.hp<=0){if(this.revives>0){this.revives--;this.hp=P.maxhp*.6;this.invuln=2.5;this.flash=.6;this.flashC="#fff";this.ring(this.px,this.py,300,"#ffe9a0",.8);this.en.forEach(e=>{if(Math.hypot(e.x-this.px,e.y-this.py)<300&&!e.boss&&!e.elite&&!e.rare)this.kill(e)});this.text(this.px,this.py-50,"Revived","#ffe9a0",1)}
    else{this.dead=true;this.ended=true;if(this.cb.end)this.cb.end(this.result())}}}
@@ -271,7 +275,7 @@ class Run{
   if(this.hush){const hs=this.hush;ctx.globalAlpha=.85;ctx.fillStyle="#1a0c2c";ctx.beginPath();ctx.arc(hs.x,hs.y,hs.r+Math.sin(T*8)*3,0,TAU);ctx.fill();ctx.strokeStyle="#c8a8ff";ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1}
   /* the hero */
   const blink=this.invuln>0&&((tms/60)|0)%2===0;ctx.save();ctx.translate(px,py);ctx.fillStyle="rgba(0,0,0,.35)";ctx.beginPath();ctx.ellipse(0,22,15,6,0,0,TAU);ctx.fill();if(this.skinFx)C.skinFx(ctx,this.skinFx,T,0);
-  const mv=this.dir[0]||this.dir[1],hb=mv?Math.sin(tms/70)*3:Math.sin(tms/300)*1.2;if(this.face<0)ctx.scale(-1,1);if(blink)ctx.globalAlpha=.45;if(this.img.complete&&this.img.naturalWidth)ctx.drawImage(this.img,-30,-34+hb,60,60);else{ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(0,0,14,0,TAU);ctx.fill()}if(this.skinFx)C.skinFx(ctx,this.skinFx,T,1);ctx.restore();
+  const mv=this.dir[0]||this.dir[1],hb=mv?Math.sin(tms/70)*3:Math.sin(tms/300)*1.2;if(this.face<0)ctx.scale(-1,1);if(blink)ctx.globalAlpha=.45;const mi=this.mini;if(mi&&mi.complete&&mi.naturalWidth){const MH=88,MW=MH*mi.naturalWidth/mi.naturalHeight;ctx.drawImage(mi,-MW/2,27-MH+hb,MW,MH)}else if(this.img.complete&&this.img.naturalWidth)ctx.drawImage(this.img,-30,-34+hb,60,60);else{ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(0,0,14,0,TAU);ctx.fill()}if(this.skinFx)C.skinFx(ctx,this.skinFx,T,1);ctx.restore();
   if(this.shield>0){ctx.strokeStyle="#9aff9a";ctx.globalAlpha=.7;ctx.lineWidth=3;ctx.beginPath();ctx.arc(px,py-2,34+Math.sin(T*8)*2,0,TAU);ctx.stroke();ctx.fillStyle="#9aff9a22";ctx.fill();ctx.globalAlpha=1}
   /* books */
   for(const wp of this.wp){if(wp.books&&wp.books.length){ctx.font="26px serif";ctx.textAlign="center";ctx.textBaseline="middle";wp.books.forEach(b=>{ctx.globalCompositeOperation=add;ctx.fillStyle=wp.def.c+"55";ctx.beginPath();ctx.arc(b.x,b.y,b.r+4,0,TAU);ctx.fill();ctx.globalCompositeOperation="source-over";ctx.fillText(wp.def.ic,b.x,b.y)})}}
