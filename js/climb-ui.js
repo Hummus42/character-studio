@@ -333,9 +333,9 @@ function startRun(hero,fi,boss){stopRun();load();const f=C.FLOORS[fi];U.ensure()
   const xp=E("i"),xpb=E("div",{class:"xp"},xp),hpf=E("i",{style:{background:"linear-gradient(90deg,#ff4a6a,#ff8a9a)"}}),hpt=E("small"),lvt=E("b"),tm=E("div",{class:"tm"}),rt=E("div",{class:"rt"}),it=E("div",{class:"it"}),bossBar=E("div",{class:"boss"},E("div",{class:"bn"}),E("div",{class:"cl-bar"},E("i",{style:{background:"#ff5a7a"}}))),tip=E("div",{class:"tip"},"Drag or use WASD to move. She fights on her own."+(run.hzNote?" "+run.hzNote:""));
   stickEl=E("div",{class:"cl-stick"},E("i"));
   const pauseBtn=E("button",{type:"button",class:"sm",onclick:()=>pauseMenu()},"Pause");
-  let spd=1;try{spd=+localStorage.getItem("everspire.climb.speed")||1}catch(e){}if(![1,2,3,4,5].includes(spd))spd=1;
+  let spd=1;try{spd=+localStorage.getItem("everspire.climb.speed")||1}catch(e){}const SPDS=[1,2,3,4,5,10];if(!SPDS.includes(spd))spd=1;
   const spdBtn=E("button",{type:"button",class:"sm"+(spd>1?" on":""),style:{marginLeft:"4px",minWidth:"36px"},title:"Game speed (G)"},spd+"×");
-  const cycleSpd=()=>{spd=spd%5+1;spdBtn.textContent=spd+"×";spdBtn.classList.toggle("on",spd>1);try{localStorage.setItem("everspire.climb.speed",String(spd))}catch(e){}SND.play("cast")};spdBtn.onclick=cycleSpd;
+  const cycleSpd=()=>{spd=SPDS[(SPDS.indexOf(spd)+1)%SPDS.length];spdBtn.textContent=spd+"×";spdBtn.classList.toggle("on",spd>1);try{localStorage.setItem("everspire.climb.speed",String(spd))}catch(e){}SND.play("cast")};spdBtn.onclick=cycleSpd;
   const sndBtn=E("button",{type:"button",class:"sm",style:{marginLeft:"4px"},onclick:()=>{SND.on=!SND.on;try{localStorage.setItem("everspire.climb.snd",SND.on?"1":"0")}catch(e){}sndBtn.textContent=SND.on?"♪":"♪ off";SND.play("level")}},SND.on?"♪":"♪ off");
   rt.append(E("div",{class:"gd"}),E("div",{class:"kl"}),E("div",null,pauseBtn,sndBtn,spdBtn));
   const ABIC={nova:"💥",dash:"💨",heal:"💗",freeze:"❄️",summon:"👻",dome:"🔰",gravity:"🌀",blink:"✨",storm:"🌩️",meteor:"☄️",volley:"🎯",haste:"⚡"};
