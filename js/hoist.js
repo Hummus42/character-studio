@@ -1686,7 +1686,7 @@ function negText(){
 }
 function qualityText(){
   const blocked=!Policy.explicitAllowed();
-  return["1.3::masterpiece::","best quality","amazing quality","very aesthetic","year 2026","highly detailed",S.out.framing,"expert shading","detailed shadows","ambient occlusion","clarity","sharp focus",S.out.lewdtag&&!blocked?"sexy, lewd":""].filter(Boolean).join(", ");
+  return["1.3::masterpiece::","best quality","amazing quality","very aesthetic","year 2026","highly detailed",window.framingText?window.framingText(S.out.framing):S.out.framing,"expert shading","detailed shadows","ambient occlusion","clarity","sharp focus",S.out.lewdtag&&!blocked?"sexy, lewd":""].filter(Boolean).join(", ");
 }
 function renderNeg(){
   $("#qOut").value=qualityText();$("#nOut").value=negText();

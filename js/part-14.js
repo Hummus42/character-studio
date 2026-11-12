@@ -44,7 +44,7 @@
   window.renderStyle=()=>({key:styleKey(),ultra:ultraOn()});
   const lewdOk=()=>{if(!S.out.lewdtag||!Policy.explicitAllowed())return false;
     const p=pairOf();if(p&&p.id&&window.PAIR){try{const r=PAIR.pairPrompts();if(r&&r.blocked)return false}catch(e){}}return true};
-  qualityText=function(){const k=styleKey();return STY[k].q(S.out.framing).concat(lewdOk()?["sexy, lewd"]:[]).filter(Boolean).join(", ")};
+  qualityText=function(){const k=styleKey();return STY[k].q(window.framingText?window.framingText(S.out.framing):S.out.framing).concat(lewdOk()?["sexy, lewd"]:[]).filter(Boolean).join(", ")};
   /* Ultra-realistic: the studio's anime-only wording would fight the style, so it is rewritten (character prompts too) */
   window.styleText=function(t){
     if(!(ultraOn()&&styleKey()==="real"))return t;
@@ -143,7 +143,7 @@
       const note=h("p",{class:"muted small qucnote",text:(p&&(p.qStyle||p.ultra)?`This scene sets the ${STY[k].label}${ultraOn()?" (ultra)":""} style; picking one here overrides it. `:"")+
         (STY[k].lead?`Adds “${STY[k].lead}” after the quality tags${ultraOn()?", and the ultra detail tags after the prompt":""}.`:"The studio’s own anime look, with no extra style tags.")});
       f.append(row("Image style",STY[k].ultra?"Ultra detail adds extra detail tags.":"Anime and Realistic add style tags, and can add Ultra detail.",h("div",{},seg,ul,note)));
-      const fr=h("select",{"aria-label":"Framing",onchange:e=>mut(()=>{S.out.framing=e.target.value})},[["cowboy shot","Cowboy shot"],["from waist up","Waist up"],["upper body","Upper body"],["full body","Full body"],["portrait","Portrait"],["","None"]].map(([v,l])=>h("option",{value:v,selected:S.out.framing===v?true:null,text:l})));
+      const fr=h("select",{"aria-label":"Framing",onchange:e=>mut(()=>{S.out.framing=e.target.value})},[["cowboy shot","Cowboy shot"],["from waist up","Waist up"],["upper body","Upper body"],["full body","Full body"],["portrait","Portrait"],["standing straight, facing the viewer, arms relaxed at her sides","Standing, facing viewer"],["","None"]].map(([v,l])=>h("option",{value:v,selected:S.out.framing===v?true:null,text:l})));
       f.append(row("Framing","Goes in with the quality tags.",fr));
       f.append(h("div",{class:"checks"},
         cbox("qLewd","Add “sexy, lewd” to the quality tags",!!S.out.lewdtag,v=>{S.out.lewdtag=v},{disabled:blocked,reason}),
