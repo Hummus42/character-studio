@@ -243,25 +243,104 @@ function pickScene(anchor,opts){opts=opts||{};const L=window.SCENE_LIBRARY;if(!L
     if(SF.kind==="fit"?!fits(k,fit):SF.kind&&!fits(k,SF.kind))return false;
     if(SF.mood){const x=sceneExplicit(it.v);if(SF.mood==="x"?!x:x)return false}
     return true};
-  const byName=new Map();secs.forEach(s=>{const nm=s.name.replace(/^Archive: /,"");const it=s.items.filter(want).map(x=>{const b=blurb(x.v);return b?Object.assign({},x,{sub:b}):x});if(!it.length)return;if(!byName.has(nm))byName.set(nm,[]);byName.get(nm).push(...it)});
-  const shown=[...byName].map(([name,items])=>({name,items}));
-  const all=secs.reduce((n,s)=>n+s.items.length,0),n=shown.reduce((a,s)=>a+s.items.length,0);
+  /* v278: a set with several versions is one row; picking it opens its versions (see pickVersion) */
+  const collapse=items=>{const out=[],seen=new Map();items.forEach(x=>{const m=/^rx:(\d+):(\d+)$/.exec(x.v);const set=m&&ACAD.RX.SETS[+m[1]];
+      if(!set||set.n<2){const b=blurb(x.v);out.push(b?Object.assign({},x,{sub:b}):x);return}
+      let row=seen.get(set.si);
+      if(!row){row={v:"set:"+set.si,label:set.name,n:0,places:[],dis:x.dis,_d:[]};seen.set(set.si,row);out.push(row)}
+      row.n++;row.places.push(placeOf(set.si,+m[2]));if(!x.dis)row.dis=null;else row._d.push(x.dis)});
+    seen.forEach(r=>{const pl=[...new Set(r.places.filter(Boolean))];
+      r.sub=r.n+" versions"+(pl.length?": "+pl.join(", "):"")+". Pick it to compare them.";
+      r.label=r.label+"  ·  "+r.n+" versions";if(r.dis)r.dis=r._d[0];delete r.places;delete r._d});
+    return out};
+  const byName=new Map();secs.forEach(s=>{const nm=s.name.replace(/^Archive: /,"");const it=s.items.filter(want);if(!it.length)return;if(!byName.has(nm))byName.set(nm,[]);byName.get(nm).push(...it)});
+  const shown=[...byName].map(([name,items])=>({name,items:collapse(items)}));
+  const all=secs.reduce((n,s)=>n+s.items.length,0),n=shown.reduce((a,s)=>a+s.items.reduce((q,x)=>q+(x.n||1),0),0),rows=shown.reduce((a,s)=>a+s.items.length,0);
   const re=()=>setTimeout(()=>{try{pickScene(anchor,opts)}catch(e){}},0);
   const chip=(label,on,fn)=>({label,on,fn:()=>{fn();re()}});
   const top=[chip("All",!SF.kind,()=>SF.kind=""),chip("Fits this cast: "+KNAME[fit],SF.kind==="fit",()=>SF.kind="fit")]
     .concat(KINDS.map(([k,l])=>chip(l,SF.kind===k,()=>SF.kind=k)),
       [chip("Any mood",!SF.mood,()=>SF.mood=""),chip("Tender",SF.mood==="t",()=>SF.mood="t"),chip("Explicit",SF.mood==="x",()=>SF.mood="x")]);
-  const cur=S.out.pair&&S.out.pair.arch?"rx:"+S.out.pair.arch.s+":"+S.out.pair.arch.v:null;
-  openPop(anchor,{title:(opts.title||"Scenes")+" · "+(n===all?all.toLocaleString():n.toLocaleString()+" of "+all.toLocaleString()),
-    sections:shown.length?shown:[{name:"",items:[]}],top,current:cur,searchPlaceholder:"Search "+n.toLocaleString()+" scenes",
-    onPick:k=>{if(opts.onPick)return opts.onPick(k);const t=L.get(k);if(t)PAIR.applyScene(t)}});
+  const cur=S.out.pair&&S.out.pair.arch?(ACAD.RX.SETS[S.out.pair.arch.s]&&ACAD.RX.SETS[S.out.pair.arch.s].n>1?"set:"+S.out.pair.arch.s:"rx:"+S.out.pair.arch.s+":"+S.out.pair.arch.v):null;
+  openPop(anchor,{title:(opts.title||"Scenes")+" · "+rows.toLocaleString()+" scenes, "+(n===all?all.toLocaleString():n.toLocaleString()+" of "+all.toLocaleString())+" versions",
+    sections:shown.length?shown:[{name:"",items:[]}],top,current:cur,searchPlaceholder:"Search scenes, places and what happens",
+    onPick:k=>{const m=/^set:(\d+)$/.exec(k);if(m)return setTimeout(()=>pickVersion(anchor,+m[1],opts),0);if(opts.onPick)return opts.onPick(k);applyPicked(k)}});
+  sizePop(anchor)}
+function sizePop(anchor){
   /* v274: scene names over their full descriptions, in a wider popover */
   const el=document.querySelector("body>.pop:last-of-type");if(!el)return;el.classList.add("scenepop");
   if(!el.classList.contains("popsheet")){const w=Math.min(720,window.innerWidth-24),r=anchor.getBoundingClientRect();
     el.style.width=w+"px";el.style.left=Math.min(Math.max(12,r.left),window.innerWidth-w-12)+"px";
     /* as tall as the window allows, so more than a few scenes show at once */
     const H=Math.min(820,window.innerHeight-24);el.style.maxHeight=H+"px";el.style.height=H+"px";el.style.top=Math.max(12,Math.round((window.innerHeight-H)/2))+"px";el.style.bottom="auto"}}
+
+/* ---------- v278: a set's versions, told apart ----------
+   The versions of a set are the same scene written for different girls: each has its own place and its own take
+   (she films it shyly, she grins into the lens, she props the phone on the mantel). Each version is shown as
+   "place: what is different", with the girls it was written for, and the version written for character 1 comes first. */
+const cap1=x=>x?x.charAt(0).toUpperCase()+x.slice(1):x;
+function placeOf(si,vi){try{return String(ACAD.RX.hookOf(si,vi)||"").replace(/^(an?|the) /i,"").replace(/[.\s]+$/,"").trim()}catch(e){return""}}
+const DC=new Map();
+function differences(si){
+  if(DC.has(si))return DC.get(si);const set=ACAD.RX.SETS[si];const n=set.n;
+  const norm=c=>c.toLowerCase().replace(/["“”♡]/g,"").replace(/\s+/g," ").trim();
+  const clauses=[];for(let vi=0;vi<n;vi++){
+    let b=blurb("rx:"+si+":"+vi).replace(/…$/,"");
+    b=b.replace(/^The image is split into (two|three|four) scenes in [^.]*\.\s*/i,"").replace(/^(A headline goes across the top of the image: "[^"]*"\.\s*)/i,"").replace(/^Setting: [^.]*\.\s*/i,"");
+    clauses.push(b.split(/(?<=[.;,])\s+|\s+(?=saying\b)/).map(x=>x.replace(/[.;,]$/,"").trim()).filter(x=>x.length>12))}
+  const df=new Map();clauses.forEach(cs=>new Set(cs.map(norm)).forEach(c=>df.set(c,(df.get(c)||0)+1)));
+  const lim=Math.max(1,Math.floor(n/4));
+  const out=clauses.map(cs=>{const u=cs.filter(c=>df.get(norm(c))<=lim&&!/^(in the (first|second|third|fourth) scene|the image is split)/i.test(c));
+    let t=(u[0]||"").replace(/^(in the (first|second|third|fourth) scene,?\s*)/i,"");
+    const tidy=x=>x.replace(/^the woman\b/i,"she").replace(/(\s+(the|a|an|of|from|to|with|and|in|on|at|her|his))+$/i,"").trim();
+    t=tidy(t);if(u[1]&&t.length<40){const t2=tidy(u[1]);if(t2.length>8)t+="; "+t2}
+    return t.length>110?t.slice(0,107).replace(/\s+\S*$/,"")+"…":t});
+  DC.set(si,out);return out}
+function girlsOf(si,vi){try{return(ACAD.RX.variant(si,vi).g||[]).filter(h=>tpl(h+"robes"))}catch(e){return[]}}
+function pickVersion(anchor,si,opts){opts=opts||{};
+  const R=ACAD.RX,set=R.SETS[si];if(!set)return;const D=differences(si);
+  const ok=Policy.explicitAllowed();const h1=window.SCENE_SLOTS?SCENE_SLOTS.girlOfState(S):null;
+  const item=vi=>{const pl=cap1(placeOf(si,vi)),d=D[vi],gs=girlsOf(si,vi);
+    return{v:"rx:"+si+":"+vi,label:(pl||("Version "+(vi+1)))+(d?": "+d:""),
+      sub:(gs.length?"Written for "+gs.map(HN).join(" and ")+". ":"")+blurb("rx:"+si+":"+vi),
+      img:gs.length?PIC(gs[0]):null,
+      dis:R.explicitOf(si,vi)&&!ok?(Policy.reason()||"Explicit scenes are held back for this design."):null}};
+  const secs=[];const all=[...Array(set.n).keys()];
+  const mine=h1?all.filter(vi=>girlsOf(si,vi).includes(h1)):[];
+  if(mine.length)secs.push({name:"Written for "+HN(h1),items:mine.map(item)});
+  secs.push({name:mine.length?"The other versions":"Every version",items:all.filter(vi=>!mine.includes(vi)).map(item)});
+  const cur=S.out.pair&&S.out.pair.arch&&S.out.pair.arch.s===si?"rx:"+si+":"+S.out.pair.arch.v:null;
+  const top=[{label:"← All scenes",fn:()=>setTimeout(()=>pickScene(anchor,opts),0)},
+    {label:"Surprise me",fn:()=>{const c=all.filter(vi=>!(R.explicitOf(si,vi)&&!ok));if(!c.length)return;const vi=c[Math.floor(Math.random()*c.length)];
+      if(opts.onPick)opts.onPick("rx:"+si+":"+vi);else applyPicked("rx:"+si+":"+vi)}}];
+  openPop(anchor,{title:set.name+" · "+set.n+" versions",sections:secs,top,current:cur,searchPlaceholder:"Search places, girls and what happens",
+    onPick:k=>{if(opts.onPick)return opts.onPick(k);applyPicked(k)}});
+  sizePop(anchor)}
 ACAD.pickScene=pickScene;
+
+/* ---------- v277: a library scene written around someone (a group portrait, a rivalry, the faculty) brings her in ----------
+   Library scenes carry their own character 1 (the Pride's portrait is Lioness's). Loading one used to keep whoever was
+   character 1, so a fresh Scene Maker put "Untitled character" in the middle of the Pride. Now:
+   - a group scene (three or more) loads its whole cast, character 1 included;
+   - any other scene brings its character 1 when the current one is not a person from the Academy (a blank design). */
+const LEAD=new Map();
+function leadOf(k){
+  if(LEAD.has(k))return LEAD.get(k);let best=null,bs=0;
+  const raw=/^rx:/.test(k||"")?null:tpl(k);
+  if(raw&&raw.c){const ks=Object.keys(raw.c);
+    const ids=[];(ACAD.HOUSES||[]).forEach(h=>ids.push(h+"robes",h+"man",h+"head"));index().others.forEach(o=>ids.push(o.id));
+    ids.forEach(id=>{const r=tpl(id);if(!r||!r.c)return;let s=0;
+      ks.forEach(x=>{if(JSON.stringify(r.c[x])===JSON.stringify(raw.c[x]))s++});if(s>bs){bs=s;best=id}});
+    if(!ks.length||bs/ks.length<=.7)best=null}
+  LEAD.set(k,best);return best}
+function applyPicked(k){
+  const L=window.SCENE_LIBRARY;const t=L&&L.get(k);if(!t)return;
+  const p=(t.out&&t.out.pair)||{},grp=!!(p.more&&p.more.length);
+  const lead=leadOf(k);const P=personOf(c1Look());const blank=!(S.out.c1look&&tpl(S.out.c1look))&&!(P&&P.kind!=="save"&&P.kind!=="other");
+  if(grp&&S.out.pair)mut(()=>{S.out.pair=null},"castFresh");   /* the group's own cast, not the last scene's */
+  PAIR.applyScene(t);
+  if(lead&&(grp||blank)){const q=S.out.pair;setC1(lead,q&&q.w1?"scene":"own")}}
+ACAD.applyPickedScene=applyPicked;
 
 /* ---------- v272: the scene and the cast don't match: say so, with a one-click fix ---------- */
 function fixFor(want){
@@ -330,7 +409,7 @@ function shuffle(){
   const want=SF.mood;
   const items=L.sections().flatMap(s=>s.items).filter(it=>!it.dis&&(sceneKind(it.v)===fit||(sceneKind(it.v)==="pair"&&(fit==="man"||fit==="girls")))&&(!want||(want==="x"?sceneExplicit(it.v):!sceneExplicit(it.v)))&&(ok||!sceneExplicit(it.v)));
   if(!items.length){say("No scene fits this cast.");return}
-  const it=items[Math.floor(Math.random()*items.length)];const t=L.get(it.v);if(t){PAIR.applyScene(t);say(it.label)}}
+  const it=items[Math.floor(Math.random()*items.length)];applyPicked(it.v);say(it.label)}
 
 /* ---------- v272: pose and expression from the Cast card (the Pre-made sentences pickers) ---------- */
 function poseBtn(n){if(!ACAD.SB||!ACAD.SB.poseExprPop)return null;
@@ -389,6 +468,7 @@ const css=document.createElement("style");css.textContent=
   ".scfold:not(.open)>:not(h3):not(.scsum){display:none!important}"+
   ".pop.scenepop .opt{flex-direction:column;align-items:stretch;gap:3px;min-height:0}.pop.scenepop .opt .ol{flex:none;font-weight:600}"+
   ".pop.scenepop .opt small{white-space:normal;text-align:left;line-height:1.4;overflow-wrap:anywhere}.pop.scenepop .pop-top{flex-wrap:wrap}"+
+  ".pop.scenepop .opt:has(.pth){display:grid;grid-template-columns:36px minmax(0,1fr);column-gap:10px;align-items:start}.pop.scenepop .opt .pth{grid-row:1/3;width:36px;height:36px;margin-top:2px}.pop.scenepop .opt:has(.pth)>.ol,.pop.scenepop .opt:has(.pth)>small{grid-column:2}"+
   ".pop .opt .pth{width:30px;height:30px;border-radius:50%;object-fit:cover;flex:none;background:rgba(127,127,127,.12)}"+
   ".castsec{container-type:inline-size}@container (max-width:540px){.castsec .castrow{grid-template-columns:1.6em 30px minmax(0,1fr)}.castsec .castrow .acts{grid-column:1/-1;justify-content:flex-start}}"+
   "@media (max-width:560px){.castsec .castguide{grid-template-columns:1fr}.castsec .castrow{grid-template-columns:1.6em 30px minmax(0,1fr)}.castsec .castrow .acts{grid-column:1/-1;justify-content:flex-start}}";
@@ -412,7 +492,7 @@ function row(n,id,w,gm){
   return E("div",{class:"castrow"},E("span",{class:"no",text:String(n)}),avatar(P),
     E("div",{class:"who"},E("b",{text:name+(P&&P.sub&&P.kind==="girl"?"":"")}),E("small",{text:(P&&P.kind!=="girl"&&P.sub?P.sub+" · ":"")+sub})),acts)}
 function sceneName(){const p=S.out.pair;if(!p)return"";
-  if(p.arch&&ACAD.RX){const s=ACAD.RX.SETS[p.arch.s];if(s)return s.name+(s.n>1?" "+(p.arch.v+1):"")}
+  if(p.arch&&ACAD.RX){const s=ACAD.RX.SETS[p.arch.s];if(s)return s.name+(s.n>1?": "+(cap1(placeOf(p.arch.s,p.arch.v))||"version "+(p.arch.v+1)):"")}
   return p.scene||p.solo?"Your own scene":""}
 function render(){
   if(!SEC.isConnected)return;if(SEC.contains(document.activeElement)&&document.activeElement.tagName==="INPUT")return;

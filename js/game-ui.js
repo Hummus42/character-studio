@@ -116,6 +116,9 @@ function hide(){root.classList.add("off");document.documentElement.classList.rem
 const say=m=>{says=m;clearTimeout(sayT);sayT=setTimeout(()=>{says="";const e=root&&root.querySelector(".says");if(e){e.textContent="";e.style.display="none"}},4000);const e=root&&root.querySelector(".says");if(e){e.textContent=m;e.style.display=""}};
 const codex=id=>ENC.open(id||"home");
 const edition=()=>typeof EVERSPIRE_EDITION!=="undefined"?EVERSPIRE_EDITION:"public";
+/* The version on the title page. Raise it with every push: 1.<number of commits in the repo after the push>. */
+const EV_VERSION="1.52",EV_DATE="Nov 15, 2026";
+window.EVERSPIRE_VERSION=EV_VERSION;
 
 /* ---------- title ---------- */
 function title(){ensure();show();dispose();S=null;root.textContent="";const last=G.lastSlot(),ls=last>=0?G.load(last):null;
@@ -130,7 +133,7 @@ function title(){ensure();show();dispose();S=null;root.textContent="";const last
     mk("Codex","The Academy, its Houses and its history",()=>codex("home")),
     mk("Settings","Standing orders and display",settings));
   root.append(E("div",{class:"title"},E("div",{class:"bg",style:{backgroundImage:"url(assets/rooms/portal_castle.webp)"}}),E("div",{class:"logo"},"EVERSPIRE"),E("div",{class:"tag"},"The Academy awaits its headmaster"),m,
-    E("div",{class:"foot"},"Everspire Academy · "+(edition()==="admin"?"admin edition":"public edition"))))}
+    E("div",{class:"foot"},"Everspire Academy · "+(edition()==="admin"?"admin edition":"public edition")+" · version "+EV_VERSION+" ("+EV_DATE+")")))}
 function firstFree(){const s=G.slots();const i=s.findIndex(x=>!x);return i<0?0:i}
 
 function loadGame(){root.textContent="";const slots=G.slots(),page=E("div",{class:"page narrow"}),w=E("div");
