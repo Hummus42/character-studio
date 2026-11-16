@@ -888,10 +888,19 @@ html[data-theme="dark"] #encDlg .enc-tag-o{background:#352c55;color:#d9cdfa;bord
   /* v246: a girl the archive wasn't written for takes the shelf of the girl her sets were modeled on (her "sister", and
      that girl's sister in turn), loaded with her; ENC.shelfFrom(h) names whose shelf it was */
   const FROM={};
-  function shelfOf(h){if(SHELF[h])return SHELF[h];let out=ownShelf(h),s=h,n=0;FROM[h]=h;
-    while(!out.length&&ACAD.SISTER&&ACAD.SISTER[s]&&n++<6){s=ACAD.SISTER[s];out=ownShelf(s);FROM[h]=s}
-    /* v271: a girl with no shelf to borrow gets every set, one scene of each, loaded with her */
-    if(!out.length){FROM[h]=h;out=RX.SETS.map(s0=>({s:s0,vi:0}))}return SHELF[h]=out}
+  /* v289: every girl has every set. Set by set: the versions written for her; if none, the versions written for the girl
+     her sets were modeled on (her "sister", and that girl's sister in turn); if still none, the set's first version.
+     (1.61's every-girl threesome sets made a girl's own shelf non-empty, so she stopped borrowing the rest: 116 girls
+     were left with 14 scenes.) ENC.shelfFrom(h) names the sister she borrowed from, when she borrowed. */
+  function shelfOf(h){if(SHELF[h])return SHELF[h];
+    const chain=[h];{let s=h,n=0;while(ACAD.SISTER&&ACAD.SISTER[s]&&n++<6){s=ACAD.SISTER[s];if(chain.includes(s))break;chain.push(s)}}
+    const out=[];let borrowed="";
+    RX.SETS.forEach(s=>{let got=[];
+      for(const who of chain){for(let vi=0;vi<s.n;vi++){if((RX.variant(s.si,vi).g||[]).includes(who))got.push(vi)}
+        if(got.length){if(who!==h&&!borrowed)borrowed=who;break}}
+      if(!got.length)got=[0];
+      got.forEach(vi=>out.push({s,vi}))});
+    FROM[h]=borrowed||h;return SHELF[h]=out}
   ENC.shelfFrom=h=>{shelfOf(h);return FROM[h]};
   ENC.rIndex=h=>({lead:shelfOf(h),guest:[]});
   /* v237 prep for personal shelves: a girl with no archived scenes is the counterpart of an older girl (NEWGIRLS "sis"), whose
