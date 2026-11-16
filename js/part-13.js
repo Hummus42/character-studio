@@ -918,10 +918,13 @@ if(typeof ACAD!=="undefined"&&ACAD.canonApply&&typeof tplById==="function")ACAD.
       try{
         const ta=f.querySelector('textarea[aria-label="Must include"]'),row=ta&&ta.closest(".row");
         if(row){
-          const btn=h("button",{type:"button",class:"pick",id:"settingLib","aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>openPop(e.currentTarget,{title:"Settings",searchPlaceholder:"Search settings",
-            sections:SETTING_LIBRARY.sections(),onPick:x=>{const v=putSetting(x);mut(()=>{S.out.must=v},"settingLib");ta.value=v;toast("Setting added to “Must include”.")}})},
-            h("span",{text:"Choose a setting…"}),h("i",{class:"caret","aria-hidden":"true"}));
-          const setRow=h("div",{class:"row"},h("div",{class:"lab"},h("label",{for:"settingLib",text:"Setting"}),h("small",{class:"hint",text:"Every place from the Academy sets and scenes. It goes into “Must include”, replacing the place already there."})),h("div",{class:"ctl"},h("div",{class:"pickwrap"},btn)));
+          /* v279: with a scene loaded, Setting is the scene's own place (the same as Where in the Scene step) */
+          const SP=ACAD.scenePlace,inScene=()=>{const p=S.out.pair;return!!(SP&&p&&(p.scene||p.solo))};
+          const now=inScene()?SP.now():"";
+          const btn=h("button",{type:"button",class:"pick",id:"settingLib","aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>{if(inScene())return SP.pick(e.currentTarget);openPop(e.currentTarget,{title:"Settings",searchPlaceholder:"Search settings",
+            sections:SETTING_LIBRARY.sections(),onPick:x=>{const v=putSetting(x);mut(()=>{S.out.must=v},"settingLib");ta.value=v;toast("Setting added to “Must include”.")}})}},
+            h("span",{text:inScene()?(now?"Scene: "+now.charAt(0).toUpperCase()+now.slice(1):"Scene: choose a place…"):"Choose a setting…"}),h("i",{class:"caret","aria-hidden":"true"}));
+          const setRow=h("div",{class:"row"},h("div",{class:"lab"},h("label",{for:"settingLib",text:"Setting"}),h("small",{class:"hint",text:inScene()?"Where the loaded scene happens. Changing it rewrites the scene's place (the same as Where in the Scene step).":"Every place from the Academy sets and scenes. It goes into “Must include”, replacing the place already there."})),h("div",{class:"ctl"},h("div",{class:"pickwrap"},btn)));
           row.after(setRow);
           /* v210: emphasis and whole style lines */
           const mb=h("button",{type:"button",class:"pick",id:"mustLib","aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>openPop(e.currentTarget,{title:"Emphasis and style",searchPlaceholder:"Search",

@@ -736,7 +736,7 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
     ENC.TAGFIX=fixed}
 
   /* ---------- the index: every House's looks and scenes ---------- */
-  const AFTER_LOOK_CATS=new Set(["Sensual","Exhibition","Explicit"]);
+  const AFTER_LOOK_CATS=new Set(ACAD.AFTER_CATS||["Sensual","Exhibition","Explicit"]);   /* v281: plus the new After dark shelves */
   const GROUP_LEVEL=new Set(["Groups","Rival groups","Faculty and boyfriends"]);
   const LOOKNAME={"Academy":"House robes","Academy Signature":"Signature look","Academy House Regalia":"House regalia","Academy Group Colors":"Group colors",
     "Academy Headmistresses":"Her headmistress","Academy Headmistress Night":"Headmistress night"};

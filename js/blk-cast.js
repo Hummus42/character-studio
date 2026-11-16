@@ -295,6 +295,8 @@ function differences(si){
     const tidy=x=>x.replace(/^the woman\b/i,"she").replace(/(\s+(the|a|an|of|from|to|with|and|in|on|at|her|his))+$/i,"").trim();
     t=tidy(t);if(u[1]&&t.length<40){const t2=tidy(u[1]);if(t2.length>8)t+="; "+t2}
     return t.length>110?t.slice(0,107).replace(/\s+\S*$/,"")+"…":t});
+  /* v279: the most typical version (its sentences shared by the most others), the base of the Any girl version */
+  let best=0,bs=-1;clauses.forEach((cs,vi)=>{if(!cs.length)return;const sc=cs.reduce((a,c)=>a+df.get(norm(c)),0)/cs.length;if(sc>bs){bs=sc;best=vi}});out.typical=best;
   DC.set(si,out);return out}
 function girlsOf(si,vi){try{return(ACAD.RX.variant(si,vi).g||[]).filter(h=>tpl(h+"robes"))}catch(e){return[]}}
 function pickVersion(anchor,si,opts){opts=opts||{};
@@ -307,6 +309,10 @@ function pickVersion(anchor,si,opts){opts=opts||{};
       dis:R.explicitOf(si,vi)&&!ok?(Policy.reason()||"Explicit scenes are held back for this design."):null}};
   const secs=[];const all=[...Array(set.n).keys()];
   const mine=h1?all.filter(vi=>girlsOf(si,vi).includes(h1)):[];
+  {const t=D.typical||0,pl=placeOf(si,t),keep=ESSENTIAL.test(pl);
+    secs.push({name:"For anyone",items:[{v:"neutral:"+si,label:(keep?"Any girl: "+cap1(pl):"Any girl, in her own room")+(D[t]?": "+D[t]:""),
+      sub:"The most typical of the "+set.n+" versions, written for no one in particular"+(keep?"":", set in character 1's own room")+". Change the place with Where.",
+      dis:R.explicitOf(si,t)&&!ok?(Policy.reason()||"Explicit scenes are held back for this design."):null}]})}
   if(mine.length)secs.push({name:"Written for "+HN(h1),items:mine.map(item)});
   secs.push({name:mine.length?"The other versions":"Every version",items:all.filter(vi=>!mine.includes(vi)).map(item)});
   const cur=S.out.pair&&S.out.pair.arch&&S.out.pair.arch.s===si?"rx:"+si+":"+S.out.pair.arch.v:null;
@@ -314,7 +320,8 @@ function pickVersion(anchor,si,opts){opts=opts||{};
     {label:"Surprise me",fn:()=>{const c=all.filter(vi=>!(R.explicitOf(si,vi)&&!ok));if(!c.length)return;const vi=c[Math.floor(Math.random()*c.length)];
       if(opts.onPick)opts.onPick("rx:"+si+":"+vi);else applyPicked("rx:"+si+":"+vi)}}];
   openPop(anchor,{title:set.name+" · "+set.n+" versions",sections:secs,top,current:cur,searchPlaceholder:"Search places, girls and what happens",
-    onPick:k=>{if(opts.onPick)return opts.onPick(k);applyPicked(k)}});
+    onPick:k=>{const nm=/^neutral:(\d+)$/.exec(k);if(nm){const t=D.typical||0,rk="rx:"+si+":"+t;if(opts.onPick)opts.onPick(rk);else applyPicked(rk);if(!ESSENTIAL.test(placeOf(si,t)))setPlace("{@room}",true);return}
+      if(opts.onPick)return opts.onPick(k);applyPicked(k)}});
   sizePop(anchor)}
 ACAD.pickScene=pickScene;
 
@@ -341,6 +348,46 @@ function applyPicked(k){
   PAIR.applyScene(t);
   if(lead&&(grp||blank)){const q=S.out.pair;setC1(lead,q&&q.w1?"scene":"own")}}
 ACAD.applyPickedScene=applyPicked;
+/* v280: remember how many characters a scene came with, so its wording can follow when some are taken out (part-05 agreeN) */
+{const as=PAIR.applyScene;PAIR.applyScene=function(t){const r=as.apply(this,arguments);
+  try{const q=t&&t.out&&t.out.pair,p=S.out.pair;if(p){const n=q&&Array.isArray(q.more)&&q.more.length?2+q.more.length:0;if(n)p.writtenN=n;else delete p.writtenN}}catch(e){}
+  return r}}
+
+/* ---------- v279: where the scene happens, changeable after the scene is picked ----------
+   A scene names its place in one of three ways: "The image is split into two scenes in a forest cabin.",
+   "Setting: a locker room, ..." or "In her room at sunrise, ...". Where finds it and swaps it, in the scene and its solo
+   version alike. Her own places go in as tokens ({@room}), so they follow character 1. */
+const ESSENTIAL=/\b(car|beach|shower|bath|bathtub|kitchen|office|library|club|stage|train|bus|alley|pool|onsen|hot spring|locker|gym|classroom|church|confession|bar|restaurant|cafe|street|park|forest|garden|rooftop|elevator|cinema|theater|hotel|tent|boat|field|stairwell|toilet|restroom|booth|barn|stable|dungeon|throne|arena|beach house|lake|river|sea|ocean|snow|chalet|cabin|subway|parking|store|shop|mall|studio|set|bathroom|sauna|spa|massage)\b/i;
+const PLACE_RX=[
+  [/(The image is split into (?:two|three|four) (?:scenes|panels) (?:in|at|on) )([^.]+?)(\.)/,"split"],
+  [/(Setting: )([^,.]+)([,.])/,"setting"],
+  [/(^(?:A headline goes across the top of the image: "[^"]*"\.\s*)?(?:In|On|At|Under) )([^,]+)(,)/,"lead"]];
+function placeRaw(t){t=String(t||"");const p=S.out.pair;if(p&&p.place&&t.includes(p.place))return p.place;for(const [rx] of PLACE_RX){const m=rx.exec(t);if(m)return m[2]}return""}
+function resolvePlace(raw){const p=S.out.pair||{};let t=String(raw||"").replace(/\{@s(\d+)\}/g,(m,n)=>(p.sv&&p.sv[n]!=null?p.sv[n]:m));
+  try{if(window.SCENE_SLOTS)t=SCENE_SLOTS.fill(t)}catch(e){}return t.replace(/\{[@#]?\w+\}/g,"").replace(/\s+/g," ").trim()}
+function placeNow(){const p=S.out.pair;if(!p)return"";return resolvePlace(placeRaw(p.scene)||placeRaw(p.solo))}
+function putPlace(t,place,old){t=String(t||"");if(!t.trim())return t;
+  if(old&&t.includes(old))return t.replace(old,place);
+  for(const [rx] of PLACE_RX){if(rx.test(t))return t.replace(rx,(m,a,b,c)=>a+place+c)}
+  const hm=/^(A headline goes across the top of the image: "[^"]*"\.\s*)/.exec(t);const pre=hm?hm[1]:"";
+  return pre+"Setting: "+place+". "+t.slice(pre.length)}
+function setPlace(place,quiet){place=String(place||"").trim().replace(/\.$/,"");if(!place)return;
+  const p0=S.out.pair;if(!p0||!(p0.scene||p0.solo)){say("Pick a scene first.");return}
+  mut(()=>{const p=S.out.pair;const old=p.place||"";if(p.scene)p.scene=putPlace(p.scene,place,old);if(p.solo)p.solo=putPlace(p.solo,place,old);p.place=place},"castPlace");
+  if(!quiet)say("Now in "+resolvePlace(place)+".")}
+const HERS=[["{@room}","Her room"],["{@bath}","Her bathroom"],["{@out}","Her outdoor spot"]];
+function pickPlace(btn){
+  const p=S.out.pair;if(!p||!(p.scene||p.solo)){say("Pick a scene first.");return}
+  const secs=[],cur=placeRaw(p.scene)||placeRaw(p.solo);
+  secs.push({name:"Her own places (follow character 1)",items:HERS.map(([v,l])=>({v,label:l,sub:resolvePlace(v)}))});
+  if(p.arch&&ACAD.RX){const set=ACAD.RX.SETS[p.arch.s];if(set&&set.n>1){const seen=new Set(),items=[];
+    for(let vi=0;vi<set.n;vi++){const pl=placeRaw(blurb("rx:"+p.arch.s+":"+vi));if(!pl||seen.has(pl.toLowerCase()))continue;seen.add(pl.toLowerCase());items.push({v:pl,label:cap1(pl)})}
+    if(items.length)secs.push({name:"From this scene's other versions",items})}}
+  try{(window.SETTING_LIBRARY?SETTING_LIBRARY.sections():[]).forEach(s=>secs.push({name:s.name,items:s.items}))}catch(e){}
+  openPop(btn,{title:"Where it happens",searchPlaceholder:"Search places",sections:secs,current:cur,
+    custom:{placeholder:"Or type your own: a rooftop garden at dusk",use:t=>setPlace(t)},onPick:v=>setPlace(v)})}
+ACAD.scenePlace={now:placeNow,set:setPlace,pick:pickPlace};
+
 
 /* ---------- v272: the scene and the cast don't match: say so, with a one-click fix ---------- */
 function fixFor(want){
@@ -421,11 +468,11 @@ let OPEN=null;
 function openSet(){if(OPEN)return OPEN;try{OPEN=new Set(JSON.parse(localStorage.getItem(FOLD_KEY)||"[]"))}catch(e){OPEN=new Set()}return OPEN}
 function saveOpen(){try{localStorage.setItem(FOLD_KEY,JSON.stringify([...openSet()]))}catch(e){}}
 const TOKW={partner:"the partner",lover:"her lover",his:"their",he:"they",him:"them",cock:"penis"};
-const short=(s,n)=>{s=String(s||"").replace(/\{(partner|lover|his|he|him|cock)\}/gi,(m,k)=>TOKW[k.toLowerCase()]).replace(/\{[@#]?\w+\}/g,"").replace(/\s+/g," ").trim();return s.length>n?s.slice(0,n-1).replace(/\s+\S*$/,"")+"…":s};
+const short=(s,n)=>{s=String(s||"").replace(/\{(partner|lover|his|he|him|cock)\}/gi,(m,k)=>TOKW[k.toLowerCase()]).replace(/\{[@#]?\w+\}/g,"").replace(/\s+/g," ").trim();return s.length>n?s.slice(0,n-1).replace(/\s+\S*$/,"").replace(/[,;:\s]+$/,"")+"…":s};
 function summaryOf(key){const p=S.out.pair||{};
   switch(key){
     case"Characters":return"Advanced: the full character lists, each one's expression and tags.";
-    case"Scene":{const t=String(p.solo&&!p.id?p.solo:p.scene||"").replace(/^Setting: [^.]+\.\s*/,"");return t?short(t,140):"No scene text yet."}
+    case"Scene":{const t=resolvePlace(String(p.solo&&!p.id?p.solo:p.scene||"").replace(/^Setting: [^.]+\.\s*/,""));return t?short(t,140):"No scene text yet."}
     case"Action":{const a=String(p.act||"").split(",").map(x=>x.trim()).filter(Boolean);return a.length?short(a.join(", "),120):"No action tags yet."}
     case"Text and sound":{const n=(p.texts||p.tx||[]).length||0;return n?n+" on the image.":"No headlines, speech or sound effects."}
     case"Pre-made sentences":return p.arch&&ACAD.RX&&ACAD.RX.SETS[p.arch.s]?"From the archive: "+ACAD.RX.SETS[p.arch.s].name+". Change its sentences, setting and details here.":"Ready-made sentences, settings, poses and outfits to add.";
@@ -435,7 +482,7 @@ function foldCards(){const ed=document.getElementById("sceneEditor");if(!ed)retu
   if(!ed.dataset.fold){ed.dataset.fold="1";
     ed.addEventListener("click",e=>{const h3=e.target.closest(".scfold>h3,.scfold>.scsum");if(!h3||!ed.contains(h3))return;toggle(h3.parentNode)});
     ed.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const h3=e.target.closest(".scfold>h3");if(!h3)return;e.preventDefault();toggle(h3.parentNode)})}
-  [...ed.querySelectorAll(":scope>.scsec")].forEach(sec=>{if(sec===SEC)return;const h3=sec.querySelector(":scope>h3");if(!h3)return;
+  [...ed.querySelectorAll(":scope>.scsec")].forEach(sec=>{if(sec===SEC||sec===PIC_SEC)return;const h3=sec.querySelector(":scope>h3");if(!h3)return;
     const key=h3.textContent.trim();sec.classList.add("scfold");sec.dataset.k=key;
     h3.tabIndex=0;h3.setAttribute("role","button");
     const on=O.has(key);sec.classList.toggle("open",on);h3.setAttribute("aria-expanded",on?"true":"false");
@@ -492,7 +539,8 @@ function row(n,id,w,gm){
   return E("div",{class:"castrow"},E("span",{class:"no",text:String(n)}),avatar(P),
     E("div",{class:"who"},E("b",{text:name+(P&&P.sub&&P.kind==="girl"?"":"")}),E("small",{text:(P&&P.kind!=="girl"&&P.sub?P.sub+" · ":"")+sub})),acts)}
 function sceneName(){const p=S.out.pair;if(!p)return"";
-  if(p.arch&&ACAD.RX){const s=ACAD.RX.SETS[p.arch.s];if(s)return s.name+(s.n>1?": "+(cap1(placeOf(p.arch.s,p.arch.v))||"version "+(p.arch.v+1)):"")}
+  if(p.arch&&ACAD.RX){const s=ACAD.RX.SETS[p.arch.s];if(s){const pl=p.place?placeNow():placeOf(p.arch.s,p.arch.v);
+    return s.name+(s.n>1||p.place?": "+(cap1(short(pl,48))||"version "+(p.arch.v+1)):"")}}
   return p.scene||p.solo?"Your own scene":""}
 function render(){
   if(!SEC.isConnected)return;if(SEC.contains(document.activeElement)&&document.activeElement.tagName==="INPUT")return;
@@ -523,10 +571,39 @@ function render(){
     E("span",{class:"sep"}),
     E("span",{class:"girlnav"},btn("◀ Previous girl",()=>stepGirl(-1),"The same scene with the previous girl as character 1"),
     btn("Next girl ▶",()=>stepGirl(1),"The same scene with the next girl as character 1, and the partner written for her"))))}
-function place(){const ed=document.getElementById("sceneEditor");if(!ed)return;const first=[...ed.querySelectorAll(":scope>.scsec")].find(x=>x!==SEC);
-  if(first&&SEC.nextElementSibling!==first)first.before(SEC);else if(!first&&SEC.parentNode!==ed)ed.append(SEC)}
-{const rs=renderSide;renderSide=function(){rs();try{place();render()}catch(e){try{console.warn("[cast] "+e)}catch(_){}}try{foldCards()}catch(e){try{console.warn("[fold] "+e)}catch(_){}}}}
-try{place();render();foldCards()}catch(e){}
+/* ---------- v279: Picture, the four Finish settings that change from scene to scene, in the Scene step ----------
+   Where it happens, framing, image style and emphasis. They are the same settings as in Finish (one state, two places);
+   the set-and-forget ones (quality tags, wording, weights, Undesired Content) stay in Finish. */
+const PIC_SEC=E("section",{class:"scsec castsec picsec",id:"picBox"});
+const FRAMES=[["cowboy shot","Cowboy shot"],["from waist up","Waist up"],["upper body","Upper body"],["full body","Full body"],["portrait","Portrait"],["","None"]];
+const STYLES=[["studio","Standard"],["anime","Anime"],["real","Realistic"]];
+function emphasisNow(){const m=/particular emphasis on (.+)$/.exec(String(S.out.must||"").trim());return m?m[1].replace(/\.$/,""):""}
+function pickEmphasis(b){if(!window.MUST_LIBRARY)return;
+  openPop(b,{title:"Emphasis and style",searchPlaceholder:"Search",sections:MUST_LIBRARY.sections(),onPick:x=>{const v=MUST_LIBRARY.put(x);mut(()=>{S.out.must=v},"picMust")}})}
+function renderPic(){
+  if(!PIC_SEC.isConnected)return;if(PIC_SEC.contains(document.activeElement)&&document.activeElement.tagName==="SELECT")return;
+  const p=S.out.pair;PIC_SEC.textContent="";
+  const has=!!(p&&(p.scene||p.solo));
+  const line=(label,...kids)=>E("div",{class:"picrow"},E("span",{class:"piclab",text:label}),E("div",{class:"picctl"},...kids));
+  PIC_SEC.append(E("h3",{text:"Picture"}),E("p",{class:"scnote",text:"Where it happens and how it is shot. The same settings as in Finish, here so you can change them per scene."}));
+  const pl=has?placeNow():"";
+  PIC_SEC.append(line("Where",E("span",{class:"picval",text:has?(pl?cap1(pl):"Not named in this scene"):"Pick a scene first"}),has?btn("Change place…",b=>pickPlace(b),"Her own places, this scene's other places, every Academy place, or your own words"):null));
+  const k=(p&&p.qStyle)||S.out.qStyle||"studio";
+  const seg=E("div",{class:"qucseg"},...STYLES.map(([v,l])=>E("button",{type:"button",class:"btn sm"+(v===k?" on primary":""),"aria-pressed":v===k?"true":"false",
+    onclick:()=>mut(()=>{S.out.qStyle=v;const q=S.out.pair;if(q)delete q.qStyle},"picStyle")},l)));
+  const fr=E("select",{"aria-label":"Framing",onchange:e=>mut(()=>{S.out.framing=e.target.value},"picFrame")},
+    ...FRAMES.concat(FRAMES.some(([v])=>v===(S.out.framing||""))?[]:[[S.out.framing,"Custom: "+short(S.out.framing,30)]]).map(([v,l])=>E("option",{value:v,selected:(S.out.framing||"")===v?true:null,text:l})));
+  PIC_SEC.append(line("Framing",fr),line("Style",seg));
+  const em=emphasisNow();
+  PIC_SEC.append(line("Emphasis",E("span",{class:"picval",text:em?cap1(short(em,90)):"None"}),btn("Change…",b=>pickEmphasis(b),"What the image dwells on, or a whole style line")));
+  PIC_SEC.append(E("p",{class:"muted small",style:"margin:8px 0 0"},"Quality tags, wording and the Undesired Content are in ",E("a",{href:"#",onclick:e=>{e.preventDefault();try{goStep("finish")}catch(_){}}},"Finish"),"."))}
+{const st=document.createElement("style");st.textContent=".picsec .picrow{display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:8px;align-items:center;margin:6px 0}.picsec .piclab{font-weight:600;font-size:13px;color:var(--muted)}"+
+  ".picsec .picctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0}.picsec .picval{min-width:0;overflow-wrap:anywhere;font-size:14px}.picsec select{max-width:100%}";document.head.append(st)}
+function place(){const ed=document.getElementById("sceneEditor");if(!ed)return;const first=[...ed.querySelectorAll(":scope>.scsec")].find(x=>x!==SEC&&x!==PIC_SEC);
+  if(first&&SEC.nextElementSibling!==first&&SEC.nextElementSibling!==PIC_SEC)first.before(SEC);else if(!first&&SEC.parentNode!==ed)ed.append(SEC);
+  if(SEC.parentNode===ed&&SEC.nextElementSibling!==PIC_SEC)SEC.after(PIC_SEC)}
+{const rs=renderSide;renderSide=function(){rs();try{place();render();renderPic()}catch(e){try{console.warn("[cast] "+e)}catch(_){}}try{foldCards()}catch(e){try{console.warn("[fold] "+e)}catch(_){}}}}
+try{place();render();renderPic();foldCards()}catch(e){}
 /* v272: a scene can be the starting point. The first step offers it, and the Scene step opens on the Cast card. */
 function sceneStart(){
   try{goStep("scene")}catch(e){return}

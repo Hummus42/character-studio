@@ -1771,6 +1771,18 @@
   const MAXC=6,NUMW=["no","one","two","three","four","five","six"];
   const moreOf=p=>p&&p.id&&Array.isArray(p.more)?p.more.filter(m=>m&&m.id&&tpl(m.id)).slice(0,MAXC-2):[];
   const fillN=(s,n)=>String(s||"").replace(/\{n\}/g,NUMW[n]||String(n)).replace(/\{N\}/g,(NUMW[n]||String(n)).replace(/^./,c=>c.toUpperCase()));
+  /* v280: a group scene with characters taken out. Its wording still spoke of a group ("the others gathered around her",
+     "all of them", "the whole of the Frost", "group picture"), and the image generator drew a third person to match.
+     When fewer characters are in the scene than it was loaded with (pair.writtenN), the wording follows the real count. */
+  const agreeN=(s,n)=>{s=String(s||"");const W=NUMW[n]||String(n),Wc=W.replace(/^./,c=>c.toUpperCase());
+    s=s.replace(/\b(T|t)he whole of the\b/g,(m,t)=>(t==="T"?Wc:W)+" of the")
+      .replace(/\ball (two|three|four|five|six|seven|eight)\b/gi,m=>n===2?(m[0]==="A"?"Both":"both"):(m[0]==="A"?"All ":"all ")+W);
+    if(n===2)s=s.replace(/stands at the center with the others gathered close around her/g,"stands with the other close beside her")
+      .replace(/,? and the others applaud/g,"").replace(/\bthe others (\w+)/g,(m,v)=>"the other "+(/(ed|s)$/.test(v)?v:v+"s")).replace(/\bthe others\b/g,"the other")
+      .replace(/\b(all|each|every one) of them\b/g,"both of them").replace(/\b(All|Each|Every one) of them\b/g,"Both of them")
+      .replace(/\bher lieutenants\b/g,"her lieutenant").replace(/the girls of the (\w+) welcome their newest member, who stands nervous and glowing in the middle as their leader/g,"the leader of the $1 welcomes their newest member, who stands nervous and glowing as her new leader").replace(/,\s*applauding\b/g,"")
+      .replace(/\bgroup (picture|photo)\b,?\s*/g,"").replace(/\.\s*,\s*/g,". ");
+    return s};
   /* a built-in Academy student (not a headmistress or a boyfriend) can be written as her one-line identity */
   const idLine=t=>{try{const h=window.BIO_GIRL&&BIO_GIRL(t),G=h&&ACAD.REALG&&ACAD.REALG[h];return G&&G.id?[ACAD.HNAME&&ACAD.HNAME[h]||ACAD.cap(h),G.id,G.fig].filter(Boolean).join(", "):""}catch(e){return""}};
   /* compose another state without disturbing this design (S, the compose context and the drop notes are restored) */
@@ -2007,7 +2019,8 @@
     else if(p.couple&&!p.explicit)count+=", couple"+(!a.male&&!b.male?", yuri":"");
     if(!X.length&&p.ctags&&!held)count+=", "+fillN(p.ctags,2);
     const style=o.slim?clean(a.must):"";
-    const scene=held?"":fillN(fill(withPanels(p,p.scene),partnerWords(b.male,futa)),2+X.length);
+    let scene=held?"":fillN(fill(withPanels(p,p.scene),partnerWords(b.male,futa)),2+X.length);
+    if(scene&&p.writtenN&&p.writtenN>2+X.length)scene=agreeN(scene,2+X.length);
     /* v131: in an explicit pair, "NSFW, Explicit" ends the base prompt (same line) instead of the character prompts */
     const dir=p.dir||"mutual";
     const acts=held?[]:String(p.act||"").split(",").map(x=>x.trim().replace(/^(mutual|source|target)#/i,"").trim()).filter(Boolean);
