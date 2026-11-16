@@ -27,6 +27,7 @@
     ["Tease",A("Sheer Babydoll|Crotchless Lace|Fishnet Bodystocking|Micro Bikini|Slingshot Swimsuit|Naked Apron|His Shirt Only|Gift-Wrapped|Towel Drop|Virgin Killer Sweater|Wet T-Shirt|Naked Bandages|Pasties and Tape|Body Paint")],
     ["Exhibition",A("Mirror Selfie|Camgirl Stream|No Panties Breeze|Panty Drop|Trench Coat Flash|Nudist Beach|Strip Club|Pole Dancer|Bathroom Show|Public Exhibition|Public Masturbation|Public Pee|Highest Bidder")],
     ["Body focus",A("Oiled Up|Tan Lines|Post-Workout|Au Naturel|Topless|Peach Focus|Armpit Tease|Foot Worship|Bimbo Glam|Muscle Goddess|Thick and Soft|Gigantic Breasts|Futanari|Glitter Glam|Body Jewelry|Pierced|Womb Tattoo|Written On|Lipstick Marks")],
+    ["Furry",A("Furry")],
     ["Lewd costumes and roleplay",A("Classic Bunny|Reverse Bunny Suit|Maid Bikini|Lewd Maid|Lewd Nurse|Office Lady|Lewd Nun|Lewd Shrine Maiden|Harem Dancer")],
     ["Pet play",A("Collar and Leash|Kitten Play|Pony Play|Hucow|Pet Bowl Training")],
     ["Food play",A("Whipped Cream Bikini|Chocolate Valentine|Honey Drizzle|Nyotaimori")],

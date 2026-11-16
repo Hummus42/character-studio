@@ -184,5 +184,5 @@
     H.map((h,i)=>[h,D[h].items,ex[i%ex.length],D[h][2],D[h][1],{}]));
   H.forEach(h=>{const t=tplById(h+"hcx");if(!t)return;t.name=D[h][0]+" ("+ACAD.cap(h)+")";if(t.outfit)t.outfit.oname=D[h][0];
     t.out=Object.assign({},t.out,{must:must(D[h][3]),notes:D[h][5]+", "+BASE});if(typeof t.blurb==="string")t.blurb=t.blurb.replace(/: \. /,". ")});
-  ACAD.HOUSE_COSTUMES={girls:H.length,missing:ACAD.HOUSES.filter(h=>!D[h])};
+  ACAD.HOUSE_COSTUMES={girls:H.length,missing:ACAD.HOUSES.filter(h=>!D[h]),setting:Object.fromEntries(H.map(h=>[h,D[h][3]]))};
 })();
