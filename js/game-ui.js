@@ -39,7 +39,7 @@ html.ev-open,html.ev-open body{overflow:hidden}
 #evRoot .stat{display:grid;grid-template-columns:62px 1fr 34px;gap:6px;align-items:center;font-size:13px;margin:2px 0}
 #evRoot .up{color:var(--g-ok)}#evRoot .down{color:var(--g-bad)}
 #evRoot .title{position:absolute;inset:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:max(14px,env(safe-area-inset-top)) 0 max(36px,calc(env(safe-area-inset-bottom) + 24px));gap:10px;text-align:center;background:linear-gradient(#100d26cc,#100d26ee),#100d26}
-#evRoot .title .bg{position:fixed;inset:0;width:100%;height:100%;background-size:cover;background-position:center;opacity:.55;filter:saturate(1.1)}
+#evRoot .title .bg{position:fixed;inset:0;width:100%;height:100%;background-size:cover;background-position:center 30%;opacity:.9}#evRoot .title .bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 46% 70% at 50% 58%,#100d26b3,#100d2633 70%,#100d2680)}
 #evRoot .title>*:not(.bg){position:relative}
 #evRoot .logo{font:700 clamp(40px,9vw,92px)/1 Georgia;letter-spacing:.14em;color:var(--g-gold);text-shadow:0 4px 30px #000}
 #evRoot .tag{color:#d9d2bd;margin-bottom:12px;font-size:clamp(14px,2.2vw,19px);letter-spacing:.06em}
@@ -117,7 +117,7 @@ const say=m=>{says=m;clearTimeout(sayT);sayT=setTimeout(()=>{says="";const e=roo
 const codex=id=>ENC.open(id||"home");
 const edition=()=>typeof EVERSPIRE_EDITION!=="undefined"?EVERSPIRE_EDITION:"public";
 /* The version on the title page. Raise it with every push: 1.<number of commits in the repo after the push>. */
-const EV_VERSION="1.54",EV_DATE="Nov 15, 2026";
+const EV_VERSION="1.55",EV_DATE="Nov 15, 2026";
 window.EVERSPIRE_VERSION=EV_VERSION;
 
 /* ---------- title ---------- */
@@ -132,7 +132,7 @@ function title(){ensure();show();dispose();S=null;root.textContent="";const last
     mk("Scene Maker","Any girls, any scene, any outfit",()=>{hide();try{if(ACAD.sceneStart)ACAD.sceneStart()}catch(e){}}),
     mk("Codex","The Academy, its Houses and its history",()=>codex("home")),
     mk("Settings","Standing orders and display",settings));
-  root.append(E("div",{class:"title"},E("div",{class:"bg",style:{backgroundImage:"url(assets/rooms/portal_castle.webp)"}}),E("div",{class:"logo"},"EVERSPIRE"),E("div",{class:"tag"},"The Academy awaits its headmaster"),m,
+  root.append(E("div",{class:"title"},E("div",{class:"bg",style:{backgroundImage:"url(assets/title/everspire_splash.webp)"}}),E("div",{class:"logo"},"EVERSPIRE"),E("div",{class:"tag"},"The Academy awaits its headmaster"),m,
     E("div",{class:"foot"},"Everspire Academy · "+(edition()==="admin"?"admin edition":"public edition")+" · version "+EV_VERSION+" ("+EV_DATE+")")))}
 function firstFree(){const s=G.slots();const i=s.findIndex(x=>!x);return i<0?0:i}
 
