@@ -2789,3 +2789,24 @@ textarea.adm-in{resize:vertical}
 @media (max-width:600px){.adm-f{grid-template-columns:1fr;gap:2px}.adm-f>span{padding-top:0}.adm-body{padding:18px 16px 8px}.adm-foot{padding:12px 16px 16px}}`;
   document.head.append(st);
 })();
+
+/* ---- v282: coming back to the Encyclopedia lands where you left it. Loading a look or scene from a girl's page closes the
+   Encyclopedia; reopening it rebuilt the page at the top, so you had to scroll back down to her wardrobe. The page, how
+   far down it was, and which shelves were open are kept when it closes, and put back when the same page opens again. ---- */
+(function(){
+  if(typeof ENC==="undefined"||!ENC.open||!ENC.close)return;
+  const mainEl=()=>document.querySelector("#encDlg main");
+  let saved=null;
+  const keep=()=>{const m=mainEl();if(!m||!ENC._cur)return;
+    saved={id:ENC._cur,top:m.scrollTop,open:[...m.querySelectorAll("details")].map(d=>d.open)}};
+  const close0=ENC.close;ENC.close=function(){try{keep()}catch(e){}return close0.apply(this,arguments)};
+  /* closing with Escape or the dialog's own button too */
+  const hook=()=>{const d=document.getElementById("encDlg");if(d&&!d.__keep){d.__keep=1;d.addEventListener("close",()=>{try{keep()}catch(e){}})}};
+  const open0=ENC.open;ENC.open=function(id){
+    const back=saved&&(!id||id===saved.id)?saved:null;
+    const r=open0.apply(this,arguments);hook();
+    if(back&&ENC._cur===back.id){const m=mainEl();
+      if(m){const ds=[...m.querySelectorAll("details")];back.open.forEach((o,i)=>{if(ds[i])ds[i].open=o});
+        const go=()=>{m.scrollTop=back.top};go();requestAnimationFrame(go);setTimeout(go,60)}}
+    return r};
+})();
