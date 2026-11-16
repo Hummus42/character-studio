@@ -64,7 +64,11 @@ const minor=P=>!!(P&&P.h&&ACAD.isMinor&&ACAD.isMinor(P.h));
 /* ---------- character 1: who she is, from the design ---------- */
 function c1Look(){const L=S.out&&S.out.c1look;if(L&&tpl(L))return L;
   const h=window.SCENE_SLOTS&&SCENE_SLOTS.girlOfState?SCENE_SLOTS.girlOfState(S):null;return h?h+"robes":""}
-function c1Wear(){const w=S.out&&S.out.c1wear;if(w!=null)return w;const o=S.outfits[S.cur];return o&&/^nude$/i.test(o.name||"")?"nude":"own"}
+function c1Wear(){const o=S.outfits[S.cur],p=S.out&&S.out.pair;
+  if(o&&/^nude$/i.test(o.name||"")&&!Object.keys(o.items||{}).length)return"nude";
+  /* v276: loading a scene dresses her in its outfit; say so */
+  if(o&&p&&p.w1&&o.name===(p.w1.name||"Scene outfit"))return"scene";
+  const w=S.out&&S.out.c1wear;return w!=null&&w!=="scene"&&w!=="nude"?w:"own"}
 
 /* ---------- tags: "completely nude" follows the Nude pick ---------- */
 const addTag=(s,t)=>{const a=String(s||"").split(",").map(x=>x.trim()).filter(Boolean);if(!a.includes(t))a.push(t);return a.join(", ")};
@@ -141,10 +145,13 @@ function suggested(){
     [[h1+"man","Her boyfriend"],[other(R.SG)&&other(R.SG)+"robes","Her girlfriend"],[bf&&bf+"robes","Her best friend"],[other(R.RV)&&other(R.RV)+"robes","Her rival"]]
       .forEach(([id,sub])=>{if(id&&tpl(id)&&!out.some(o=>o.v==="id:"+id)){const P=personOf(id);out.push({v:"id:"+id,label:P?P.name:tpl(id).name,sub,img:P&&P.kind==="girl"?PIC(P.h):null})}})}
   return out}
+function needsPartner(){const p=S.out.pair;if(!p)return false;
+  if(p.arch&&ACAD.RX){const x=ACAD.RX.variant(p.arch.s,p.arch.v);return!!(x&&x.f&&x.f.scene&&!x.f.solo)}
+  return!!(p.scene&&!p.solo)}
 function pickWho(btn,n,onPick){
   const X=index(),secs=[];
   if(n>=2){const sg=suggested().filter(x=>n===2||x.v.startsWith("id:"));if(sg.length)secs.push({name:"Suggested",items:sg})}
-  if(n===2){secs.push({name:"Anyone",items:[{v:"gm:far",label:"Faceless man",sub:"All about her"},{v:"gm:pov",label:"Faceless man, his point of view",sub:"POV"}].concat(n===2?[{v:"none",label:"No one (solo)",sub:"Character 1 alone"}]:[])})}
+  if(n===2){secs.push({name:"Anyone",items:[{v:"gm:far",label:"Faceless man",sub:"All about her"},{v:"gm:pov",label:"Faceless man, his point of view",sub:"POV"}].concat(n===2?[Object.assign({v:"none",label:"No one (solo)",sub:"Character 1 alone"},needsPartner()?{sub:"Not for this scene",dis:"This scene has no version for her alone. Choose another scene to make a solo shot."}:{})]:[])})}
   const sv=saves();if(sv.length)secs.push({name:"My saves",items:sv.map(x=>({v:"id:save:"+x.id,label:x.name||"My save",sub:"Saved design"}))});
   (ACAD.GROUPS||[]).forEach(g=>{const items=g.members.filter(h=>tpl(h+"robes")).map(h=>({v:"id:"+h+"robes",label:HN(h),sub:(BIOS[h]||{}).fullName||"",img:PIC(h)}));if(items.length)secs.push({name:g.name,items})});
   const boys=(ACAD.HOUSES||[]).filter(h=>tpl(h+"man")).map(h=>({v:"id:"+h+"man",label:tpl(h+"man").name,sub:HN(h)+"'s boyfriend"}));if(boys.length)secs.push({name:"The boys",items:boys});
@@ -192,9 +199,13 @@ function sceneKind(v){
   if(KC.has(v))return KC.get(v);let k="solo";
   try{const m=/^rx:(\d+):(\d+)$/.exec(v||"");
     if(m&&ACAD.RX){const x=ACAD.RX.variant(+m[1],+m[2])||{},f=x.f||{},r=x.r||{};
-      k=kindOfText((f.scene||f.solo||"")+" "+(f.act||""),(x.p||[])[0]||"",r.penis,r.gm,null)}
+      const p0=(x.p||[]).find(Boolean)||"";
+      /* v275: no partner written for it (only faceless side characters in the text): it is her scene alone */
+      k=!p0&&!r.gm&&x.q==="none"?"solo"
+        :!p0&&!r.gm&&x.q&&x.q!=="none"&&!GRP.test(String(f.scene||""))?"pair"   /* her partner, whoever that is: a man or a girl */
+        :kindOfText((f.scene||f.solo||"")+" "+(f.act||""),p0,r.penis,r.gm,null)}
     else{const t=window.SCENE_LIBRARY&&SCENE_LIBRARY.get(v),p=t&&t.out&&t.out.pair;
-      if(p)k=kindOfText((p.scene||p.solo||"")+" "+(p.act||""),p.id||"",p.penis,p.gm,p.more&&p.more.length)}}catch(e){}
+      if(p)k=!p.id&&!p.gm&&p.solo&&!(p.more&&p.more.length)?"solo":kindOfText((p.scene||p.solo||"")+" "+(p.act||""),p.id||"",p.penis,p.gm,p.more&&p.more.length)}}catch(e){}
   KC.set(v,k);return k}
 function sceneExplicit(v){
   if(XC.has(v))return XC.get(v);let x=false;
@@ -219,14 +230,20 @@ function currentKind(){const p=S.out.pair;if(!p)return"";
 
 /* ---------- v272: one scene picker for the whole Scene step, filtered by who it is for ---------- */
 const SF={kind:"",mood:""};
+/* v274: an archive scene's full description (its setting alone said too little) */
+const BC=new Map();
+function blurb(v){if(BC.has(v))return BC.get(v);let b="";const m=/^rx:(\d+):(\d+)$/.exec(v||"");
+  if(m&&ACAD.RX&&ACAD.RX.blurbOf)try{b=String(ACAD.RX.blurbOf(+m[1],+m[2])||"").replace(/\{[@#]?\w+\}/g,"").replace(/\s+/g," ").trim()}catch(e){}
+  BC.set(v,b);return b}
 function pickScene(anchor,opts){opts=opts||{};const L=window.SCENE_LIBRARY;if(!L){say("The scene library isn't available in this version.");return}
   let secs=L.sections();if(opts.archiveOnly)secs=secs.filter(s=>/^Archive: /.test(s.name));
   const fit=castKind();
+  const fits=(k,w)=>k===w||(k==="pair"&&(w==="man"||w==="girls"));
   const want=it=>{const k=sceneKind(it.v);
-    if(SF.kind==="fit"?k!==fit:SF.kind&&k!==SF.kind)return false;
+    if(SF.kind==="fit"?!fits(k,fit):SF.kind&&!fits(k,SF.kind))return false;
     if(SF.mood){const x=sceneExplicit(it.v);if(SF.mood==="x"?!x:x)return false}
     return true};
-  const byName=new Map();secs.forEach(s=>{const nm=s.name.replace(/^Archive: /,"");const it=s.items.filter(want);if(!it.length)return;if(!byName.has(nm))byName.set(nm,[]);byName.get(nm).push(...it)});
+  const byName=new Map();secs.forEach(s=>{const nm=s.name.replace(/^Archive: /,"");const it=s.items.filter(want).map(x=>{const b=blurb(x.v);return b?Object.assign({},x,{sub:b}):x});if(!it.length)return;if(!byName.has(nm))byName.set(nm,[]);byName.get(nm).push(...it)});
   const shown=[...byName].map(([name,items])=>({name,items}));
   const all=secs.reduce((n,s)=>n+s.items.length,0),n=shown.reduce((a,s)=>a+s.items.length,0);
   const re=()=>setTimeout(()=>{try{pickScene(anchor,opts)}catch(e){}},0);
@@ -237,7 +254,13 @@ function pickScene(anchor,opts){opts=opts||{};const L=window.SCENE_LIBRARY;if(!L
   const cur=S.out.pair&&S.out.pair.arch?"rx:"+S.out.pair.arch.s+":"+S.out.pair.arch.v:null;
   openPop(anchor,{title:(opts.title||"Scenes")+" · "+(n===all?all.toLocaleString():n.toLocaleString()+" of "+all.toLocaleString()),
     sections:shown.length?shown:[{name:"",items:[]}],top,current:cur,searchPlaceholder:"Search "+n.toLocaleString()+" scenes",
-    onPick:k=>{if(opts.onPick)return opts.onPick(k);const t=L.get(k);if(t)PAIR.applyScene(t)}})}
+    onPick:k=>{if(opts.onPick)return opts.onPick(k);const t=L.get(k);if(t)PAIR.applyScene(t)}});
+  /* v274: scene names over their full descriptions, in a wider popover */
+  const el=document.querySelector("body>.pop:last-of-type");if(!el)return;el.classList.add("scenepop");
+  if(!el.classList.contains("popsheet")){const w=Math.min(720,window.innerWidth-24),r=anchor.getBoundingClientRect();
+    el.style.width=w+"px";el.style.left=Math.min(Math.max(12,r.left),window.innerWidth-w-12)+"px";
+    /* as tall as the window allows, so more than a few scenes show at once */
+    const H=Math.min(820,window.innerHeight-24);el.style.maxHeight=H+"px";el.style.height=H+"px";el.style.top=Math.max(12,Math.round((window.innerHeight-H)/2))+"px";el.style.bottom="auto"}}
 ACAD.pickScene=pickScene;
 
 /* ---------- v272: the scene and the cast don't match: say so, with a one-click fix ---------- */
@@ -246,19 +269,24 @@ function fixFor(want){
   if(want==="girls"){const x=sg.find(o=>o.v.startsWith("id:")&&sexOf(o.v.slice(3))==="f");return x?{label:"Use "+x.label,sub:x.sub,fn:()=>setC2(x.v.slice(3),null)}:null}
   if(want==="man"){const x=sg.find(o=>o.v.startsWith("gm:")||(o.v.startsWith("id:")&&sexOf(o.v.slice(3))==="m"));
     return x?{label:"Use "+x.label,sub:x.sub,fn:()=>x.v.startsWith("gm:")?setC2("",0,x.v.slice(3)):setC2(x.v.slice(3),null)}:null}
+  if(want==="partner"){const x=sg.find(o=>o.v.startsWith("id:"));return x?{label:"Use "+x.label,sub:x.sub,fn:()=>setC2(x.v.slice(3),null)}:null}
   if(want==="solo")return{label:"Remove character 2",fn:()=>setC2("",0)};
   if(want==="group")return{label:"+ Add a character",fn:()=>addX()};
   return null}
 function mismatch(){
-  const p=S.out.pair;if(!p)return null;const want=currentKind();if(!want)return null;const have=castKind();
+  const p=S.out.pair;if(!p)return null;let want=currentKind();if(!want)return null;const have=castKind();
   if(want===have)return null;
+  if(want==="pair"){if(have==="man"||have==="girls"||have==="group")return null;want="partner"}
   /* a girl in a scene written for a man is fine unless the scene needs a penis (she is then drawn as a futanari) */
   if(want==="man"&&have==="girls"&&!p.penis)return null;
   if(want==="group"&&have!=="solo")return null;   /* a group scene with two still reads */
+  /* v275: a solo scene that also has a version with a partner is fine either way */
+  if(want==="solo"&&p.arch&&ACAD.RX){const x=ACAD.RX.variant(p.arch.s,p.arch.v);if(x&&x.f&&x.f.scene&&x.f.solo)return null}
   const key=(p.arch?p.arch.s+":"+p.arch.v:String(p.scene||"").slice(0,40))+"|"+have;
   if(p.castOk===key)return null;
   const msg=want==="girls"?(have==="man"?"This scene is written for two girls, and character 2 is a man.":"This scene is written for two girls. Pick character 2.")
     :want==="man"?(have==="girls"?"This scene is written for her and a man. Character 2 is a woman, so she will be drawn as a futanari.":"This scene is written for her and a man. Pick character 2.")
+    :want==="partner"?"This scene is written for her and her partner. Pick character 2."
     :want==="solo"?"This scene is written for her alone, and it has a character 2."
     :"This scene is written for three or more. Add a character.";
   return{msg,key,fix:fixFor(want)}}
@@ -300,7 +328,7 @@ function stepGirl(d){
 function shuffle(){
   const L=window.SCENE_LIBRARY;if(!L)return;const fit=castKind(),ok=Policy.explicitAllowed();
   const want=SF.mood;
-  const items=L.sections().flatMap(s=>s.items).filter(it=>!it.dis&&sceneKind(it.v)===fit&&(!want||(want==="x"?sceneExplicit(it.v):!sceneExplicit(it.v)))&&(ok||!sceneExplicit(it.v)));
+  const items=L.sections().flatMap(s=>s.items).filter(it=>!it.dis&&(sceneKind(it.v)===fit||(sceneKind(it.v)==="pair"&&(fit==="man"||fit==="girls")))&&(!want||(want==="x"?sceneExplicit(it.v):!sceneExplicit(it.v)))&&(ok||!sceneExplicit(it.v)));
   if(!items.length){say("No scene fits this cast.");return}
   const it=items[Math.floor(Math.random()*items.length)];const t=L.get(it.v);if(t){PAIR.applyScene(t);say(it.label)}}
 
@@ -359,6 +387,8 @@ const css=document.createElement("style");css.textContent=
   ".scfold>h3{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}.scfold>h3::after{content:'▸';margin-left:auto;font-size:.85em;color:var(--muted);transition:transform .15s}.scfold.open>h3::after{transform:rotate(90deg)}"+
   ".scfold>.scsum{margin:2px 0 0;color:var(--muted);font-size:13px;cursor:pointer;overflow-wrap:anywhere}.scfold.open>.scsum{display:none}"+
   ".scfold:not(.open)>:not(h3):not(.scsum){display:none!important}"+
+  ".pop.scenepop .opt{flex-direction:column;align-items:stretch;gap:3px;min-height:0}.pop.scenepop .opt .ol{flex:none;font-weight:600}"+
+  ".pop.scenepop .opt small{white-space:normal;text-align:left;line-height:1.4;overflow-wrap:anywhere}.pop.scenepop .pop-top{flex-wrap:wrap}"+
   ".pop .opt .pth{width:30px;height:30px;border-radius:50%;object-fit:cover;flex:none;background:rgba(127,127,127,.12)}"+
   ".castsec{container-type:inline-size}@container (max-width:540px){.castsec .castrow{grid-template-columns:1.6em 30px minmax(0,1fr)}.castsec .castrow .acts{grid-column:1/-1;justify-content:flex-start}}"+
   "@media (max-width:560px){.castsec .castguide{grid-template-columns:1fr}.castsec .castrow{grid-template-columns:1.6em 30px minmax(0,1fr)}.castsec .castrow .acts{grid-column:1/-1;justify-content:flex-start}}";
@@ -375,7 +405,7 @@ function row(n,id,w,gm){
   const name=gm?(gm==="pov"?"Faceless man, his point of view":"Faceless man"):P?P.name:(n===1?(S.name||"This design"):"No one");
   const sub=gm?"Written into the base prompt":id?wearLabel(id,w,n):(n===2?"A solo shot. Pick someone to make it a scene.":"");
   const acts=E("div",{class:"acts"},
-    btn("Who…",b=>pickWho(b,n,nid=>{if(n===1)setC1(nid,"own");else if(n===2)setC2(nid,null);else setX(n-3,nid,null)}),"Choose who character "+n+" is"),
+    btn("Who…",b=>pickWho(b,n,nid=>{if(n===1)setC1(nid,S.out.pair&&S.out.pair.w1?"scene":"own");else if(n===2)setC2(nid,null);else setX(n-3,nid,null)}),"Choose who character "+n+" is"),
     id&&!gm?btn("Wearing…",b=>pickWear(b,n,id,w),"Choose what character "+n+" wears"):null,
     (n<=2&&S.out.pair&&(id||gm||n===1))?poseBtn(n):null,
     n>2?btn("Remove",()=>dropX(n-3)):null);
