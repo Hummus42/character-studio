@@ -2840,3 +2840,33 @@ textarea.adm-in{resize:vertical}
         go();setTimeout(go,120);setTimeout(go,400)}}
     return r};
 })();
+
+/* ---- v291: the Player Character in the Encyclopedia (Characters and Relationships). A generic stand-in for the
+   player's own male character: who he is, what he looks like, and buttons that load him in each of his outfits. ---- */
+(function(){
+  if(typeof ENC==="undefined"||!ENC.page||typeof tplById!=="function")return;
+  const E=(t,a,...k)=>{const el=document.createElement(t);Object.entries(a||{}).forEach(([x,v])=>{if(v==null)return;if(x==="class")el.className=v;else if(x.startsWith("on"))el.addEventListener(x.slice(2),v);else el.setAttribute(x,v)});
+    k.flat().forEach(c=>{if(c==null)return;el.append(typeof c==="string"?document.createTextNode(c):c)});return el};
+  const ID="playerchar";
+  const loadIn=(i,label)=>E("button",{type:"button",class:"enc-load",onclick:()=>{const t=tplById(ID);if(!t)return;
+      ENC.load(ID);if(i>0)setTimeout(()=>{try{mut(()=>{S.cur=Math.min(i,S.outfits.length-1)},"pcOutfit")}catch(e){}},50)}},label);
+  ENC.page("player",{title:"The Player Character",short:"Player Character",sec:"cast",crumbs:["cast"],build:el=>{
+    const t=tplById(ID);const art=E("article",{class:"enc-article"});
+    art.append(E("h1",{class:"enc-title"},"The Player Character"),
+      E("p",{class:"enc-p"},"An eighteen-year-old fourth-year of the Legends, and a stand-in for you. He is there so that any scene with the girls has a young man of the Academy in it: load him as he is, or make him your own in the studio (his face, hair, build and clothes are all ordinary studio choices) and save him."),
+      E("h3",{class:"enc-h"},"At a glance"),
+      E("ul",{class:"enc-p"},
+        E("li",null,"Age 18, fourth year, the Legends (a small gold Legends crest pin on his lapel)."),
+        E("li",null,"Tall and muscular: broad shoulders, a defined V-shaped torso, defined arms and abs."),
+        E("li",null,"Short, messy black hair with a faint dark-blue sheen and a single ahoge; steady grey-blue almond eyes; light brown skin; a tiny pale nick in his left eyebrow."),
+        E("li",null,"Calm, composed and quietly self-assured, with a faint closed-mouth smile."),
+        E("li",null,"Colors: black, crimson and charcoal gray, with gold and silver.")),
+      E("h3",{class:"enc-h"},"Load him"),
+      t?E("div",{class:"enc-loads"},loadIn(0,"Academy uniform"),loadIn(1,"Shirtless"),loadIn(2,"Nude")):E("p",{class:"enc-note"},"He isn't in this version."),
+      E("p",{class:"enc-note"},"In the studio's Scene step he is under Who… as \"The Player Character\", for character 1 or 2."));
+    el.append(art)}});
+  /* a link to him on the Characters and Relationships page */
+  const cast=ENC.pages.cast;if(cast&&cast.build&&!cast.__pc){const b0=cast.build;cast.__pc=1;
+    cast.build=function(el){const r=b0.apply(this,arguments);try{const a=el.querySelector("article")||el;
+      a.prepend(E("p",{class:"enc-note"},"Playing yourself? ",E("a",{href:"#",onclick:e=>{e.preventDefault();ENC.go("player")}},"The Player Character")," is a ready-made young man of the Academy for scenes with the girls."))}catch(e){}return r}}
+})();

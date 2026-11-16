@@ -72,4 +72,14 @@
     V("On her ass","the woman looks back over her shoulder as a faceless man finishes across her ass.","cum on ass, ejaculation, ass, looking back, all fours, penis","splurt","looking back, smug","on all fours"),
     V("On her stomach","the woman lies back as a faceless man pulls out and finishes across her stomach.","cum on stomach, ejaculation, cum on body, on back, spread legs, penis, heavy breathing","splurt","breathless, flushed","lying back"),
     V("Afterglow","the woman lies spent on her back, covered in sweat and cum, chest heaving.","after sex, cum on body, cumdrip, sweat, heavy breathing, on back, spread legs, steam","pant pant","dazed, blissful","lying spent on her back")]);
+  /* v292: the same 48 with the Player Character as her partner (his own look, nude), on every girl's shelf in their own
+     category. The faceless man becomes {partner} (him); "faceless male", "pov" and the head-out-of-frame setting go. */
+  const PC=X.S.filter(st=>/^Academy Cut-out /.test(st.s)).map(st=>({s:st.s.replace("Academy Cut-out ","Academy PC Cut-out "),v:st.v.map(v=>{
+    const f=Object.assign({},v.f),r=Object.assign({},v.r);
+    const swap=t=>String(t||"").replace(/\ba faceless man's\b/g,"{partner}'s").replace(/\ba faceless man\b/g,"{partner}").replace(/\bthe faceless man\b/g,"{partner}").replace(/\b(?:a|the) (?:standing |kneeling |lying )faceless man('s)?\b/g,(m,s)=>"{partner}"+(s||""))
+      .replace(/,\s*faceless male\b/g,"").replace(/\bfaceless male,\s*/g,"").replace(/,\s*pov\b/g,"").replace(/\bpov,\s*/g,"");
+    f.scene=swap(f.scene);f.act=swap(f.act);f.count="1girl, 1boy, hetero";
+    delete r.gm;r.dir=r.dir||"ba";
+    return Object.assign({},v,{f,r,q:"none",p:"PC"})})}));
+  X.S.push(...PC);
 })();

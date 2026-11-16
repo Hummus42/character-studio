@@ -1354,7 +1354,8 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
   if(typeof ACAD==="undefined"||!ACAD.ARCH233||!window.ARCH_EXTRA)return;
   const A=ACAD.ARCH233,have=new Set(A.S.map(s=>s.s));
   (window.ARCH_EXTRA.S||[]).forEach(s=>{if(have.has(s.s))return;
-    A.S.push({s:s.s,v:s.v.map(v=>Object.assign({},v,{g:v.g==="ALL"?(ACAD.HOUSES||[]).slice():v.g}))})});
+    A.S.push({s:s.s,v:s.v.map(v=>{const g=v.g==="ALL"?(ACAD.HOUSES||[]).slice():v.g;   /* v292: p "PC" = the Player Character for every girl */
+      return Object.assign({},v,{g,p:v.p==="PC"?g.map(()=>"playerchar"):v.p})})})});
   ACAD.ARCH_EXTRA_LABELS=(window.ARCH_EXTRA.S||[]).map(s=>s.s);
 })();
 

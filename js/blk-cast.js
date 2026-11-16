@@ -157,6 +157,8 @@ function pickWho(btn,n,onPick){
   const sv=saves();if(sv.length)secs.push({name:"My saves",items:sv.map(x=>({v:"id:save:"+x.id,label:x.name||"My save",sub:"Saved design"}))});
   (ACAD.GROUPS||[]).forEach(g=>{const items=g.members.filter(h=>tpl(h+"robes")).map(h=>({v:"id:"+h+"robes",label:HN(h),sub:(BIOS[h]||{}).fullName||"",img:PIC(h)}));if(items.length)secs.push({name:g.name,items})});
   const boys=(ACAD.HOUSES||[]).filter(h=>tpl(h+"man")).map(h=>({v:"id:"+h+"man",label:tpl(h+"man").name,sub:HN(h)+"'s boyfriend"}));if(boys.length)secs.push({name:"The boys",items:boys});
+  /* v291: the Player Character, a stand-in for the player's own character */
+  if(tpl("playerchar"))secs.push({name:"Player Character",items:[{v:"id:playerchar",label:"The Player Character",sub:"18, a fourth-year of the Legends"}]});
   const heads=(ACAD.HOUSES||[]).filter(h=>tpl(h+"head")).map(h=>({v:"id:"+h+"head",label:tpl(h+"head").name.split(",")[0],sub:"Headmistress of "+HN(h)+" House"}));if(heads.length)secs.push({name:"The headmistresses",items:heads});
   if(X.others.length)secs.push({name:"Principals and staff",items:X.others.map(o=>({v:"id:"+o.id,label:o.name,sub:o.sub}))});
   const cur=n===1?c1Look():n===2?(S.out.pair&&(S.out.pair.id||(S.out.pair.gm?"gm:"+S.out.pair.gm:"")))||"":((S.out.pair&&S.out.pair.more&&S.out.pair.more[n-3])||{}).id;
@@ -354,7 +356,8 @@ ACAD.applyPickedScene=applyPicked;
 {const putCats=()=>{try{const C=(ACAD.RX_CATS||[]).find(x=>x[1].includes("Threesomes"));if(C){const i=C[1].indexOf("Threesomes");
   ["FFM Positions","FMM Positions"].forEach((l,k)=>{if(!C[1].includes(l))C[1].splice(i+1+k,0,l)})}
   /* v290: Cut-outs, their own category */
-  const CUT=["Cut-out Positions","Cut-out Oral","Cut-out Hands and Body","Cut-out Anal","Cut-out Finish"];if(ACAD.RX_CATS&&!ACAD.RX_CATS.some(x=>x[0]==="Cut-outs (transparent)"))ACAD.RX_CATS.push(["Cut-outs (transparent)",CUT])}catch(e){}};
+  const CUT=["Cut-out Positions","Cut-out Oral","Cut-out Hands and Body","Cut-out Anal","Cut-out Finish"];if(ACAD.RX_CATS&&!ACAD.RX_CATS.some(x=>x[0]==="Cut-outs (transparent)"))ACAD.RX_CATS.push(["Cut-outs (transparent)",CUT]);
+  if(ACAD.RX_CATS&&!ACAD.RX_CATS.some(x=>x[0]==="Cut-outs with the Player Character"))ACAD.RX_CATS.push(["Cut-outs with the Player Character",CUT.map(l=>"PC "+l)])}catch(e){}};
   putCats();document.addEventListener("DOMContentLoaded",putCats);window.addEventListener("load",putCats)}
 /* v280: remember how many characters a scene came with, so its wording can follow when some are taken out (part-05 agreeN) */
 {const as=PAIR.applyScene;PAIR.applyScene=function(t){const r=as.apply(this,arguments);
