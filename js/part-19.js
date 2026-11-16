@@ -2790,23 +2790,35 @@ textarea.adm-in{resize:vertical}
   document.head.append(st);
 })();
 
-/* ---- v282: coming back to the Encyclopedia lands where you left it. Loading a look or scene from a girl's page closes the
-   Encyclopedia; reopening it rebuilt the page at the top, so you had to scroll back down to her wardrobe. The page, how
-   far down it was, and which shelves were open are kept when it closes, and put back when the same page opens again. ---- */
+/* ---- v282 (v283: fixed): coming back to the Encyclopedia lands where you left it. Loading a look or scene from a girl's
+   page closes the Encyclopedia; reopening it rebuilt the page at the top. v282 read the scroll position on closing, but a
+   closed dialog reports 0, so it kept "the top". Now the position is followed while you scroll, which shelves are open is
+   kept on closing, and both are put back (retrying while the page finishes building) when the same page opens again.
+   Also: the Encyclopedia spans the whole window, so the studio page's own scrollbar sat on top of the page's scrollbar
+   and dragging it scrolled the studio behind. While the Encyclopedia is open the studio page does not scroll. ---- */
 (function(){
   if(typeof ENC==="undefined"||!ENC.open||!ENC.close)return;
+  {const st=document.createElement("style");st.textContent="html:has(#encDlg[open]),html:has(#encDlg[open]) body{overflow:hidden!important}";document.head.append(st)}
+  const dlgEl=()=>document.getElementById("encDlg");
   const mainEl=()=>document.querySelector("#encDlg main");
   let saved=null;
-  const keep=()=>{const m=mainEl();if(!m||!ENC._cur)return;
-    saved={id:ENC._cur,top:m.scrollTop,open:[...m.querySelectorAll("details")].map(d=>d.open)}};
-  const close0=ENC.close;ENC.close=function(){try{keep()}catch(e){}return close0.apply(this,arguments)};
-  /* closing with Escape or the dialog's own button too */
-  const hook=()=>{const d=document.getElementById("encDlg");if(d&&!d.__keep){d.__keep=1;d.addEventListener("close",()=>{try{keep()}catch(e){}})}};
+  const live=()=>{const d=dlgEl();return!!(d&&d.open)};
+  const note=()=>{const m=mainEl();if(!m||!live()||!ENC._cur)return;
+    if(!saved||saved.id!==ENC._cur)saved={id:ENC._cur,top:0,open:[]};saved.top=m.scrollTop};
+  const shelves=()=>{const m=mainEl();if(m&&saved&&saved.id===ENC._cur)saved.open=[...m.querySelectorAll("details")].map(d=>d.open)};
+  const hook=()=>{const d=dlgEl(),m=mainEl();
+    if(m&&!m.__keep){m.__keep=1;m.addEventListener("scroll",()=>{try{note()}catch(e){}},{passive:true})}
+    if(d&&!d.__keep){d.__keep=1;d.addEventListener("close",()=>{try{shelves()}catch(e){}})}};
+  const close0=ENC.close;ENC.close=function(){try{note();shelves()}catch(e){}return close0.apply(this,arguments)};
+  /* a new page starts at the top; the page you left keeps its place */
+  const go0=ENC.go;ENC.go=function(){const r=go0.apply(this,arguments);try{hook();if(live()&&saved&&saved.id!==ENC._cur)saved=null}catch(e){}return r};
   const open0=ENC.open;ENC.open=function(id){
-    const back=saved&&(!id||id===saved.id)?saved:null;
+    const back=saved&&(!id||id===saved.id)?{...saved}:null;
     const r=open0.apply(this,arguments);hook();
     if(back&&ENC._cur===back.id){const m=mainEl();
       if(m){const ds=[...m.querySelectorAll("details")];back.open.forEach((o,i)=>{if(ds[i])ds[i].open=o});
-        const go=()=>{m.scrollTop=back.top};go();requestAnimationFrame(go);setTimeout(go,60)}}
+        saved={...back};let n=0;
+        const go=()=>{if(!m.isConnected||!live())return;m.scrollTop=back.top;if(Math.abs(m.scrollTop-back.top)>2&&n++<40)requestAnimationFrame(go)};
+        go();setTimeout(go,120);setTimeout(go,400)}}
     return r};
 })();

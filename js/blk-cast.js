@@ -62,7 +62,9 @@ const PIC=h=>{try{return(ACAD.portraitURL&&ACAD.portraitURL(h))||null}catch(e){r
 const minor=P=>!!(P&&P.h&&ACAD.isMinor&&ACAD.isMinor(P.h));
 
 /* ---------- character 1: who she is, from the design ---------- */
-function c1Look(){const L=S.out&&S.out.c1look;if(L&&tpl(L))return L;
+function c1Look(){const L=S.out&&S.out.c1look;
+  /* v283: only while the design is still the one picked here (loading another look keeps S.out, and with it a stale pick) */
+  if(L&&tpl(L)&&tpl(L).name===S.name)return L;
   const h=window.SCENE_SLOTS&&SCENE_SLOTS.girlOfState?SCENE_SLOTS.girlOfState(S):null;return h?h+"robes":""}
 function c1Wear(){const o=S.outfits[S.cur],p=S.out&&S.out.pair;
   if(o&&/^nude$/i.test(o.name||"")&&!Object.keys(o.items||{}).length)return"nude";
