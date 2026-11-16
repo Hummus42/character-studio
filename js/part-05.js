@@ -1844,6 +1844,19 @@
     ["surprised","Surprised","surprised, wide-eyed, open mouth, raised eyebrows, blush",0,"{S} gasps in surprise, eyes wide and mouth open."],
     ["shocked","Shocked","shocked, wide-eyed, constricted pupils, open mouth, sweat, shaded face, turn pale",0,"{S} freezes in shock, {p} face pale, pupils shrunk and mouth hanging open."],
     ["scared","Scared","scared, nervous, wide-eyed, trembling, sweat, tears, open mouth",0,"{S} trembles in fear, eyes wide and teary."]];
+  /* v293: expressions for him (a man as character 1, 2 or an extra), from passion to fury, guilt and the finish.
+     Every tag is a real Danbooru tag (checked against the tag list). Keys start with m_. */
+  EX_PRESETS.push(
+    ["m_passion","Passionate","half-closed eyes, eye contact, heavy breathing, sweat, light blush, parted lips, furrowed brow",1,"{S} holds her gaze with passionate intensity, breathing hard, sweat on {p} brow."],
+    ["m_lust","Hungry","hungry, licking lips, half-closed eyes, heavy breathing, grin",1,"{S} looks her over with hungry eyes, licking {p} lips."],
+    ["m_furious","Furious","angry, furious, glaring, clenched teeth, v-shaped eyebrows, furrowed brow, veins, sweat",1,"{S} grits {p} teeth with furious intensity, brow furrowed and veins standing out."],
+    ["m_dominant","In control","smirk, smug, half-closed eyes, looking down",1,"{S} smirks down at her, completely in control."],
+    ["m_tender","Tender","smile, eye contact, light blush, half-closed eyes",0,"{S} looks at her with a soft, loving smile."],
+    ["m_guilty","Guilty","frown, sad, looking down, furrowed brow, sweat",0,"{S} frowns and looks down, guilt written across {p} face even as {s} gives in."],
+    ["m_nervous","Nervous","nervous, sweatdrop, blush, embarrassed",0,"{S} is nervous and flushed, a bead of sweat on {p} brow."],
+    ["m_climax","Climaxing","orgasm, clenched teeth, closed eyes, head back, trembling, sweat, heavy breathing",1,"{S} throws {p} head back with {p} eyes squeezed shut, trembling as {s} climaxes."],
+    ["m_spent","Spent","exhausted, heavy breathing, sweat, messy hair, smile",0,"{S} catches {p} breath with a tired, satisfied smile, damp with sweat."]);
+  window.PAIR_EX=EX_PRESETS;
   const EX_SEX=new Set(["shy","pleasure","overwhelmed","silly","guilty","smug","lovestruck","afterglow"]);
   const EX_CHIPS=[["Mood",["angry","annoyed","sad","crying","embarrassed","flustered","surprised","shocked","jealous","scared","nervous"]],
     ["Eyes",["closed eyes","half-closed eyes","rolling eyes","heart-shaped pupils","teary eyes","tearing up","wide-eyed","glaring","empty eyes","looking at viewer","looking away","eye contact"]],
@@ -2393,9 +2406,10 @@
       editP(p=>{if(!P0){delete p[K];delete p[KK];setExSentence(p,who,null);return}
         p[K]=P0[2];p[KK]=k;setExSentence(p,who,exSentence(who,k))},"pairEx");
       toast(P0?`Expression: ${P0[1]}. Its tags and a sentence were added; her own expression is set aside for this scene.`:"Expression cleared. Her own expression is back.")}},
-      h("option",{value:"",text:"Her own expression"}),
-      h("optgroup",{label:"In the moment"},...EX_PRESETS.filter(x=>EX_SEX.has(x[0])).map(x=>h("option",{value:x[0],text:x[1]}))),
-      h("optgroup",{label:"Emotions"},...EX_PRESETS.filter(x=>!EX_SEX.has(x[0])).map(x=>h("option",{value:x[0],text:x[1]}))),h("option",{value:"custom",text:"Custom",hidden:true}));
+      h("option",{value:"",text:"Own expression"}),
+      h("optgroup",{label:"In the moment"},...EX_PRESETS.filter(x=>EX_SEX.has(x[0])&&!/^m_/.test(x[0])).map(x=>h("option",{value:x[0],text:x[1]}))),
+      h("optgroup",{label:"Emotions"},...EX_PRESETS.filter(x=>!EX_SEX.has(x[0])&&!/^m_/.test(x[0])).map(x=>h("option",{value:x[0],text:x[1]}))),
+      h("optgroup",{label:"For him"},...EX_PRESETS.filter(x=>/^m_/.test(x[0])).map(x=>h("option",{value:x[0],text:x[1]}))),h("option",{value:"custom",text:"Custom",hidden:true}));
     const chipBoxes=EX_CHIPS.map(([g,list])=>{const box=h("div",{class:"exchips",role:"group","aria-label":g});
       list.forEach(t=>box.append(h("button",{type:"button",class:"exchip","data-t":t,"aria-pressed":"false",text:t,onclick:()=>{
         if(EX_EXPLICIT.has(t)&&!exAllowed(who)){toast("That one is held back for this character.");return}

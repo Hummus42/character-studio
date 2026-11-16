@@ -79,6 +79,9 @@
     const swap=t=>String(t||"").replace(/\ba faceless man's\b/g,"{partner}'s").replace(/\ba faceless man\b/g,"{partner}").replace(/\bthe faceless man\b/g,"{partner}").replace(/\b(?:a|the) (?:standing |kneeling |lying )faceless man('s)?\b/g,(m,s)=>"{partner}"+(s||""))
       .replace(/,\s*faceless male\b/g,"").replace(/\bfaceless male,\s*/g,"").replace(/,\s*pov\b/g,"").replace(/\bpov,\s*/g,"");
     f.scene=swap(f.scene);f.act=swap(f.act);f.count="1girl, 1boy, hetero";
+    /* v293: her moaning pleasure and his passion, as the scene's expression presets (changeable in the Scene step) */
+    f.ex1="blush, half-closed eyes, open mouth, moaning, heavy breathing, sweat";r.ex1k="pleasure";
+    f.ex2="half-closed eyes, eye contact, heavy breathing, sweat, light blush, parted lips, furrowed brow";r.ex2k="m_passion";
     delete r.gm;r.dir=r.dir||"ba";
     return Object.assign({},v,{f,r,q:"none",p:"PC"})})}));
   X.S.push(...PC);

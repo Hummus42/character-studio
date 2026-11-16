@@ -470,6 +470,25 @@ function shuffle(){
   const it=items[Math.floor(Math.random()*items.length)];applyPicked(it.v);say(it.label)}
 
 /* ---------- v272: pose and expression from the Cast card (the Pre-made sentences pickers) ---------- */
+/* v293: an expression preset for anyone in the scene. Characters 1 and 2 use the scene's own expression controls
+   (the same presets, the same sentence); characters 3 to 6 get the preset's tags in their own tag line. */
+function faceSections(male,withOwn){const EX=window.PAIR_EX||[];const him=EX.filter(x=>/^m_/.test(x[0])),her=EX.filter(x=>!/^m_/.test(x[0]));
+  const it=x=>({v:x[0],label:x[1],sub:x[2],dis:x[3]&&!Policy.explicitAllowed()?(Policy.reason()||"Held back for this design."):null});
+  const a=[{name:"For him",items:him.map(it)},{name:"For her",items:her.map(it)}];if(!male)a.reverse();
+  return(withOwn?[{name:"",items:[{v:"@own",label:"Own expression",sub:"Their own face, as designed"}]}]:[]).concat(a)}
+function pickFace(b,n){
+  const p=S.out.pair;if(!p){say("Pick a scene first.");return}
+  if(n<=2){const sel=document.getElementById("pairEx"+n);if(!sel){say("Pick a scene first.");return}
+    const male=n===1?S.c.sex==="male":(p.gm?true:sexOf(p.id)==="m");
+    openPop(b,{title:"Character "+n+": expression",searchPlaceholder:"Search expressions",sections:faceSections(male,true),current:sel.value||"@own",
+      onPick:v=>{sel.value=v==="@own"?"":v;sel.dispatchEvent(new Event("change",{bubbles:true}))}});return}
+  const i=n-3,m=(p.more||[])[i];if(!m)return;
+  openPop(b,{title:"Character "+n+": expression",searchPlaceholder:"Search expressions",sections:faceSections(sexOf(m.id)==="m",true),current:m.exk||"@own",
+    onPick:v=>mut(()=>{const q=S.out.pair.more[i];const old=new Set(q.exTags||[]);
+      let t=String(q.tags||"").split(",").map(x=>x.trim()).filter(x=>x&&!old.has(x));
+      const P0=v==="@own"?null:(window.PAIR_EX||[]).find(x=>x[0]===v);
+      if(P0){const add=P0[2].split(",").map(x=>x.trim()).filter(Boolean);t=add.concat(t.filter(x=>!add.includes(x)));q.exk=v;q.exTags=add}else{delete q.exk;delete q.exTags}
+      if(t.length)q.tags=t.join(", ");else delete q.tags},"castFaceX")})}
 function poseBtn(n){if(!ACAD.SB||!ACAD.SB.poseExprPop)return null;
   return btn("Pose…",b=>{try{ACAD.SB.poseExprPop(b,n)}catch(e){say("Pick a scene first.")}},"Pose and expression for character "+n)}
 
@@ -546,6 +565,7 @@ function row(n,id,w,gm){
     btn("Who…",b=>pickWho(b,n,nid=>{if(n===1)setC1(nid,S.out.pair&&S.out.pair.w1?"scene":"own");else if(n===2)setC2(nid,null);else setX(n-3,nid,null)}),"Choose who character "+n+" is"),
     id&&!gm?btn("Wearing…",b=>pickWear(b,n,id,w),"Choose what character "+n+" wears"):null,
     (n<=2&&S.out.pair&&(id||gm||n===1))?poseBtn(n):null,
+    (S.out.pair&&(id||n===1)&&!gm)?btn("Face…",b=>pickFace(b,n),"Expression presets for character "+n):null,
     n>2?btn("Remove",()=>dropX(n-3)):null);
   return E("div",{class:"castrow"},E("span",{class:"no",text:String(n)}),avatar(P),
     E("div",{class:"who"},E("b",{text:name+(P&&P.sub&&P.kind==="girl"?"":"")}),E("small",{text:(P&&P.kind!=="girl"&&P.sub?P.sub+" · ":"")+sub})),acts)}

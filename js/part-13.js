@@ -1487,7 +1487,7 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
       default:return{id:""}}}
   function fieldsOf(v,mi){const m=mi>=0?mi:0;const f=Object.assign({},v.f||{});Object.entries(v.fv||{}).forEach(([k,vals])=>{f[k]=vals[m]});
     const r=Object.assign({},v.r||{});Object.entries(v.fv||{}).forEach(([k,vals])=>{if(!(k in (v.f||{}))&&(typeof vals[m]!=="string"||!(k in f)))r[k]=vals[m]});return{f,r}}
-  const PAIRSTR=["scene","solo","tags1","tags2","count","soloCount","act","ex1","ctags"];
+  const PAIRSTR=["scene","solo","tags1","tags2","count","soloCount","act","ex1","ex2","ctags"];   /* v293: ex2 too */
   /* v287: threesomes come through as one clear image. The old Threesomes set was two panels with speech bubbles and
      cross-sections, and the girl kept her robes on; the image generator lost track of who was where. Now: one image (the
      second panel, where the threesome is), no lines of speech or captions, no panel or text tags, and both women nude. */
@@ -1527,7 +1527,7 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
     ["w1","w2","more","sz"].forEach(k=>{if(typeof f[k]==="string"&&f[k]&&f[k]!=="null"){try{p[k]=JSON.parse(R(f[k]))}catch(e){}}});
     const tn=r["texts.n"];if(tn){p.texts=[];for(let i=0;i<tn;i++){const it={};Object.keys(f).filter(k=>k.startsWith("texts."+i+".")).forEach(k=>{it[k.split(".")[2]]=R(f[k])});
       Object.keys(r).filter(k=>k.startsWith("texts."+i+".")).forEach(k=>{it[k.split(".")[2]]=r[k]});p.texts.push(it)}}
-    ["dir","penis","explicit","couple","emph","ultra","qStyle","txTags","compact","fit","ex1k","panels"].forEach(k=>{if(k in r)p[k]=r[k]});
+    ["dir","penis","explicit","couple","emph","ultra","qStyle","txTags","compact","fit","ex1k","ex2k","panels"].forEach(k=>{if(k in r)p[k]=r[k]});
     if(r.gm&&!p.id)p.gm=r.gm;
     p.sv=sv;p.idv=opt.idv||{};p.arch={s:si,v:vi};
     if(TIDY3.has(SETS[si].label))tidy3(p);
