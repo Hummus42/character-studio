@@ -911,24 +911,47 @@ if(typeof ACAD!=="undefined"&&ACAD.canonApply&&typeof tplById==="function")ACAD.
     return`${x}, ${m}`;
   }
   window.SETTING_LIBRARY={sections:()=>(SETTING_SECTIONS||(buildSettings(),SETTING_SECTIONS)).map(([name,xs])=>({name,items:xs.map(x=>({v:x,label:cap(x.replace(/^a setting /,""))}))})),put:putSetting};
+  /* v285: the background inside "Must include", as its own value */
+  {const HEADX=/^an anime style with high detail, ([\s\S]*?), and particular emphasis on ([\s\S]*)$/,BAREX=/^an anime style with high detail, and particular emphasis on ([\s\S]*)$/;
+   const split=m=>{m=String(m||"").trim();const a=m.match(HEADX);return a?{bg:a[1].trim(),rest:"an anime style with high detail, and particular emphasis on "+a[2]}:{bg:"",rest:m}};
+   const join=(rest,bg)=>{rest=String(rest||"").trim();bg=String(bg||"").trim().replace(/[,\s]+$/,"");if(!bg)return rest;
+     const b=rest.match(BAREX);if(b)return`an anime style with high detail, ${bg}, and particular emphasis on ${b[1]}`;
+     return rest?`${bg}, ${rest}`:bg};
+   const BASICS=[["","No background line","Removes the background from the prompt"],
+     ["transparent background","Transparent background","For cut-outs and stickers"],
+     ["a plain white background, simple background","Simple white background","Clean and plain"],
+     ["a simple, softly lit indoor room","Generic indoors","A plain room, nothing in particular"],
+     ["a simple outdoor scene under a clear blue sky","Generic outdoors","Open air, blue sky"]];
+   const set=v=>{mut(()=>{S.out.must=join(split(S.out.must).rest,v)},"bgSet")};
+   const pick=(btn,after)=>openPop(btn,{title:"Background",searchPlaceholder:"Search settings",current:split(S.out.must).bg,
+     sections:[{name:"Basics",items:BASICS.map(([v,label,sub])=>({v:v||"@none",label,sub}))}].concat(SETTING_LIBRARY.sections()),
+     custom:{placeholder:"Or type your own background",use:t=>{set(t);if(after)after(t)}},
+     onPick:x=>{const v=x==="@none"?"":x;set(v);if(after)after(v);toast(v?"Background set.":"Background removed.")}});
+   ACAD.mustBg={split,join,set,pick,now:()=>split(S.out.must).bg}}
   if(typeof RENDER==="object"&&RENDER.finish){
     const fin=RENDER.finish;
     RENDER.finish=function(){
       const f=fin.apply(this,arguments);
       try{
-        const ta=f.querySelector('textarea[aria-label="Must include"]'),row=ta&&ta.closest(".row");
+        let ta=f.querySelector('textarea[aria-label="Must include"]');const row=ta&&ta.closest(".row");
         if(row){
-          /* v279: with a scene loaded, Setting is the scene's own place (the same as Where in the Scene step) */
-          const SP=ACAD.scenePlace,inScene=()=>{const p=S.out.pair;return!!(SP&&p&&(p.scene||p.solo))};
-          const now=inScene()?SP.now():"";
-          const btn=h("button",{type:"button",class:"pick",id:"settingLib","aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>{if(inScene())return SP.pick(e.currentTarget);openPop(e.currentTarget,{title:"Settings",searchPlaceholder:"Search settings",
-            sections:SETTING_LIBRARY.sections(),onPick:x=>{const v=putSetting(x);mut(()=>{S.out.must=v},"settingLib");ta.value=v;toast("Setting added to “Must include”.")}})}},
-            h("span",{text:inScene()?(now?"Scene: "+now.charAt(0).toUpperCase()+now.slice(1):"Scene: choose a place…"):"Choose a setting…"}),h("i",{class:"caret","aria-hidden":"true"}));
-          const setRow=h("div",{class:"row"},h("div",{class:"lab"},h("label",{for:"settingLib",text:"Setting"}),h("small",{class:"hint",text:inScene()?"Where the loaded scene happens. Changing it rewrites the scene's place (the same as Where in the Scene step).":"Every place from the Academy sets and scenes. It goes into “Must include”, replacing the place already there."})),h("div",{class:"ctl"},h("div",{class:"pickwrap"},btn)));
-          row.after(setRow);
+          /* v285: Background is its own box. "Must include" keeps the style and the emphasis; the place between them
+             ("an anime style with high detail, <background>, and particular emphasis on ...") is shown and edited in
+             Background. Both still make one line, so the prompt reads exactly as before. */
+          const BG=ACAD.mustBg,sp=BG.split(S.out.must);
+          const ta2=h("textarea",{rows:2,placeholder:ta.placeholder||"","aria-label":"Must include",oninput:e=>{typing="main";mut(()=>{S.out.must=BG.join(e.target.value,BG.split(S.out.must).bg)},"tmust");typing=""}});
+          ta2.value=sp.rest;ta.replaceWith(ta2);ta=ta2;
+          const bgTa=h("textarea",{rows:2,id:"bgText","aria-label":"Background",placeholder:"e.g. a candlelit library at night. Empty: no background line.",
+            oninput:e=>{typing="main";mut(()=>{S.out.must=BG.join(BG.split(S.out.must).rest,e.target.value)},"tbg");typing=""}});
+          bgTa.value=sp.bg;
+          const btn=h("button",{type:"button",class:"pick",id:"settingLib","aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>BG.pick(e.currentTarget,v=>{bgTa.value=v})},
+            h("span",{text:"Choose a setting…"}),h("i",{class:"caret","aria-hidden":"true"}));
+          const bgRow=h("div",{class:"row"},h("div",{class:"lab"},h("label",{for:"bgText",text:"Background"}),h("small",{class:"hint",text:"Where she is and what is behind her. Edit it, clear it, or choose a setting below (transparent and plain backgrounds are at the top)."+(S.out.pair&&(S.out.pair.scene||S.out.pair.solo)?" A loaded scene's own place is changed with Where in the Scene step.":"")})),h("div",{class:"ctl"},bgTa));
+          const setRow=h("div",{class:"row"},h("div",{class:"lab"},h("label",{for:"settingLib",text:"Setting"}),h("small",{class:"hint",text:"Every place from the Academy sets and scenes. It fills Background."})),h("div",{class:"ctl"},h("div",{class:"pickwrap"},btn)));
+          row.after(bgRow);bgRow.after(setRow);
           /* v210: emphasis and whole style lines */
           const mb=h("button",{type:"button",class:"pick",id:"mustLib","aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>openPop(e.currentTarget,{title:"Emphasis and style",searchPlaceholder:"Search",
-            sections:MUST_LIBRARY.sections(),onPick:x=>{const v=MUST_LIBRARY.put(x);mut(()=>{S.out.must=v},"mustLib");ta.value=v;toast(x.startsWith("e:")?"Emphasis set in “Must include”.":"Style line put into “Must include”.")}})},
+            sections:MUST_LIBRARY.sections(),onPick:x=>{const v=MUST_LIBRARY.put(x);mut(()=>{S.out.must=v},"mustLib");ta.value=ACAD.mustBg.split(v).rest;toast(x.startsWith("e:")?"Emphasis set in “Must include”.":"Style line put into “Must include”.")}})},
             h("span",{text:"Choose an emphasis or style…"}),h("i",{class:"caret","aria-hidden":"true"}));
           setRow.after(h("div",{class:"row"},h("div",{class:"lab"},h("label",{for:"mustLib",text:"Emphasis and style"}),h("small",{class:"hint",text:"What the image dwells on (her face, her expression, tears, both women), or a whole style line from the close-up sets. Goes into “Must include”."})),h("div",{class:"ctl"},h("div",{class:"pickwrap"},mb))));
         }

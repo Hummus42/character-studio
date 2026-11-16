@@ -590,6 +590,9 @@ function renderPic(){
   PIC_SEC.append(E("h3",{text:"Picture"}),E("p",{class:"scnote",text:"Where it happens and how it is shot. The same settings as in Finish, here so you can change them per scene."}));
   const pl=has?placeNow():"";
   PIC_SEC.append(line("Where",E("span",{class:"picval",text:has?(pl?cap1(pl):"Not named in this scene"):"Pick a scene first"}),has?btn("Change place…",b=>pickPlace(b),"Her own places, this scene's other places, every Academy place, or your own words"):null));
+  /* v285: the background line (the same as Background in Finish) */
+  if(ACAD.mustBg){const bg=ACAD.mustBg.now();
+    PIC_SEC.append(line("Background",E("span",{class:"picval",text:bg?cap1(short(bg,90)):"None"}),btn("Change…",b=>ACAD.mustBg.pick(b),"Transparent, plain white, generic indoors or outdoors, any Academy place, or your own words")))}
   const k=(p&&p.qStyle)||S.out.qStyle||"studio";
   const seg=E("div",{class:"qucseg"},...STYLES.map(([v,l])=>E("button",{type:"button",class:"btn sm"+(v===k?" on primary":""),"aria-pressed":v===k?"true":"false",
     onclick:()=>mut(()=>{S.out.qStyle=v;const q=S.out.pair;if(q)delete q.qStyle},"picStyle")},l)));
