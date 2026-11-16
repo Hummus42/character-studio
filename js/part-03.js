@@ -1950,7 +1950,8 @@ const START=(()=>{
     if(e.outfit)t.outfit=clone(e.outfit);
     if(e.more)t.more=clone(e.more);
     if(e.out)t.out={...t.out,...e.out};
-    /* v252: no pre-made Nude outfit (Everspire carries no pre-made adult content) */
+    /* v273: the pre-made Nude outfit is back (removed in v252) */
+    if(e.nude&&!t.more.some(m=>m.oname==="Nude"))t.more.push(clone(NUDE));
     const T={id:e.id,name:e.name||e.id,blurb:"",pal:t.pal,c:t.c,outfit:t.outfit,more:t.more,out:t.out};
     if(e.tags)T.tags=e.tags.slice();if(e.adultOnly)T.adultOnly=true;
     T.blurb=typeof e.blurb==="function"?e.blurb(T):(e.blurb||"");
@@ -1983,7 +1984,8 @@ const START=(()=>{
     (entries||[]).forEach(e=>{
       if(!e||!e.id){warn("an entry has no id");return}
       /* v309: an explicit scene is not built; the purge would drop it, and the editor options it uses are registered directly */
-      {const o=e.out;if(o&&(o.explicit||(o.pair&&o.pair.explicit)))return}
+      /* v273: explicit LOOKS are built again; only explicit pre-made scenes (with a partner) stay unbuilt, the archive has them */
+      {const o=e.out;if(o&&o.pair&&(o.explicit||o.pair.explicit))return}
       RAW[e.id]=e;const T=resolve(e);if(!T)return;
       check(T);if(put(T,g))rebuildDependents(T.id);   /* v172: only a replaced entry can have dependents to rebuild */
     });

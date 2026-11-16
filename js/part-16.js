@@ -1051,15 +1051,25 @@ hive:{full:"Ambrose Kell",title:"the Keeper",pal:{primary:"steel gray",secondary
     "Ruined","Office Hours","Library After Hours","Strip Club","Latex","Anime: Lingerie","Real: Lingerie","Mortified","Locker Room"].map(x=>"Academy "+x);
   const S=PRESET_GROUPS.start||[];
   const isEx=k=>{const t=tplById(k),o=t&&peek(t);return !!(o&&o.explicit)};
-  const REMOVE=new Set(SUGGEST);
-  S.forEach(g=>{const n=g.keys.filter(isEx).length;if(n&&n*2>=g.keys.length)REMOVE.add(g.label)});
-  /* v306: every girl has the same sets. A set that does not reach every girl goes; a set with no girl of its own (the groups' scenes) stays. */
+  /* v273: the looks come back. Every look (outfit) set, look and undressed alternate the purge took is restored; only the
+     pre-made SCENE sets stay out, since the Scene Archive now carries all of them as general scenes for any girl. */
+  const isScene=k=>{const t=tplById(k),o=t&&peek(t);return !!(o&&o.pair)};
+  const sceneSet=g=>{const n=g.keys.filter(isScene).length;return n>0&&n*2>=g.keys.length};
+  const RESTORED=new Set();
+  const REMOVE=new Set();
+  S.forEach(g=>{const n=g.keys.filter(isEx).length;const oct=SUGGEST.includes(g.label)||(n&&n*2>=g.keys.length);
+    if(!oct)return;if(sceneSet(g))REMOVE.add(g.label);else RESTORED.add(g.label)});
+  SUGGEST.forEach(l=>{if(!S.some(g=>g.label===l))REMOVE.add(l)});
+  /* v306: every girl has the same sets. A set that does not reach every girl goes; a set with no girl of its own (the groups' scenes) stays.
+     (v273: the restored looks are exempt.) */
   {const HS=(ACAD.HOUSES||[]).map(h=>h.id||h),byLen=HS.slice().sort((a,b)=>b.length-a.length);
    const hOf=k=>{const t=tplById(k);if(t&&t._house)return t._house;return byLen.find(x=>k.startsWith(x)||k.endsWith(x))||null};
-   S.forEach(g=>{if(!/^Academy/.test(g.label)||REMOVE.has(g.label))return;const c=new Set();g.keys.forEach(k=>{const h=hOf(k);if(h)c.add(h)});if(c.size&&c.size<HS.length)REMOVE.add(g.label)})}
+   S.forEach(g=>{if(!/^Academy/.test(g.label)||REMOVE.has(g.label)||RESTORED.has(g.label))return;const c=new Set();g.keys.forEach(k=>{const h=hOf(k);if(h)c.add(h)});if(c.size&&c.size<HS.length)REMOVE.add(g.label)})}
   const gone=new Set();
   S.forEach(g=>{if(REMOVE.has(g.label))g.keys.forEach(k=>gone.add(k))});
-  TEMPLATES.forEach(t=>{const o=peek(t);if((o&&o.explicit)||(t.outfit&&t.outfit.look==="boudoir"))gone.add(t.id)});
+  /* explicit pre-made scenes go (the archive has them); explicit and boudoir looks stay (v273) */
+  TEMPLATES.forEach(t=>{const o=peek(t);if(o&&o.explicit&&o.pair)gone.add(t.id)});
+  ACAD.RESTORED_LOOKS=RESTORED;
   /* the archive's own scenes: a scene whose general scene was left out of the archive goes too */
   if(ACAD.RX&&ACAD.RX.SETS&&ACAD.RX.variant){const inArch=new Set(),labs=new Set();
     ACAD.RX.SETS.forEach(s=>{labs.add(s.label);for(let vi=0;vi<s.n;vi++)(ACAD.RX.variant(s.si,vi).m||[]).forEach(id=>inArch.add(id))});
@@ -1070,16 +1080,14 @@ hive:{full:"Ambrose Kell",title:"the Keeper",pal:{primary:"steel gray",secondary
   /* undressed alternates */
   const UNDRESSED=/\b(nude|naked|topless|skyclad|bare|undone|undress|undressed|undressing|no pants|micro bikini|lingerie|negligee|bedsheet|towel|after the bath|fresh from the shower|mid-transformation|robe and panties|borrowed shirt)\b/i;
   const offAlt=m=>m&&(m.look==="boudoir"||UNDRESSED.test(String(m.oname||"")));
-  const keep=[];let alts=0;
-  TEMPLATES.forEach(t=>{if(gone.has(t.id))return;if(Array.isArray(t.more)){const n=t.more.length;t.more=t.more.filter(m=>!offAlt(m));alts+=n-t.more.length}keep.push(t)});
+  /* v273: undressed alternates (Nude, boudoir, lingerie, topless...) stay on every look; Day Off keeps its panties */
+  const keep=[];let alts=0;void offAlt;
+  TEMPLATES.forEach(t=>{if(gone.has(t.id))return;if(Array.isArray(t.more))alts+=t.more.filter(offAlt).length;keep.push(t)});
   TEMPLATES.length=0;for(let i=0;i<keep.length;i+=5000)TEMPLATES.push(...keep.slice(i,i+5000));
-  /* Day Off and its group hangout: panties as the bottom become lounge shorts */
-  ["Academy Day Off","Academy Group Hangout"].forEach(l=>{const g=S.find(x=>x.label===l);if(!g)return;g.keys.forEach(k=>{const t=tplById(k);const it=t&&t.outfit&&t.outfit.items;if(!it||!it.panties)return;
-    if(!it.bottom)it.bottom=["soft cotton lounge shorts",it.panties[1]||"@secondary"];delete it.panties})});
   /* the sets themselves */
   for(let i=S.length-1;i>=0;i--){const g=S[i];if(REMOVE.has(g.label)){S.splice(i,1);continue}g.keys=g.keys.filter(k=>!gone.has(k));if(!g.keys.length&&/^Academy/.test(g.label)){REMOVE.add(g.label);S.splice(i,1)}}
   ACAD.PURGED=REMOVE;ACAD.PURGED_IDS=gone;
-  ACAD.PURGE={sets:REMOVE.size,templates:gone.size,alternates:alts,ms:Math.round(performance.now()-T0)};
+  ACAD.PURGE={sets:REMOVE.size,templates:gone.size,restoredSets:RESTORED.size,undressedAltsKept:alts,ms:Math.round(performance.now()-T0)};
   /* every list of set labels made before this ran: drop the removed ones (and categories left empty) */
   const isLab=x=>typeof x==="string"&&(REMOVE.has(x)||REMOVE.has("Academy "+x));   /* some lists hold display names */
   function tidy(v,depth){if(depth>3||!v)return v;
@@ -1088,7 +1096,8 @@ hive:{full:"Ambrose Kell",title:"the Keeper",pal:{primary:"steel gray",secondary
       for(let i=v.length-1;i>=0;i--){const x=v[i];if(Array.isArray(x)&&x.length>=2&&typeof x[0]==="string"&&Array.isArray(x[1])){const had=x[1].some(isLab);tidy(x[1],depth+1);if(had&&!x[1].length)v.splice(i,1)}}
       return v}
     return v}
-  ACAD.purgeTidy=()=>{Object.keys(ACAD).forEach(k=>{if(k==="PURGED"||k==="PURGED_IDS")return;const v=ACAD[k];if(!(v instanceof Set||Array.isArray(v)))return;
+  /* v271: the Scene Archive's categories keep every set (its explicit sets are back, as general scenes) */
+  ACAD.purgeTidy=()=>{Object.keys(ACAD).forEach(k=>{if(k==="PURGED"||k==="PURGED_IDS"||k==="RX_CATS")return;const v=ACAD[k];if(!(v instanceof Set||Array.isArray(v)))return;
     const hadLabels=Array.isArray(v)?v.some(x=>isLab(x)||(Array.isArray(x)&&Array.isArray(x[1])&&x[1].some(isLab))):[...v].some(isLab);if(hadLabels)tidy(v,0)})};
   ACAD.purgeTidy();
 })();
@@ -1451,7 +1460,8 @@ if(typeof ACAD!=="undefined"&&ACAD.crestURL)ACAD.crestURL16=ACAD.crestURL;
 if(typeof ACAD!=="undefined"&&ACAD.purgeTidy)ACAD.purgeTidy();
 
 /* v255: descriptions that still mentioned the nude outfits removed in v252 */
-if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!=="string"||!/nude/i.test(t.blurb))return;
+/* v273: the nude outfits are back, so the descriptions keep mentioning them */
+if(false&&typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!=="string"||!/nude/i.test(t.blurb))return;
   t.blurb=t.blurb.replace(/ Off duty, or nude\./g," Off duty.").replace(/ and a nude outfit\./g,".").replace(/\s*Like every house's cheer entry, no Nude outfit\./g,"").trim()});
 
 /* ---- v257: the rest of each boy's biography, once the groups are known: his role in his group, the other boys of his

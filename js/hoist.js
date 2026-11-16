@@ -414,7 +414,7 @@ function openPop(anchor,cfg){
         const b=cfg.grid
           ?h("button",{type:"button",class:"swb"+(on?" on":""),title:it.label||it.v,"aria-label":it.label||it.v,style:`--c:${it.hex||"#bbb"}`,onclick:()=>pick(it.v)})
           :h("button",{type:"button",class:"opt"+(on?" on":""),disabled:it.dis?true:null,title:it.dis||null,onclick:()=>pick(it.v)},
-              it.hex?h("i",{class:"sw",style:`background:${it.hex}`}):null,h("span",{class:"ol",text:(it.label||it.v).replace(/\{c2?\}/g,"[color]")}),it.sub?h("small",{text:it.sub}):null);
+              it.hex?h("i",{class:"sw",style:`background:${it.hex}`}):null,it.img?h("img",{class:"pth",src:it.img,alt:"",loading:"lazy",decoding:"async"}):null,h("span",{class:"ol",text:(it.label||it.v).replace(/\{c2?\}/g,"[color]")}),it.sub?h("small",{text:it.sub}):null);
         if(!first&&!it.dis)first=it;
         wrap.append(b);
       });

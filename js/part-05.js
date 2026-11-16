@@ -1902,6 +1902,7 @@
     const so=p.outfit==="scene"?sceneOutfit(p.w2,st.c&&st.c.sex==="male",st):null;
     if(so){st.outfits.push(so);st.cur=st.outfits.length-1}
     else if(p.outfit==="none"){st._noOutfit=true;st.cur=0}
+    else if(p.outfit==="nude"){st.outfits.push(newOutfit("Nude"));st.cur=st.outfits.length-1}   /* v271: nude, whatever her look has */
     else st.cur=Math.min(Math.max(0,+p.outfit||0),st.outfits.length-1);
     let r=null;
     for(const o of stages){r=build(p,t,st,o);if(r.total<=max)break}
@@ -1976,7 +1977,7 @@
     /* v216: characters 3 to 6 */
     const X=moreOf(p).map(m=>{const tt=tpl(m.id),s3=stOf(tt);
       const so=m.outfit==="scene"?sceneOutfit(p.w2,s3.c&&s3.c.sex==="male",s3):null;
-      if(so){s3.outfits.push(so);s3.cur=s3.outfits.length-1}else if(m.outfit==="none"){s3._noOutfit=true;s3.cur=0}else s3.cur=Math.min(Math.max(0,+m.outfit||0),s3.outfits.length-1);
+      if(so){s3.outfits.push(so);s3.cur=s3.outfits.length-1}else if(m.outfit==="none"){s3._noOutfit=true;s3.cur=0}else if(m.outfit==="nude"){s3.outfits.push(newOutfit("Nude"));s3.cur=s3.outfits.length-1}else s3.cur=Math.min(Math.max(0,+m.outfit||0),s3.outfits.length-1);
       return{m,t:tt,st:s3,r:microOf(tt,s3,o,m.ex?{expression:null,impression:null}:null)}});
     if(o.micro){const id2=idLine(t);if(id2){const g2=composeState(JSON.parse(JSON.stringify(st)),{...o,only:["identity","garments"]});b={...b,prompt:[id2,g2.prompt].filter(Boolean).join(", ")}}}
     const held=!!p.explicit&&(a.blocked||b.blocked||X.some(x=>x.r.blocked));
@@ -2107,7 +2108,7 @@
   /* a save made since the lists were built shows up as soon as either list is opened */
   const freshLists=()=>{if(built&&builtSig!==savesNow().map(x=>x.id+x.name).join("|"))buildPartners()};
   [partnerSel,selfSel].forEach(x=>{x.addEventListener("focus",freshLists);x.addEventListener("mousedown",freshLists)});
-  const outfitSel=h("select",{id:"pairOutfit","aria-label":"Partner outfit",onchange:e=>setP(p=>{const v=e.target.value;p.outfit=v==="scene"||v==="none"?v:+v},"pairOutfit")});
+  const outfitSel=h("select",{id:"pairOutfit","aria-label":"Partner outfit",onchange:e=>setP(p=>{const v=e.target.value;p.outfit=v==="scene"||v==="none"||v==="nude"?v:+v},"pairOutfit")});
   const typed=(key,fn)=>e=>{typing="pair";setP(p=>{if(p.sz)freezeSize(p);fn(p,e.target.value)},key);typing=""};
   const soloNow=p=>!!(p&&!p.id&&p.solo&&!p.gm);
   const sceneIn=h("textarea",{id:"pairScene","aria-label":"Scene",rows:"2",placeholder:"two women posing together, cheek to cheek",oninput:typed("pairScene",(p,v)=>{if(soloNow(p))p.solo=v;else p.scene=v})});
@@ -2119,6 +2120,7 @@
   /* v176: the scene library, every scene in the studio for any two characters (built by generic176.js) */
   const libBtn=h("button",{type:"button",class:"pick",id:"pairLib","aria-haspopup":"dialog","aria-expanded":"false",onclick:e=>{
     const L=window.SCENE_LIBRARY;if(!L){toast("The scene library isn’t available in this version.");return}
+    if(ACAD.pickScene)return ACAD.pickScene(e.currentTarget);
     openPop(e.currentTarget,{title:"Scenes",sections:L.sections(),searchPlaceholder:"Search scenes",onPick:k=>{const t=L.get(k);if(t)applyScene(t)}})}},
     h("span",{text:"Choose a scene…"}),h("i",{class:"caret","aria-hidden":"true"}));
   /* v210: a scene drawn as several panels in one image. One image is the default; with more, scene 1 is the scene above
@@ -2689,11 +2691,11 @@
       const t=id&&tpl(id);
       if(t&&p.w2)outfitSel.append(h("option",{value:"scene",text:"Scene outfit: "+(p.w2.name||"for this scene")}));
       (t?outfitNames(t):[]).forEach((n,i)=>outfitSel.append(h("option",{value:String(i),text:n})));
-      if(t)outfitSel.append(h("option",{value:"none",text:"No outfit (character only)"}));
+      if(t)outfitSel.append(h("option",{value:"nude",text:"Nude"}),h("option",{value:"none",text:"No outfit (character only)"}));
     }
     [outfitSel,sceneIn,actIn,dirSel].forEach(x=>{x.disabled=!p});
     if(soloNow(p)){actIn.disabled=true;dirSel.disabled=true}
-    if(p){outfitSel.value=p.outfit==="none"?"none":p.outfit==="scene"&&p.w2?"scene":String(p.outfit==="scene"?0:p.outfit||0);dirSel.value=p.dir||"mutual"}
+    if(p){outfitSel.value=p.outfit==="none"||p.outfit==="nude"?p.outfit:p.outfit==="scene"&&p.w2?"scene":String(p.outfit==="scene"?0:p.outfit||0);dirSel.value=p.dir||"mutual"}
     const zv=p&&p.sz?sizeVersion(p,S.c,partnerC(p)):null;
     [tags1In,tags2In].forEach(x=>{x.disabled=!p});
     if(document.activeElement!==tags1In)tags1In.value=p?(zv?zv.tags1:p.tags1)||"":"";

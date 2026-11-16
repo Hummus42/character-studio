@@ -125,7 +125,8 @@ function title(){ensure();show();dispose();S=null;root.textContent="";const last
     ...(ls?[mk(cl+"Continue","Patron "+ls.name+" · "+G.dateOf(ls).label,()=>{slot=last;enter(ls)},none)]:[]),
     mk(cl+"New Game","The planner game: back up to three girls through six years",()=>{slot=firstFree();newGame([])},!ls&&none),
     mk("Load Game","Slots, and saves from a file",loadGame),
-    mk("Character Creator","Design a girl, a look or a scene",()=>{hide()}),
+    mk("Character Creator","Design a girl or a look",()=>{hide()}),
+    mk("Scene Maker","Any girls, any scene, any outfit",()=>{hide();try{if(ACAD.sceneStart)ACAD.sceneStart()}catch(e){}}),
     mk("Codex","The Academy, its Houses and its history",()=>codex("home")),
     mk("Settings","Standing orders and display",settings));
   root.append(E("div",{class:"title"},E("div",{class:"bg",style:{backgroundImage:"url(assets/rooms/portal_castle.webp)"}}),E("div",{class:"logo"},"EVERSPIRE"),E("div",{class:"tag"},"The Academy awaits its headmaster"),m,

@@ -832,6 +832,14 @@ html[data-theme="dark"] #encDlg .enc-tag-o{background:#352c55;color:#d9cdfa;bord
   const vis=gid=>ENC.vis?ENC.vis(gid):"#5c6080";
   const PL={title:"titles",headline:"headlines",line:"lines of speech","c1.expression":"expressions","pc.expression":"expressions for character 2",number:"numbers",setting:"settings"};
   const load=(si,vi,h)=>{RX.loadWith(si,vi,h||null);ENC.close()};
+  /* v271: the explicit sets are back; they show once the reader confirms they are 18 or over (asked once per browser) */
+  const XS=new Map();const setX=s=>{if(!XS.has(s.si)){let x=false;for(let vi=0;vi<s.n&&!x;vi++)x=RX.explicitOf(s.si,vi);XS.set(s.si,x)}return XS.get(s.si)};
+  const KEY18="everspire.adult18";
+  const ok18=()=>{try{return localStorage.getItem(KEY18)==="1"}catch(e){return false}};
+  const gate=(again)=>E("div",{class:"enc-card enc-card-dark",style:{margin:"10px 0 14px"}},E("h4",null,"Explicit scenes"),
+    E("p",{style:{margin:"0 0 10px",fontSize:"14px",lineHeight:1.5}},"These sets are sexually explicit. Every character in them is an adult. Confirm you are 18 or over to show them."),
+    E("button",{type:"button",class:"enc-load",onclick:()=>{try{localStorage.setItem(KEY18,"1")}catch(e){}again()}},"I am 18 or over, show them"));
+  ACAD.RX_ADULT={setX,ok18};
   /* who to load with: the characters you have, or a girl */
   let WITH="";
   function withPicker(onChange){
@@ -848,9 +856,13 @@ html[data-theme="dark"] #encDlg .enc-tag-o{background:#352c55;color:#d9cdfa;bord
     searchText:()=>"restricted archive general scenes any girl "+RX.SETS.map(s=>s.name).join(" "),
     build:el=>{const art=E("article",{class:"enc-article wide"});
       art.append(E("h1",{class:"enc-title"},"The Scene Archive"),
-        E("p",{class:"enc-lead"},`${total().toLocaleString()} scenes in ${RX.SETS.length} sets: tender moments, couples, best friends and the original duels. Open a set, choose who to load it with, and press Load. The scene opens in the Scene step with your characters in it.`));
-      cats().forEach(([c,sets])=>{art.append(E("h3",{class:"enc-h"},c,E("small",null,sets.length+(sets.length===1?" set":" sets"))),
-        E("div",{class:"enc-setcards"},sets.map(s=>E("a",{href:"#",class:"enc-setcard",onclick:ev=>{ev.preventDefault();ENC.go("set:"+slug(s.label))}},E("b",null,s.name),E("small",null,s.n+(s.n===1?" scene":" scenes"))))))});
+        E("p",{class:"enc-lead"},`${total().toLocaleString()} scenes in ${RX.SETS.length} sets, from tender moments and best friends to the original duels and the explicit sets. Every scene fits any girl. Open a set, choose who to load it with, and press Load. The scene opens in the Scene step with your characters in it.`));
+      let gated=false;
+      cats().forEach(([c,sets])=>{const show=ok18()?sets:sets.filter(s=>!setX(s));
+        if(show.length<sets.length&&!gated){gated=true;art.append(gate(()=>{el.textContent="";ENC.pages.restricted.build(el)}))}
+        if(!show.length)return;
+        art.append(E("h3",{class:"enc-h"},c,E("small",null,show.length+(show.length===1?" set":" sets"))),
+        E("div",{class:"enc-setcards"},show.map(s=>E("a",{href:"#",class:"enc-setcard",onclick:ev=>{ev.preventDefault();ENC.go("set:"+slug(s.label))}},E("b",null,s.name),E("small",null,s.n+(s.n===1?" scene":" scenes"))))))});
       el.append(art)}});
 
   /* a set's page */
@@ -859,8 +871,9 @@ html[data-theme="dark"] #encDlg .enc-tag-o{background:#352c55;color:#d9cdfa;bord
     pg.searchText=()=>s.name+" restricted "+Array.from({length:s.n},(x,vi)=>RX.hookOf(s.si,vi)).join(" ");
     pg.build=el=>{const art=E("article",{class:"enc-article wide"});const list=E("div",{class:"enc-rxlist"});
       const cat=(cats().find(([,ss])=>ss.includes(s))||["",[]])[0];
-      art.append(E("p",{class:"enc-kicker"},lnk("restricted","The Scene Archive"),cat?" · "+cat:""),E("h1",{class:"enc-title"},s.name),
-        E("p",{class:"enc-note"},(s.n===1?"One scene":s.n+" scenes")+". Choose who to load it with, then press Load."),
+      art.append(E("p",{class:"enc-kicker"},lnk("restricted","The Scene Archive"),cat?" · "+cat:""),E("h1",{class:"enc-title"},s.name));
+      if(setX(s)&&!ok18()){art.append(gate(()=>{el.textContent="";pg.build(el)}));el.append(art);return}
+      art.append(E("p",{class:"enc-note"},(s.n===1?"One scene":s.n+" scenes")+". Choose who to load it with, then press Load."),
         E("div",{class:"enc-rxbar"},withPicker(draw)),list);
       function draw(){list.textContent="";
         for(let vi=0;vi<s.n;vi++){const v=RX.variant(s.si,vi);const G=RX.groupsOf(v);
@@ -877,7 +890,8 @@ html[data-theme="dark"] #encDlg .enc-tag-o{background:#352c55;color:#d9cdfa;bord
   const FROM={};
   function shelfOf(h){if(SHELF[h])return SHELF[h];let out=ownShelf(h),s=h,n=0;FROM[h]=h;
     while(!out.length&&ACAD.SISTER&&ACAD.SISTER[s]&&n++<6){s=ACAD.SISTER[s];out=ownShelf(s);FROM[h]=s}
-    if(!out.length)FROM[h]=h;return SHELF[h]=out}
+    /* v271: a girl with no shelf to borrow gets every set, one scene of each, loaded with her */
+    if(!out.length){FROM[h]=h;out=RX.SETS.map(s0=>({s:s0,vi:0}))}return SHELF[h]=out}
   ENC.shelfFrom=h=>{shelfOf(h);return FROM[h]};
   ENC.rIndex=h=>({lead:shelfOf(h),guest:[]});
   /* v237 prep for personal shelves: a girl with no archived scenes is the counterpart of an older girl (NEWGIRLS "sis"), whose
@@ -888,7 +902,7 @@ html[data-theme="dark"] #encDlg .enc-tag-o{background:#352c55;color:#d9cdfa;bord
   ENC.resolvers=ENC.resolvers||[];
   ENC.resolvers.unshift((k,v,id)=>{if(k!=="rshelf"||!ACAD.HOUSES.includes(v))return null;
     return ENC.page(id,{title:HN(v)+" in the Scene Archive",short:HN(v),sec:"restricted",crumbs:["restricted","house:"+v],build:el=>{
-      const R=shelfOf(v),g=ACAD.GROUP_OF(v),col=vis(g?g.id:"");
+      const R0=shelfOf(v),R=ok18()?R0:R0.filter(r=>!RX.explicitOf(r.s.si,r.vi)),g=ACAD.GROUP_OF(v),col=vis(g?g.id:"");
       const art=E("article",{class:"enc-article wide"});
       art.append(E("p",{class:"enc-kicker"},lnk("restricted","The Scene Archive")),E("h1",{class:"enc-title"},ENC.pixel(v,48)," ",HN(v)),
         E("p",{class:"enc-note"},R.length?R.length+(R.length===1?" scene":" scenes")+" from her shelf"+(ENC.shelfFrom(v)!==v?", first written for "+HN(ENC.shelfFrom(v)):"")+". Press one to load it with her.":"Her own shelf is coming. For now, any scene in the section can be loaded with her: open a set and choose her under Load with."));
@@ -896,6 +910,7 @@ html[data-theme="dark"] #encDlg .enc-tag-o{background:#352c55;color:#d9cdfa;bord
       const box=E("div",{class:"enc-chips"});
       m.forEach((rs,s)=>rs.forEach(r=>{const b=E("button",{type:"button",class:"enc-chip",title:RX.hookOf(r.s.si,r.vi),onclick:()=>load(r.s.si,r.vi,v)},s.name+(rs.length>1?" "+(rs.indexOf(r)+1):""));b.style.setProperty("--gc",col);box.append(b)}));
       if(R.length)art.append(E("h3",{class:"enc-h"},ENC.shelfFrom(v)!==v?"Her scenes":"Her archived scenes"),box);
+      if(R.length<R0.length)art.append(gate(()=>{el.textContent="";ENC.pages[id].build(el)}));
       art.append(E("p",{class:"enc-p"},lnk("restricted","The whole Scene Archive"),"."));
       el.append(art)}})});
 

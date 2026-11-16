@@ -1311,6 +1311,19 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
   ACAD.ROMANCE_SET="Academy Romance";
 })();
 
+/* ---- v271: the explicit sets taken out on 2026-10-29 come back (data in data-arch-restored.js, loaded before this file).
+   They go after Romance, so the sets already here keep their numbers (rx:si:vi in saved designs). Their pool is appended
+   to the archive's and their pool refs are moved along by the same amount. ---- */
+(function(){
+  if(typeof ACAD==="undefined"||!ACAD.ARCH233||!window.ARCH_RESTORED)return;
+  const A=ACAD.ARCH233,R=window.ARCH_RESTORED,off=A.P.length;
+  R.P.forEach(x=>A.P.push(x));
+  const re=x=>typeof x==="string"?(x.charCodeAt(0)===1?"\u0001"+(off+ +x.slice(1)):x):Array.isArray(x)?x.map(re):x&&typeof x==="object"?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,re(v)])):x;
+  const have=new Set(A.S.map(s=>s.s));
+  R.S.forEach(s=>{if(!have.has(s.s))A.S.push(re(s))});
+  try{delete window.ARCH_RESTORED}catch(e){window.ARCH_RESTORED=null}
+})();
+
 /* ---- v233: the Scene Archive's scenes, made general (tail block, after arch233data.js and generic210.js).
    The 6,580 archived scenes were one scene per girl; they are now 1,382 general scenes that go onto any characters.
    A general scene's text carries two kinds of token, filled when the prompt is written:
@@ -1362,8 +1375,10 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
   /* ---------- who the characters are ---------- */
   const BYFULL=()=>{const m={};if(typeof BIOS!=="undefined")HOUSES().forEach(h=>{const b=BIOS[h];if(b&&b.fullName)m[b.fullName]=h});return m};
   let byFull=null;
-  function girlOfState(st){if(!st)return null;const b=st.bio||{};byFull=byFull||BYFULL();
+  function girlOfState(st){if(!st)return null;const b=st.bio||{};if(!byFull||!Object.keys(byFull).length)byFull=BYFULL();
     if(b.fullName&&byFull[b.fullName])return byFull[b.fullName];
+    /* v271: current designs carry the House key itself */
+    if(typeof b.house==="string"&&HOUSES().includes(b.house)&&typeof BIOS!=="undefined"&&BIOS[b.house]&&b.fullName&&BIOS[b.house].fullName===b.fullName)return b.house;
     const hm=/^(.*) House$/.exec(b.house||"");if(hm){const h=HOUSES().find(x=>((ACAD.HNAME&&ACAD.HNAME[x])||cap(x))===hm[1]);if(h)return h}
     return null}
   const girlOfId=id=>{if(!id||typeof id!=="string")return null;if(id.startsWith("save:")){try{const sv=(readSaves()||[]).find(x=>"save:"+x.id===id);return sv?girlOfState(sv.state):null}catch(e){return null}}
@@ -1418,14 +1433,17 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
     const robes=h=>h&&tplOf(h+"robes")?h+"robes":"";
     const sg=h=>{const x=(R.SG||[]).find(p=>p[0]===h||p[1]===h);return x?(x[0]===h?x[1]:x[0]):""};
     const bf=h=>((R.BF||{})[h]||[])[0]||"";const rv=h=>{const x=(R.RV||[]).find(p=>p[0]===h||p[1]===h);return x?(x[0]===h?x[1]:x[0]):""};
-    if(orig&&tplOf(orig))return{id:orig};
-    const firstGirl=()=>{const id=(v.p||[]).find(x=>x&&tplOf(x)&&!/man$/.test(x));return id||""};
+    /* v271: a scene written for her boyfriend, secret girlfriend, best friend, rival or headmistress follows who that is now
+       (several pairings changed since the archive was written); the original partner is only the fallback */
+    const REL=new Set(["boyfriend","headmistress","secretgf","partner","bestfriend","rival"]);
+    if(orig&&tplOf(orig)&&!(h1&&REL.has(q)))return{id:orig};
+    const firstGirl=()=>{const id=(orig&&tplOf(orig)&&!/man$/.test(orig)?orig:"")||(v.p||[]).find(x=>x&&tplOf(x)&&!/man$/.test(x)&&x.indexOf(h1||"\u0000")!==0);return id||""};
     switch(q){
       case"boyfriend":return h1&&tplOf(h1+"man")?{id:h1+"man"}:{id:"",gm:"far"};
       case"man":return{id:"",gm:"far"};
       case"headmistress":return h1&&tplOf(h1+"head")?{id:h1+"head"}:{id:""};
       /* another girl: hers if character 1 is an Academy girl, or the girl the scene was first written with */
-      case"secretgf":return{id:robes(sg(h1))||firstGirl()};
+      case"secretgf":return{id:robes(sg(h1))||robes(bf(h1))||firstGirl()};
       /* v253: her partner of any kind among the girls, otherwise her boyfriend, otherwise a man of your own */
       case"partner":return h1&&robes(sg(h1))?{id:robes(sg(h1))}:h1&&tplOf(h1+"man")?{id:h1+"man"}:{id:"",gm:"far"};
       case"bestfriend":return{id:robes(bf(h1))||firstGirl()};
@@ -1483,7 +1501,8 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
     const must=t.out.must;if(must)mut(()=>{S.out.must=must},"rxMust");
     return true}
   function loadWith(si,vi,h){
-    if(h){const t=tplOf(h+"robes");if(t){replaceState(stateFromTemplate(t))}}
+    /* v272: a new character 1 gets the partner the scene is written for her (the studio carries the old pair over otherwise) */
+    if(h){const t=tplOf(h+"robes");if(t){const st=stateFromTemplate(t);if(st.out){st.out.pair=null;delete st.out.c1look;delete st.out.c1wear}replaceState(st)}}
     else if(S&&S.out&&S.out.pair){/* keep the characters */}
     const ok=apply(si,vi,h?{h1:h}:{});
     try{setTab("pair");goStep("scene")}catch(e){}
@@ -1730,7 +1749,9 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
   const dis=f=>f&&f.x&&!XOK()?(Policy.reason()||"Explicit parts are held back for this design."):null;
 
   /* start from the archive */
-  function openArchive(btn){const cats=new Map();const RC={};(ACAD.RX_CATS||[]).forEach(([c,ls])=>ls.forEach(l=>RC[l]=c));
+  function openArchive(btn){
+    if(ACAD.pickScene)return ACAD.pickScene(btn,{archiveOnly:true,title:"Start from an archived scene",onPick:k=>{const m=/^rx:(\d+):(\d+)$/.exec(k);if(!m)return;RX.apply(+m[1],+m[2]);toast(`Started from “${RX.SETS[+m[1]].name}”. Its choices are at the top of Pre-made sentences.`)}});
+    const cats=new Map();const RC={};(ACAD.RX_CATS||[]).forEach(([c,ls])=>ls.forEach(l=>RC[l]=c));
     RX.SETS.forEach(s=>{const c=RC[s.name]||"Other";if(!cats.has(c))cats.set(c,[]);for(let vi=0;vi<s.n;vi++)cats.get(c).push({v:s.si+":"+vi,label:s.name+(s.n>1?" "+(vi+1):""),sub:RX.hookOf(s.si,vi),dis:RX.explicitOf(s.si,vi)&&!XOK()?(Policy.reason()||"Explicit scenes are held back for this design."):null})});
     popList(btn,"Start from an archived scene",[...cats.entries()].map(([name,items])=>({name,items})),k=>{const [si,vi]=k.split(":").map(Number);RX.apply(si,vi);toast(`Started from “${RX.SETS[si].name}”. Its choices are at the top of Pre-made sentences.`)},{ph:"Search the archive"})}
   function restore(){const p=P();if(!p||!p.arch)return;const keep={id:p.id,gm:p.gm};const t=RX.build(p.arch.s,p.arch.v,{sv:p.sv,idv:p.idv,partner:keep});if(!t)return;
@@ -1918,7 +1939,12 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
       else if(op==="look")edit(p=>{Object.entries(a).forEach(([k,v])=>{p[k]=v})});
       else if(op==="editor")edit(p=>{p[a[0]]=JSON.parse(JSON.stringify(a[1]))});
       else if(op==="framing")S.out.framing=a;else if(op==="must")S.out.must=a});
+    /* v271: as the Scene step does it: an explicit scene turns the design's explicit and lewd tags on, and character 2
+       without a scene outfit is put in her Nude outfit */
+    const p=S.out.pair;if(p&&p.explicit&&allowX()){S.out.explicit=true;S.out.lewdtag=true;
+      if(p.id&&p.outfit!=="scene"&&!p.outfit){const t=tplById(p.id);const i=t?[t.outfit].concat(t.more||[]).map(o=>o&&o.oname).indexOf("Nude"):-1;if(i>0)p.outfit=i}}
+    else if(p&&rc.want&&rc.want.out&&rc.want.out.lewdtag&&allowX())S.out.lewdtag=true;
     }finally{BATCH=false}},"sbRecipe");
     return S.out.pair}
-  ACAD.SB={harvest,recipeOf,runRecipe,blocks:B,TAGCATS,addBlock,setSetting,addText,render,el:SEC};
+  ACAD.SB={harvest,recipeOf,runRecipe,blocks:B,TAGCATS,addBlock,setSetting,addText,render,el:SEC,poseExprPop};
 })();

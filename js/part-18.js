@@ -1092,7 +1092,7 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
         el.append(art)}})}
   collection("wardrobe","The Wardrobe","Every look in the studio's Academy, set by set. Each set is a page of every girl; each girl's own page has her whole wardrobe in one place.",lookCats,"looks");
   collection("scenebook","The Scene Book","Every scene the studio keeps for the Academy: groups, rivalries, best friends, couples, the faculty, the boys and close-ups.",sceneCats,"scenes");
-  collection("restricted","The Scene Archive","Older scene sets that fit any characters: tender moments, couples, best friends and the original duels. Every one loads into the studio.",restrictedCats,"scenes");
+  collection("restricted","The Scene Archive","Scene sets that fit any characters: tender moments, couples, best friends, the original duels and, behind an 18+ confirmation, the explicit sets. Every one loads into the studio.",restrictedCats,"scenes");
 
   /* a girl's own shelf in the Scene Archive (scenes she leads, and ones she is brought into) */
   const RIDX={};
