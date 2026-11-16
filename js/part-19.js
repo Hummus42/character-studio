@@ -915,7 +915,8 @@ html[data-theme="dark"] #encDlg .enc-tag-o{background:#352c55;color:#d9cdfa;bord
       const cats=[...byCat.keys()].sort((a,b)=>(ORDER.indexOf(a)+1||999)-(ORDER.indexOf(b)+1||999));
       if(R.length)art.append(E("h3",{class:"enc-h"},ENC.shelfFrom(v)!==v?"Her scenes":"Her archived scenes"));
       cats.forEach((c,i)=>{const sets=byCat.get(c),box=E("div",{class:"enc-chips"});let n=0;
-        sets.forEach(([s,rs])=>rs.forEach(r=>{n++;const b=E("button",{type:"button",class:"enc-chip",title:RX.hookOf(r.s.si,r.vi),onclick:()=>load(r.s.si,r.vi,v)},s.name+(rs.length>1?" "+(rs.indexOf(r)+1):""));b.style.setProperty("--gc",col);box.append(b)}));
+        sets.forEach(([s,rs])=>rs.forEach(r=>{n++;const own=String(((RX.variant(r.s.si,r.vi)||{}).f||{}).name||"");   /* v287: a scene with its own plain name (e.g. "Spitroast") shows it */
+          const b=E("button",{type:"button",class:"enc-chip",title:RX.hookOf(r.s.si,r.vi),onclick:()=>load(r.s.si,r.vi,v)},own&&!/[{}]/.test(own)?s.name.replace(/ Positions$/,"")+": "+own:s.name+(rs.length>1?" "+(rs.indexOf(r)+1):""));b.style.setProperty("--gc",col);box.append(b)}));
         art.append(E("details",{class:"enc-shelf",open:i===0?true:null},
           E("summary",null,E("span",null,c),E("span",{class:"ct"},n+(n===1?" scene":" scenes"))),box))});
       if(R.length<R0.length)art.append(gate(()=>{el.textContent="";ENC.pages[id].build(el)}));

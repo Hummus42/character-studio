@@ -350,6 +350,10 @@ function applyPicked(k){
   PAIR.applyScene(t);
   if(lead&&(grp||blank)){const q=S.out.pair;setC1(lead,q&&q.w1?"scene":"own")}}
 ACAD.applyPickedScene=applyPicked;
+/* v287: the new threesome sets sit next to Threesomes, in Wilder nights */
+{const putCats=()=>{try{const C=(ACAD.RX_CATS||[]).find(x=>x[1].includes("Threesomes"));if(C){const i=C[1].indexOf("Threesomes");
+  ["FFM Positions","FMM Positions"].forEach((l,k)=>{if(!C[1].includes(l))C[1].splice(i+1+k,0,l)})}}catch(e){}};
+  putCats();document.addEventListener("DOMContentLoaded",putCats);window.addEventListener("load",putCats)}
 /* v280: remember how many characters a scene came with, so its wording can follow when some are taken out (part-05 agreeN) */
 {const as=PAIR.applyScene;PAIR.applyScene=function(t){const r=as.apply(this,arguments);
   try{const q=t&&t.out&&t.out.pair,p=S.out.pair;if(p){const n=q&&Array.isArray(q.more)&&q.more.length?2+q.more.length:0;if(n)p.writtenN=n;else delete p.writtenN}}catch(e){}

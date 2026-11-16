@@ -1349,6 +1349,14 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
   R.S.forEach(s=>{if(!have.has(s.s))A.S.push(re(s))});
   try{delete window.ARCH_RESTORED}catch(e){window.ARCH_RESTORED=null}
 })();
+/* v287: more general scenes written here (data-threesomes.js): plain strings, every girl's shelf when g is "ALL" */
+(function(){
+  if(typeof ACAD==="undefined"||!ACAD.ARCH233||!window.ARCH_EXTRA)return;
+  const A=ACAD.ARCH233,have=new Set(A.S.map(s=>s.s));
+  (window.ARCH_EXTRA.S||[]).forEach(s=>{if(have.has(s.s))return;
+    A.S.push({s:s.s,v:s.v.map(v=>Object.assign({},v,{g:v.g==="ALL"?(ACAD.HOUSES||[]).slice():v.g}))})});
+  ACAD.ARCH_EXTRA_LABELS=(window.ARCH_EXTRA.S||[]).map(s=>s.s);
+})();
 
 /* ---- v233: the Scene Archive's scenes, made general (tail block, after arch233data.js and generic210.js).
    The 6,580 archived scenes were one scene per girl; they are now 1,382 general scenes that go onto any characters.
@@ -1479,6 +1487,30 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
   function fieldsOf(v,mi){const m=mi>=0?mi:0;const f=Object.assign({},v.f||{});Object.entries(v.fv||{}).forEach(([k,vals])=>{f[k]=vals[m]});
     const r=Object.assign({},v.r||{});Object.entries(v.fv||{}).forEach(([k,vals])=>{if(!(k in (v.f||{}))&&(typeof vals[m]!=="string"||!(k in f)))r[k]=vals[m]});return{f,r}}
   const PAIRSTR=["scene","solo","tags1","tags2","count","soloCount","act","ex1","ctags"];
+  /* v287: threesomes come through as one clear image. The old Threesomes set was two panels with speech bubbles and
+     cross-sections, and the girl kept her robes on; the image generator lost track of who was where. Now: one image (the
+     second panel, where the threesome is), no lines of speech or captions, no panel or text tags, and both women nude. */
+  const TIDY3=new Set(["Academy Threesomes","Academy FFM Positions","Academy FMM Positions"]);
+  const DROP3=new Set(["2koma","3koma","4koma","speech bubble","spoken heart","heart","english text","motion lines","cross-section","x-ray","internal cumshot","text","headline"]);
+  function tidy3(p){
+    const clean=s=>{if(!s)return s;let t=String(s);
+      const m=/^The image is split into (?:two|three|four) (?:scenes|panels) (in|at|on) ([^.]+)\.\s*In the first scene,[\s\S]*?In the second scene,\s*([\s\S]*)$/.exec(t);
+      if(m)t=m[1].charAt(0).toUpperCase()+m[1].slice(1)+" "+m[2]+", "+m[3];
+      t=t.replace(/(?:,\s*)?(?:and\s+)?(?:the woman|she|both women|both of them|the other woman|the man|he)\s+(?:cries|cry|says|say|moans|moan|gasps|whispers|purrs|calls|shouts|shout|squeals)\s+"[^"]*"(?:\s+with (?:a heart|hearts))?/gi,"")
+       .replace(/,?\s*(?:saying|crying|cries|moaning|whispering|gasping|purring|calling)\s+"[^"]*"(?:\s+with (?:a heart|hearts))?/gi,"")
+         .replace(/(^|[.!?]\s+)[^.!?]*"[^"]*"[^.!?]*[.!?]/g,"$1")
+         .replace(/(^|[.!?]\s+)[^.!?]*cross-section[^.!?]*[.!?]/gi,"$1")
+         .replace(/\s+/g," ").trim();
+      /* the closing tag list: drop panel, text and effect tags */
+      const tm=/^([\s\S]*[.!?♡"])\s+([^.!?"]*,[^.!?"]*)$/.exec(t);
+      if(tm)t=tm[1]+" "+tm[2].split(",").map(x=>x.trim()).filter(x=>x&&!DROP3.has(x)).join(", ");
+      return t};
+    p.scene=clean(p.scene);if(p.solo)p.solo=clean(p.solo);
+    if(p.act)p.act=String(p.act).split(",").map(x=>x.trim()).filter(x=>x&&!DROP3.has(x)).join(", ");
+    delete p.texts;delete p.layout;delete p.panels;
+    const nude={name:"Nude",f:{},m:{}};p.w1=nude;p.w2=nude;p.outfit="nude";
+    const add=(s,t)=>{const a=String(s||"").split(",").map(x=>x.trim()).filter(Boolean);if(!a.includes(t))a.push(t);return a.join(", ")};
+    p.tags1=add(p.tags1,"completely nude");p.tags2=add(p.tags2,"completely nude")}
   function build(si,vi,opt){
     opt=opt||{};const v=variant(si,vi);if(!v)return null;
     const h1=opt.h1!==undefined?opt.h1:girlOfState(S);const mi=h1?(v.g||[]).indexOf(h1):-1;
@@ -1497,6 +1529,7 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
     ["dir","penis","explicit","couple","emph","ultra","qStyle","txTags","compact","fit","ex1k","panels"].forEach(k=>{if(k in r)p[k]=r[k]});
     if(r.gm&&!p.id)p.gm=r.gm;
     p.sv=sv;p.idv=opt.idv||{};p.arch={s:si,v:vi};
+    if(TIDY3.has(SETS[si].label))tidy3(p);
     const nm=R(f.name||"").replace(/^\s*[,&:]\s*/,"").trim();
     return{id:"rx:"+si+":"+vi,name:nm||SETS[si].name,_rx:true,
       out:{framing:r.framing||"",must:r.must||"",lewdtag:!!r.lewdtag,explicit:!!(r.oexplicit||p.explicit),pair:p}}}
