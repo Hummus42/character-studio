@@ -117,7 +117,7 @@ const say=m=>{says=m;clearTimeout(sayT);sayT=setTimeout(()=>{says="";const e=roo
 const codex=id=>ENC.open(id||"home");
 const edition=()=>typeof EVERSPIRE_EDITION!=="undefined"?EVERSPIRE_EDITION:"public";
 /* The version on the title page. Raise it with every push: 1.<number of commits in the repo after the push>. */
-const EV_VERSION="1.61",EV_DATE="Nov 16, 2026";
+const EV_VERSION="1.62",EV_DATE="Nov 16, 2026";
 window.EVERSPIRE_VERSION=EV_VERSION;
 
 /* ---------- title ---------- */
@@ -338,6 +338,10 @@ const bh=ENC.buildHouse;if(bh)ENC.buildHouse=(el,h)=>{bh(el,h);
   const bar=el.querySelector(".enc-chairbar");if(bar)bar.append(E("button",{type:"button",class:"enc-load",onclick:()=>{ENC.close();G.open({sponsor:h})}},"Take her on as a protégée"))};
 /* loading a look from the Codex means going to the studio: lift the game screen so it is not left covering it */
 if(ENC.load&&!ENC.load.__ev){const ld=ENC.load;ENC.load=function(){const r=ld.apply(this,arguments);if(root&&!root.classList.contains("off"))hide();return r};ENC.load.__ev=1}
+/* v288: so does loading a scene from the Scene Archive (a girl's shelf, a set page's Load with): those go through the
+   archive's own loader, which left the title menu covering the studio */
+if(ACAD.RX&&!ACAD.RX.__ev){["loadWith","apply"].forEach(k=>{const f=ACAD.RX[k];if(typeof f!=="function")return;
+  ACAD.RX[k]=function(){const r=f.apply(this,arguments);try{if(root&&!root.classList.contains("off"))hide()}catch(e){}return r}});ACAD.RX.__ev=1}
 /* Everspire opens first: the title screen covers the studio until the player chooses the Character Creator */
 ACAD.gameUI={ensure,show,hide,title:()=>title(),root:()=>root,codex,spr,col,dispose,say:m=>say(m)};
 function boot(){ensure();title()}
