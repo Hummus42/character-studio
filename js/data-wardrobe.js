@@ -16,7 +16,7 @@
     ["Travel and outdoors",A("Tropical Island|Vacation|Road Trip|City Postcards|Hiking")],
     ["Sports and stage",A("Cheerleaders|Swim Team|Beach Volleyball|Sports Day|Gym Rats|Locker Room|Idol Concert|Music Video")],
     ["Work and uniforms",A("Housewives|Cafe Maids|French Maids|Bartenders|Corporate|Nurses|Flight Attendants|Racing Queens|Firefighters|Police|Military")],
-    ["Costumes and cosplay",A("Waifus|Cosplay|Pokemon Trainers|Bunny Girls|Latex|Cowgirls|Pirates|Noir")],
+    ["Costumes and cosplay",A("House Costume|Waifus|Cosplay|Pokemon Trainers|Bunny Girls|Latex|Cowgirls|Pirates|Noir")],
     ["Animal costumes",A("Cat Costume|Puppy Costume|Fox Costume|Snow Bunny|Cow Print|Wolf Costume|Mouse Costume|Tiger Costume|Leopard Costume|Lioness Costume|Bear Hoodie|Sheep Costume|Reindeer Costume|Panda Costume|Tanuki Costume|Squirrel Costume|Bee Costume|Bat Costume|Shark Costume|Snake Charmer")],
     ["Traditional and period",A("Qipao|Geishas|Belly Dancers|Victorian|Steampunk|Prehistoric")],
     ["Fantasy",A("Monster Girls|Mermaids|Sirens|Elves|Fairies|Witches|Succubi|Vampires|Angels|Goddesses|Royal Court|Elementals|Magical Heroines|Battle Maidens|Knights|Dragon Riders|Kunoichi")],
@@ -61,7 +61,7 @@
     const have=new Set(OUTFIT_PRESETS.map(p=>(/^acad_o_\d+_(.+)$/.exec(p.id)||[])[1]).filter(Boolean));
     const after=new Set(ACAD.AFTER_CATS);
     ACAD.CATS.forEach(([c,ls])=>ls.forEach(l=>{if(have.has(l.replace(/\W+/g,"").toLowerCase()))return;
-      try{added+=ACAD.addOutfitSet(l,after.has(c)?"Explicit":c,c==="Animal costumes")}catch(e){}}));
+      try{added+=ACAD.addOutfitSet(l,after.has(c)?"Explicit":c,c==="Animal costumes"||l==="Academy House Costume")}catch(e){}}));
   }
   ACAD.WARDROBE_ORDER={shelves:ACAD.CATS.length,leftovers:left,outfitsAdded:added};
 })();
