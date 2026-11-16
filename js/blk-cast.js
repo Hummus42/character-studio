@@ -352,7 +352,9 @@ function applyPicked(k){
 ACAD.applyPickedScene=applyPicked;
 /* v287: the new threesome sets sit next to Threesomes, in Wilder nights */
 {const putCats=()=>{try{const C=(ACAD.RX_CATS||[]).find(x=>x[1].includes("Threesomes"));if(C){const i=C[1].indexOf("Threesomes");
-  ["FFM Positions","FMM Positions"].forEach((l,k)=>{if(!C[1].includes(l))C[1].splice(i+1+k,0,l)})}}catch(e){}};
+  ["FFM Positions","FMM Positions"].forEach((l,k)=>{if(!C[1].includes(l))C[1].splice(i+1+k,0,l)})}
+  /* v290: Cut-outs, their own category */
+  const CUT=["Cut-out Positions","Cut-out Oral","Cut-out Hands and Body","Cut-out Anal","Cut-out Finish"];if(ACAD.RX_CATS&&!ACAD.RX_CATS.some(x=>x[0]==="Cut-outs (transparent)"))ACAD.RX_CATS.push(["Cut-outs (transparent)",CUT])}catch(e){}};
   putCats();document.addEventListener("DOMContentLoaded",putCats);window.addEventListener("load",putCats)}
 /* v280: remember how many characters a scene came with, so its wording can follow when some are taken out (part-05 agreeN) */
 {const as=PAIR.applyScene;PAIR.applyScene=function(t){const r=as.apply(this,arguments);
