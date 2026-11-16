@@ -907,9 +907,17 @@ html[data-theme="dark"] #encDlg .enc-tag-o{background:#352c55;color:#d9cdfa;bord
       art.append(E("p",{class:"enc-kicker"},lnk("restricted","The Scene Archive")),E("h1",{class:"enc-title"},ENC.pixel(v,48)," ",HN(v)),
         E("p",{class:"enc-note"},R.length?R.length+(R.length===1?" scene":" scenes")+" from her shelf"+(ENC.shelfFrom(v)!==v?", first written for "+HN(ENC.shelfFrom(v)):"")+". Press one to load it with her.":"Her own shelf is coming. For now, any scene in the section can be loaded with her: open a set and choose her under Load with."));
       const m=new Map();R.forEach(r=>{if(!m.has(r.s))m.set(r.s,[]);m.get(r.s).push(r)});
-      const box=E("div",{class:"enc-chips"});
-      m.forEach((rs,s)=>rs.forEach(r=>{const b=E("button",{type:"button",class:"enc-chip",title:RX.hookOf(r.s.si,r.vi),onclick:()=>load(r.s.si,r.vi,v)},s.name+(rs.length>1?" "+(rs.indexOf(r)+1):""));b.style.setProperty("--gc",col);box.append(b)}));
-      if(R.length)art.append(E("h3",{class:"enc-h"},ENC.shelfFrom(v)!==v?"Her scenes":"Her archived scenes"),box);
+      /* v286: her shelf in the archive's own categories (Tender moments, Lovers, Wilder nights...), each one a fold */
+      const CAT={};(ACAD.RX_CATS||[]).forEach(([c,ls])=>ls.forEach(l=>{CAT[l]=c;CAT[String(l).replace(/^Academy /,"")]=c}));
+      const ORDER=(ACAD.RX_CATS||[]).map(c=>c[0]);
+      const byCat=new Map();
+      m.forEach((rs,s)=>{const c=CAT[s.label]||CAT[s.name]||"Other";if(!byCat.has(c))byCat.set(c,[]);byCat.get(c).push([s,rs])});
+      const cats=[...byCat.keys()].sort((a,b)=>(ORDER.indexOf(a)+1||999)-(ORDER.indexOf(b)+1||999));
+      if(R.length)art.append(E("h3",{class:"enc-h"},ENC.shelfFrom(v)!==v?"Her scenes":"Her archived scenes"));
+      cats.forEach((c,i)=>{const sets=byCat.get(c),box=E("div",{class:"enc-chips"});let n=0;
+        sets.forEach(([s,rs])=>rs.forEach(r=>{n++;const b=E("button",{type:"button",class:"enc-chip",title:RX.hookOf(r.s.si,r.vi),onclick:()=>load(r.s.si,r.vi,v)},s.name+(rs.length>1?" "+(rs.indexOf(r)+1):""));b.style.setProperty("--gc",col);box.append(b)}));
+        art.append(E("details",{class:"enc-shelf",open:i===0?true:null},
+          E("summary",null,E("span",null,c),E("span",{class:"ct"},n+(n===1?" scene":" scenes"))),box))});
       if(R.length<R0.length)art.append(gate(()=>{el.textContent="";ENC.pages[id].build(el)}));
       art.append(E("p",{class:"enc-p"},lnk("restricted","The whole Scene Archive"),"."));
       el.append(art)}})});
