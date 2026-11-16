@@ -786,6 +786,7 @@ if(typeof ACAD!=="undefined"&&ACAD.canonApply&&typeof tplById==="function")ACAD.
     "Fantasy and sci-fi":"Fantasy and sci-fi","Heartbreak":"Moody","Sensual":"Sensual","Exhibition":"Exhibition","Explicit":"Explicit"};
   const ADULTCAT=/^(Sensual|Exhibition|Explicit)$/;
   const allSig=new Set(OUTFIT_PRESETS.map(p=>sigOf(Object.fromEntries(Object.entries(p.items||{}).map(([f,a])=>[f,a])),p.details)));
+  let KEEPH=false;   /* v297: costume sets keep garments that name an animal House (fox ears, tiger print) */
   function outfitSet(label,cat,sex){
     const ts=tpls(label);if(!ts.length)return;
     const seen=new Set(),names={},keys=[],firsts={},used=new Set();let n=0;
@@ -794,11 +795,11 @@ if(typeof ACAD!=="undefined"&&ACAD.canonApply&&typeof tplById==="function")ACAD.
       if(!o||!o.items)return;
       /* heldItem is each girl's own prop; a house crest or a house word only fits that house */
       const items={};Object.entries(o.items).forEach(([f,a])=>{const arr=Array.isArray(a)?a.slice():[a.v,a.c,a.w,a.c2];
-        if(!arr[0]||f==="heldItem"||HRX.test(arr[0])||(f==="tagCharm"&&/crest/i.test(arr[0])))return;items[f]=arr});
+        if(!arr[0]||f==="heldItem"||(!KEEPH&&HRX.test(arr[0]))||(f==="tagCharm"&&/crest/i.test(arr[0])))return;items[f]=arr});
       if(Object.keys(items).length<2)return;
-      const det={};Object.entries(o.details||{}).forEach(([f,v])=>{if(v&&!HRX.test(v))det[f]=v});
+      const det={};Object.entries(o.details||{}).forEach(([f,v])=>{if(v&&(KEEPH||!HRX.test(v)))det[f]=v});
       const sig=sigOf(items,det);if(seen.has(sig)||allSig.has(sig))return;seen.add(sig);allSig.add(sig);
-      const base=cap(String(o.oname||disp(label)).replace(HRXG,"").replace(/\s+/g," ").trim())||disp(label);
+      const base=cap(String(o.oname||disp(label)).replace(KEEPH?/$^/:HRXG,"").replace(/\s+/g," ").trim())||disp(label);
       names[base]=(names[base]||0)+1;
       /* two different outfits with the same name are told apart by the piece that differs, not by whose they were */
       const prev=firsts[base]||(firsts[base]=[]);
@@ -845,6 +846,15 @@ if(typeof ACAD!=="undefined"&&ACAD.canonApply&&typeof tplById==="function")ACAD.
   NEW.forEach(p=>{if(!p.adultOnly)delete p.adultOnly});
   OUTFIT_PRESETS.push(...NEW);PRESET_GROUPS.outfit.push(...GROUPS);
   G.outfits=NEW.length;G.outfitGroups=GROUPS.length;
+  /* v297: sets added by later files (data-casual, data-animals...) get their outfit presets the same way */
+  ACAD.addOutfitSet=(label,cat,keep)=>{const n0=NEW.length,g0=GROUPS.length;KEEPH=!!keep;try{outfitSet(label,cat)}finally{KEEPH=false}
+    const ps=NEW.slice(n0),gs=GROUPS.slice(g0);
+    {const keepS=S;try{S=normalize(blankState());S.c.age="girl";
+      ps.forEach(p=>{if(p.adultOnly)return;
+        if(Object.entries(p.items).some(([f,a])=>!Policy.itemAllowed(f,a[0]))||Object.entries(p.details||{}).some(([f,v])=>!Policy.itemAllowed(f,v)))p.adultOnly=true})}
+     catch(e){}finally{S=keepS}}
+    ps.forEach(p=>{if(!p.adultOnly)delete p.adultOnly});
+    OUTFIT_PRESETS.push(...ps);PRESET_GROUPS.outfit.push(...gs);return ps.length};
 
   /* ---------- 3. face, eye, makeup and body presets from each girl ---------- */
   {
