@@ -180,6 +180,8 @@
   grimoire:["green serpent","R","lamia, snake tail","vigil"],
   lethe:["white deer","M","deer girl, deer ears","vigil"],
   portent:["crow","B","black wings","vigil"]};
+  /* v304: the Great Waking's hundred girls (data-expansion-looks.js) */
+  if(window.FURRY_EXTRA&&window.FURRY_EXTRA.looks)Object.entries(window.FURRY_EXTRA.looks).forEach(([h,v])=>{if(!D[h])D[h]=[v[0],v[1],v[2]]});
   const ex=["sultry, half-lidded look","playful, teasing smile","shy blush, eyes on the viewer"];
   const PO={M:["stretching on all fours, tail raised","lying on her side, one leg lifted","sitting with her knees apart, leaning back"],
     B:["spreading her wings wide, chest out","preening, wings draped around her","perched with her legs crossed, wings half open"],
@@ -221,6 +223,7 @@
     chelonian:{noun:"scales",light:"tough {c} scales along her forearms and calves",cov:"tough {c} scales covering her arms and legs, with a shell on her back",snoutM:"a short beak-like snout",limbM:"clawed, scaly hands",snoutF:"a full turtle face with a hooked beak",limbF:"scaly clawed limbs and a domed shell on her back"},
     hedgehog:{noun:"spines",light:"short {c} spines along her forearms",cov:"soft {c} fur on her front and {c2} spines covering her back and arms",snoutM:"a small pointed muzzle with a black button nose",limbM:"small clawed paw hands",snoutF:"a full pointed hedgehog snout with a black nose",limbF:"small clawed paws and a back of spines"}};
   Object.entries(FAM).forEach(([k,v])=>{if(!ANIMALS.families[k])ANIMALS.families[k]=v});
+  const FX=window.FURRY_EXTRA||{};Object.entries(FX.families||{}).forEach(([k,v])=>{if(!ANIMALS.families[k])ANIMALS.families[k]=v});
   if(Array.isArray(CHAR.animalPattern)&&!CHAR.animalPattern.some(x=>x[0]==="auto"))CHAR.animalPattern.unshift(["auto","Pattern"]);
   const T=(e,t,w,h,f,a)=>Object.assign({},e&&{earStyle:e},t&&{tailStyle:t},w&&{wingStyle:w},h&&{hornStyle:h},f&&{fangClawStyle:f},a&&{auraStyle:a});
   const K="Kemonomimi",AQ="Aquatic",FH="Fantasy Humanoid";
@@ -296,6 +299,7 @@
     dragonfly:["insect",FH,"generic",["{c2} banding"],T(null,"long segmented tail","four iridescent dragonfly wings",null,null)],
     beetle:["insect",FH,"generic",["a {c2} sheen"],T(null,null,"glossy wing cases","large rhinoceros beetle horn",null)],
     firefly:["insect",FH,"generic",["a glowing {c2} abdomen"],T(null,"glowing abdomen tail","sheer insect wings",null,null,"soft firefly glow")]};
+  Object.entries(FX.species||{}).forEach(([n,v])=>{if(!NEW[n])NEW[n]=[v[0],v[1],v[2],v[3],v[4]]});
   const have=new Set((CHAR.subjectType||[]).map(x=>x[0]));
   Object.entries(NEW).forEach(([n,[fam,grp,skin,pats,auto]])=>{
     if(SPECIES_INFO[n])return;
@@ -323,11 +327,16 @@
     pulsar:"jaguar",cradle:"bear",quasar:"snow leopard",singularity:"dragon",rapture:"fox",maw:"shark",stardust:"cat",wraith:"moth",nebula:"deer",hollow:"sheep",
     regent:"lion",chronicle:"owl",pendulum:"snake",mainspring:"squirrel",gearwright:"badger",sundial:"bunny",hourglass:"cow",metronome:"horse",almanac:"fox",tourbillon:"peafowl",
     augur:"owl",nightmare:"horse",reverie:"sheep",insomnia:"raccoon",seance:"cat",vesper:"bat",lantern:"fox",grimoire:"snake",lethe:"deer",portent:"crow"};
+  Object.entries(FX.looks||{}).forEach(([h,v])=>{if(!SPEC[h])SPEC[h]=v[3]});
   const FACT={synth:{markings:"thin silver panel seams along her collarbones, arms and thighs",bodyMarkings:"faint glowing gear-line seams at her shoulders, elbows and knees"},
     void:{markings:"faint swirling starfield patterns drifting across her skin",auraStyle:"cosmic aura"},
     clock:{markings:"thin brass seams along her wrists and the backs of her hands",bodyMarkings:"faint glowing gear-line seams at her shoulders, elbows and knees"},
     vigil:{auraStyle:"moonlit aura"}};
-  const FOF=h=>{const i=ACAD.HOUSES.indexOf(h);return i<100?null:i<120?"synth":i<140?"void":i<150?"clock":"vigil"};
+  const FL={synth:"sovereign valkyrie android automaton golem hologram cipher archive medic companion seraph nereid vector voyager glitch muse lullaby bloom titan prototype",
+    void:"horizon eclipse umbra penumbra oblivion hush aurora comet nova entropy pulsar cradle quasar singularity rapture maw stardust wraith nebula hollow",
+    clock:"regent chronicle pendulum mainspring gearwright sundial hourglass metronome almanac tourbillon",
+    vigil:"augur nightmare reverie insomnia seance vesper lantern grimoire lethe portent"};
+  const FOF=h=>Object.keys(FL).find(k=>FL[k].split(" ").includes(h))||null;
   const XTRA={siren:{bodyForm:"mermaid tail (no legs)",earStyle:"fin-like ears"},griffin:{tailStyle:"tufted lion tail",wingStyle:"great feathered eagle wings"},reindeer:{hornStyle:"reindeer antlers"},stag:{hornStyle:"branching antlers"},
     phoenix:{wingStyle:"fiery feathered wings",auraStyle:"fiery aura"},singularity:{wingStyle:"black dragon wings"},valkyrie:{wingStyle:"mechanical feathered wings"},
     seraph:{auraStyle:"starlight aura"},golem:{hornStyle:"curled ram horns"},hollow:{hornStyle:"curled ram horns"},nightmare:{hornStyle:"small dark horns"}};

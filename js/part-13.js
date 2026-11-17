@@ -138,7 +138,9 @@
     const ONLY=new Set([...(ACAD.WAVE_ONLY||[])].filter(l=>!drop.has(l)));
     /* her Signature look, cut from her model's */
     const SIG={};const ms=T(m+"signature");
-    if(ms&&a.sig!==false){const tt=x=>typeof x==="string"?swap(x):x;const it={};Object.entries((ms.outfit&&ms.outfit.items)||{}).forEach(([f,v])=>{it[f]=Array.isArray(v)?v.map(tt):v});
+    /* 2026-11: a girl with her own Signature look (add.girls[h].sigLook = [title, expression, pose, items]) wears it, not her model's */
+    if(Array.isArray(a.sigLook)&&a.sigLook[3]){const L0=a.sigLook;SIG[h]=[s(L0[0])||"Signature",pride,s(L0[1])||"confident smile",s(L0[2])||"standing tall",s(d.out)||out,JSON.parse(JSON.stringify(L0[3]))]}
+    else if(ms&&a.sig!==false){const tt=x=>typeof x==="string"?swap(x):x;const it={};Object.entries((ms.outfit&&ms.outfit.items)||{}).forEach(([f,v])=>{it[f]=Array.isArray(v)?v.map(tt):v});
       const must=s(ms.out&&ms.out.must);const mp=/high detail, (.*), and particular emphasis/.exec(must);
       const title=s(a.sigName)||(pride?pride.replace(/^the\s+/i,"").replace(/\b\w/g,x=>x.toUpperCase()):"")||"Signature";
       SIG[h]=[title,pride,(ms.c&&ms.c.expression)||"confident smile",swap((ms.c&&ms.c.posture)||"standing tall"),s(d.out)||(mp?swap(mp[1]):out),it]}

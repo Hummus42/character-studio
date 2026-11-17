@@ -606,7 +606,7 @@ if(typeof ENC!=="undefined"){ENC.lostCrestURL16=ENC.lostCrestURL;ENC.sigilURL16=
     ["n","The castle and its grounds: the map and its twenty-two places","places"],
     ["n","The Everspire year, the Spire Cup, robes and regalia, names and address, the unwritten rules","culture"],
     ["n","Story seeds for every group","conflicts"],
-    ["n","The Roll: two hundred sleeping Houses in twenty lost groups, their sigils, lore and allegiances","roll"],
+    ["n","The Roll: the sleeping Houses and their lost groups, their sigils, lore and allegiances","roll"],
     ["n","Second banners, champions and waking a House","oc"],
     ["n","The customs of the heart","cast"],
     ["o","What is at the top of the Spire, who rings the bells, and why the Houses woke","conflicts"],

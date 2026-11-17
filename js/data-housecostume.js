@@ -171,6 +171,8 @@
   grimoire:["Chained Tome","a chained grimoire costume","reading a chained book, glasses slipping","an occult library","top=leather harness with a chained book|black;panties=black panties|black;eyewear=glasses|gold","chain, book, glasses, harness, panties"],
   lethe:["River of Forgetting","a wet river nymph costume","wading in a misty river","a misty river at dawn","top=wet sheer white slip|white;neckAccessory=white flower garland|white","wet, see-through clothes, river, wet clothes"],
   portent:["Omen Feathers","a crimson omen costume","descending stairs in a swirl of feathers","a stairway of black feathers","top=black feather dress cut short|black;bottom=crimson thigh-high slit sash|red","feathers, black dress, red, side slit"]};
+  /* v304: the Great Waking's hundred girls (data-expansion-looks.js) */
+  if(window.HOUSE_COSTUME_EXTRA)Object.entries(window.HOUSE_COSTUME_EXTRA).forEach(([h,v])=>{if(!D[h])D[h]=v});
   const SET="Academy House Costume";
   const ex=["teasing, confident smile","flustered blush, but proud","sultry, half-lidded look"];
   const parse=s=>{const o={};s.split(";").forEach(x=>{const i=x.indexOf("=");if(i<0)return;const f=x.slice(0,i).trim(),[d,c]=x.slice(i+1).split("|");o[f]=[d.trim(),(c||"@primary").trim()]});return o};

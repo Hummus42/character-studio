@@ -2238,7 +2238,9 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
     searchText:()=>"sleeping houses roll lost groups dormant wake "+ROLL.map(g=>g.name+" "+g.kind+" "+g.houses.map(h=>h.name).join(" ")).join(" "),
     build:el=>{const art=E("article",{class:"enc-article wide"});
       art.append(E("h1",{class:"enc-title"},"The Roll of Sleeping Houses"),
-        E("p",{class:"enc-lead enc-n"},ACAD.lore("lead.roll","In the library vault, beside the founders' charter, lies a roll of names written in a thousand years of hands: every House that has ever kept a student and fallen quiet. ")+ACAD.numWords(nH()).replace(/^./,c=>c.toUpperCase())+" of them are still legible. They sleep in "+ACAD.numWords(ROLL.length)+" lost groups, each with its crest, its motto, its old haunt and its allegiance, and any one of them may wake for the right girl.",tag("n")),
+        E("p",{class:"enc-lead enc-n"},ACAD.lore("lead.roll","In the library vault, beside the founders' charter, lies a roll of names written in a thousand years of hands: every House that has ever kept a student and fallen quiet. ")+ACAD.numWords(nH()).replace(/^./,c=>c.toUpperCase())+" of them are still legible. "+(()=>{const wk=ROLL.filter(g=>ACAD.wokenGroup&&ACAD.wokenGroup(g.id)).length,sl=ROLL.length-wk;
+          return (sl?"They sleep in "+ACAD.numWords(sl)+" lost groups, each with its crest, its motto, its old haunt and its allegiance, and any one of them may wake for the right girl.":"")+
+            (wk?" "+ACAD.numWords(wk).replace(/^./,c=>c.toUpperCase())+" more woke whole in the Great Waking of 2026, and are on the Roll still, marked awake.":"")})(),tag("n")),
         E("p",{class:"enc-p enc-n"},ACAD.lore("roll.allegiance","A lost group's allegiance is the one its waking Houses swore. Houses that fell asleep before the Night Walk are counted with their group, but a girl who wakes one may choose for herself. The Unsworn never chose at all: a girl who wakes an Unsworn House must choose by her first Founders' Night, or keep the old neutrality and answer only to the Headmaster."),tag("n")),
         E("p",{class:"enc-note"},"Every sleeping House has a sigil and a button to begin your own girl in its colors. ",lnk("oc","Original Characters")," has the whole guide."));
       const filt=E("div",{class:"enc-filter",role:"group","aria-label":"Show"});
@@ -2288,8 +2290,8 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
   /* the Houses and Groups index points to the Roll */
   {const p=ENC.pages["groups"];if(p&&p.build){const ob=p.build;p.build=el=>{ob(el);const art=el.querySelector(".enc-article")||el;
     art.append(E("h3",{class:"enc-h"},"The sleeping Houses"),
-      E("p",{class:"enc-p enc-n"},"The hundred Houses on the rolls are not all there have ever been. "+ACAD.numWords(nH()).replace(/^./,c=>c.toUpperCase())+" more sleep on the ",lnk("roll","Roll of Sleeping Houses"),", in "+ACAD.numWords(ROLL.length)+" lost groups, waiting to wake.",tag("n")),
-      E("div",{class:"enc-lostcards"},ROLL.slice(0,4).map(lostCard)),E("p",{class:"enc-note"},lnk("roll","All twenty lost groups")))}}}
+      E("p",{class:"enc-p enc-n"},"The "+ACAD.numWords((ACAD.HOUSES||[]).filter(h=>!(ACAD.GROUP_OF&&ACAD.GROUP_OF(h)&&ACAD.GROUP_OF(h).apart)).length||100)+" Houses on the rolls are not all there have ever been. "+ACAD.numWords(ROLL.filter(g=>!(ACAD.wokenGroup&&ACAD.wokenGroup(g.id))).reduce((n,g)=>n+g.houses.length,0)).replace(/^./,c=>c.toUpperCase())+" more sleep on the ",lnk("roll","Roll of Sleeping Houses"),", in "+ACAD.numWords(ROLL.filter(g=>!(ACAD.wokenGroup&&ACAD.wokenGroup(g.id))).length)+" lost groups, waiting to wake.",tag("n")),
+      E("div",{class:"enc-lostcards"},ROLL.slice(0,4).map(lostCard)),E("p",{class:"enc-note"},lnk("roll","The whole Roll")))}}}
 
   /* living House pages: the second chair (v230: shown under the banner, see enc230.js) */
   /* =====================================================================================================
@@ -2305,7 +2307,7 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
         E("p",{class:"enc-lead enc-n"},"Everspire has room for your own girl. It always has: the Roll is long, the second chair can be set at any table, and the Academy has never once turned away a grown woman a House has chosen. This chapter is how she arrives, where she belongs and who she finds there.",tag("n")));
       /* three ways in */
       art.append(E("h3",{class:"enc-h"},"Three ways in"),E("div",{class:"enc-ways"},
-        E("div",{class:"way"},E("b",null,"Wake a sleeping House"),E("p",null,"She becomes the Keeper of one of the "+ACAD.numWords(nH())+" Houses on the Roll, the first girl it has chosen in a lifetime, and is called by its name. She may revive its lost group or sit with a living one."),lnk("roll","The Roll of Sleeping Houses")),
+        E("div",{class:"way"},E("b",null,"Wake a sleeping House"),E("p",null,"She becomes the Keeper of one of the "+ACAD.numWords(ROLL.filter(g=>!(ACAD.wokenGroup&&ACAD.wokenGroup(g.id))).reduce((n,g)=>n+g.houses.length,0))+" sleeping Houses on the Roll, the first girl it has chosen in a lifetime, and is called by its name. She may revive its lost group or sit with a living one."),lnk("roll","The Roll of Sleeping Houses")),
         E("div",{class:"way"},E("b",null,"Take a second chair"),E("p",null,"She becomes a ward of one of the "+ACAD.CT.b("houses")+" living Houses: Tamsin of Fox, Mira of Serpent. She wears its colors, joins its group and answers to its headmistress; the Keeper keeps the House's name."),lnk("groups","Choose a group, then a House")),
         E("div",{class:"way"},E("b",null,"Come as a guest"),E("p",null,"She has finished her candidate year and no House has chosen her yet, or she is a visiting scholar from abroad for a term. She belongs to no group, which means every group is trying to claim her."),lnk("places","Find her somewhere to stay"))));
       /* the finder */
