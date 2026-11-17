@@ -151,13 +151,23 @@
 
   /* ---------- a girl's library: everything of hers that loads into the studio ---------- */
   const TABS=[["looks","Looks"],["scenes","Scenes"],["after","After dark"],["archive","Archive"],["people","People"]];
-  const RCAT=new Map();(ACAD.RX_CATS||[]).forEach(([c,ls])=>ls.forEach(l=>RCAT.set("Academy "+l,c)));
   const LIB={};
   function library(h){if(LIB[h])return LIB[h];
     const I=(ENC.index&&ENC.index()[h])||{looks:[],scenes:[],after:[]};
     const it=r=>({cat:r.cat||"Other",name:r.name,key:r.k,x:!!r.x,load:()=>ENC.load(r.k)});
-    let arch=[];try{const RX=ACAD.RX;arch=((ENC.rIndex&&ENC.rIndex(h).lead)||[]).map(r=>({cat:RCAT.get(r.s.label)||"Other sets",name:r.s.name+(r.s.n>1?" "+(r.vi+1):""),key:"rx"+r.s.si+"."+r.vi,
-      x:!!(RX&&RX.explicitOf&&RX.explicitOf(r.s.si,r.vi)),load:()=>{RX.loadWith(r.s.si,r.vi,h);try{ENC.close()}catch(e){}}}))}catch(e){}
+    /* the archive's categories are read now, not at load: later blocks add most of them (Lovers, Wilder nights, Cheating...) */
+    const RCAT=new Map();(ACAD.RX_CATS||[]).forEach(([c,ls])=>ls.forEach(l=>RCAT.set("Academy "+l,c)));
+    let arch=[];try{const RX=ACAD.RX,rows=(ENC.rIndex&&ENC.rIndex(h).lead)||[];
+      const per={};rows.forEach(r=>{per[r.s.si]=(per[r.s.si]||0)+1});
+      const hook=r=>{try{return String(RX.hookOf(r.s.si,r.vi)||"").trim()}catch(e){return ""}};
+      const vname=r=>{try{const v=RX.variant(r.s.si,r.vi);return String((v&&v.f&&v.f.name)||"").trim()}catch(e){return ""}};
+      /* a variant's own name, without its unfilled slots ({@name}, {@s1}...), and only when it says more than the set's name */
+      const clean=(vn,set)=>{const t=vn.replace(/\{@[^}]*\}('s)?/g,"").replace(/\s+/g," ").replace(/^[\s,:;·-]+|[\s,:;·-]+$/g,"").trim();
+        if(!t||t.length<3)return "";const a=t.toLowerCase(),b=set.toLowerCase();return b.includes(a)||a===b?"":t.charAt(0).toUpperCase()+t.slice(1)};
+      const cleanHook=hk=>hk.replace(/\{@[^}]*\}('s)?/g,"").replace(/\s+/g," ").trim();
+      arch=rows.map(r=>{const hk=cleanHook(hook(r)),own=clean(vname(r),r.s.name);
+        return {cat:RCAT.get(r.s.label)||"More scenes",name:own?r.s.name+" · "+own:per[r.s.si]>1&&hk?r.s.name+" · "+hk:r.s.name,tip:hk,key:"rx"+r.s.si+"."+r.vi,
+        x:!!(RX&&RX.explicitOf&&RX.explicitOf(r.s.si,r.vi)),load:()=>{RX.loadWith(r.s.si,r.vi,h);try{ENC.close()}catch(e){}}}})}catch(e){}
     return LIB[h]={looks:I.looks.map(it),scenes:I.scenes.map(it),after:I.after.map(it),archive:arch}}
   const ok18=()=>ACAD.RX_ADULT&&ACAD.RX_ADULT.ok18?ACAD.RX_ADULT.ok18():true;
   const minor=h=>!!(ACAD.isMinor&&ACAD.isMinor(h));
@@ -177,7 +187,7 @@
       const cats=new Map();hits.forEach(i=>{if(!cats.has(i.cat))cats.set(i.cat,[]);cats.get(i.cat).push(i)});
       let n=0;cats.forEach((is,c)=>{n++;
         const det=E("details",{class:"ad-cat"},E("summary",null,c,E("span",null,String(is.length))),
-          E("div",{class:"ad-loads"},is.map(i=>E("button",{type:"button",class:"ad-load"+(LAST===h+"|"+i.key?" on":"")+(i.x?" x":""),title:"Load "+i.name+" into the studio",
+          E("div",{class:"ad-loads"},is.map(i=>E("button",{type:"button",class:"ad-load"+(LAST===h+"|"+i.key?" on":"")+(i.x?" x":""),title:(i.tip&&!i.name.includes(i.tip)?i.tip+". ":"")+"Load "+i.name+" into the studio",
             onclick:ev=>{LAST=h+"|"+i.key;i.load();list.querySelectorAll(".ad-load.on").forEach(b=>b.classList.remove("on"));ev.currentTarget.classList.add("on");if(innerWidth<=860)toggle(false)}},i.name))));
         if(s||n<=2||cats.size<=3)det.open=true;list.append(det)})};
     q.addEventListener("input",()=>{v.q=q.value;draw()});draw()}
