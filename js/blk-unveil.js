@@ -13,8 +13,8 @@
      mode (the outfit replaced by her intimate details, same standing pose), same seed and settings as the portrait, so
      it lines up with the portrait above it (assets/unveil/<house>.webp, listed in UNVEIL_ART by data-unveil.js). */
   const ART=window.UNVEIL_ART;
-  const has=h=>!(ACAD.isMinor&&ACAD.isMinor(h))&&(ART?ART.has(h):(!ACAD.climb||!ACAD.climb.MART||ACAD.climb.MART.has(h+"/deluxe")));
-  const url=h=>ART&&ART.has(h)?"assets/unveil/"+h+".webp":"assets/skins/"+h+"/deluxe.webp";
+  const has=h=>!(ACAD.isMinor&&ACAD.isMinor(h))&&!!(ART&&ART.has(h));
+  const url=h=>"assets/unveil/"+h+".webp";
   const reduce=()=>{try{return matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){return false}};
   const HOLD=1200;
   const css=document.createElement("style");
