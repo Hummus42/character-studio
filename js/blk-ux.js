@@ -57,7 +57,10 @@
   .ad-tile .sw{font-size:.7rem;color:var(--gold)}
   .ad-h{font-family:var(--fh);font-size:.88rem;margin:16px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
   .ad-girl{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;margin-top:6px}
-  .ad-por{width:150px;max-width:45%;height:auto;aspect-ratio:400/585;object-fit:cover;border-radius:12px;box-shadow:0 0 0 1px var(--rule2),0 6px 18px rgba(0,0,0,.18);background:#fff}
+  .ad-por{width:92px;flex:none;height:auto;aspect-ratio:400/585;object-fit:cover;border-radius:10px;box-shadow:0 0 0 1px var(--rule2),0 4px 12px rgba(0,0,0,.16);background:#fff}
+  .ad-girl{display:grid!important;grid-template-columns:92px 1fr;grid-template-rows:auto auto auto 1fr;column-gap:12px;row-gap:2px;align-items:start;text-align:left!important}
+  .ad-girl .ad-por{grid-row:1/5}.ad-girl h3{font-size:1.15rem!important;line-height:1.2}.ad-girl .fn,.ad-girl .role{font-size:.82rem!important}
+  .ad-girl .ad-acts{justify-content:flex-start!important;margin:6px 0 0!important;gap:5px!important}.ad-girl .ad-act{padding:4px 9px;font-size:.78rem}
   .ad-girl h3{font-size:1.3rem}.ad-girl .fn{color:var(--muted);font-size:.9rem}
   .ad-girl .role{font-size:.88rem;max-width:34ch}
   .ad-p{font-size:.88rem;line-height:1.5;margin:6px 0}
@@ -71,6 +74,25 @@
   .ad-act{border:1px solid var(--gold);background:transparent;border-radius:8px;padding:6px 11px;font-weight:600;font-size:.85rem}
   .ad-act.main{background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--goldink)}
   .ad-act:hover{filter:brightness(1.05)}
+  .ad-about{margin:4px 0 6px;font-size:.88rem}.ad-about summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:.82rem}
+  .ad-tabs{position:sticky;top:-8px;z-index:2;display:flex;flex-wrap:wrap;gap:4px;padding:8px 0 6px;margin-top:6px;background:color-mix(in srgb,var(--panel) 97%,transparent);border-bottom:1px solid var(--rule2)}
+  .ad-tab{border:1px solid var(--rule);background:transparent;border-radius:999px;padding:4px 10px;font-size:.82rem;font-weight:600}
+  .ad-tab span{margin-left:5px;font-weight:500;color:var(--muted);font-size:.75rem}
+  .ad-tab[aria-selected="true"]{background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--goldink);border-color:var(--gold)}
+  .ad-tab[aria-selected="true"] span{color:inherit;opacity:.75}
+  .ad-filter{width:100%;border:1px solid var(--rule);background:var(--panel2);border-radius:8px;padding:6px 10px;margin:8px 0 4px;font-size:.88rem}
+  .ad-cat{border-bottom:1px solid var(--rule2);padding:2px 0}
+  .ad-cat summary{cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 2px;font-weight:600;font-size:.86rem;list-style:none}
+  .ad-cat summary::-webkit-details-marker{display:none}
+  .ad-cat summary::before{content:"▸";color:var(--muted);font-size:.75rem;transition:transform .15s}
+  .ad-cat[open] summary::before{transform:rotate(90deg)}
+  .ad-cat summary span{margin-left:auto;color:var(--muted);font-weight:500;font-size:.75rem}
+  .ad-loads{display:flex;flex-wrap:wrap;gap:5px;padding:2px 0 10px}
+  .ad-load{border:1px solid var(--rule);background:var(--panel);border-radius:8px;padding:4px 9px;font-size:.8rem;line-height:1.25;text-align:left}
+  .ad-load:hover{border-color:var(--gold)}
+  .ad-load.x{border-style:dashed}
+  .ad-load.on{background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--goldink);border-color:var(--gold)}
+  .ad-gate{border:1px solid var(--rule);border-radius:10px;padding:12px;margin-top:10px}
   .ad-badge{font-size:.7rem;border:1px solid currentColor;border-radius:999px;padding:0 6px;margin-left:4px;color:var(--gold)}
   @media (max-width:860px){
     .acad-btn{padding:5px 10px}.acad-btn span{font-size:.88rem}
@@ -127,6 +149,52 @@
   const girlRow=h=>{const g=groupOf(h),b=bio(h);return E("button",{type:"button",class:"ad-row",onclick:()=>show({k:"girl",h})},face(h,40),
     E("span",null,E("b",null,HN(h)+(b.fullName?" · "+b.fullName:"")),E("span",{class:"k"},g?g.name:"")))};
 
+  /* ---------- a girl's library: everything of hers that loads into the studio ---------- */
+  const TABS=[["looks","Looks"],["scenes","Scenes"],["after","After dark"],["archive","Archive"],["people","People"]];
+  const RCAT=new Map();(ACAD.RX_CATS||[]).forEach(([c,ls])=>ls.forEach(l=>RCAT.set("Academy "+l,c)));
+  const LIB={};
+  function library(h){if(LIB[h])return LIB[h];
+    const I=(ENC.index&&ENC.index()[h])||{looks:[],scenes:[],after:[]};
+    const it=r=>({cat:r.cat||"Other",name:r.name,key:r.k,x:!!r.x,load:()=>ENC.load(r.k)});
+    let arch=[];try{const RX=ACAD.RX;arch=((ENC.rIndex&&ENC.rIndex(h).lead)||[]).map(r=>({cat:RCAT.get(r.s.label)||"Other sets",name:r.s.name+(r.s.n>1?" "+(r.vi+1):""),key:"rx"+r.s.si+"."+r.vi,
+      x:!!(RX&&RX.explicitOf&&RX.explicitOf(r.s.si,r.vi)),load:()=>{RX.loadWith(r.s.si,r.vi,h);try{ENC.close()}catch(e){}}}))}catch(e){}
+    return LIB[h]={looks:I.looks.map(it),scenes:I.scenes.map(it),after:I.after.map(it),archive:arch}}
+  const ok18=()=>ACAD.RX_ADULT&&ACAD.RX_ADULT.ok18?ACAD.RX_ADULT.ok18():true;
+  const minor=h=>!!(ACAD.isMinor&&ACAD.isMinor(h));
+  let LAST="";
+  function shelf(pane,h,items,tab,v){
+    const needs18=items.some(i=>i.x);
+    if(needs18&&(minor(h)||!ok18())&&(tab==="after"||items.every(i=>i.x))){
+      if(minor(h)){pane.append(E("p",{class:"ad-p muted"},"Not for her."));return}
+      pane.append(E("div",{class:"ad-gate"},E("b",null,"Explicit looks and scenes"),E("p",{class:"ad-p"},"These are sexually explicit. Every character in them is an adult. Confirm you are 18 or over to show them."),
+        E("button",{type:"button",class:"ad-act main",onclick:()=>{try{localStorage.setItem("everspire.adult18","1")}catch(e){}render()}},"I am 18 or over, show them")));return}
+    const shown=items.filter(i=>!i.x||(ok18()&&!minor(h)));
+    const q=E("input",{type:"search",class:"ad-filter",placeholder:`Filter ${shown.length} ${TABS.find(t=>t[0]===tab)[1].toLowerCase()}`,value:v.q||"","aria-label":"Filter"});
+    const list=E("div");pane.append(q,list);
+    const draw=()=>{list.textContent="";const s=(q.value||"").trim().toLowerCase();
+      const hits=shown.filter(i=>!s||(i.name+" "+i.cat).toLowerCase().includes(s));
+      if(!hits.length){list.append(E("p",{class:"ad-p muted"},"Nothing matches."));return}
+      const cats=new Map();hits.forEach(i=>{if(!cats.has(i.cat))cats.set(i.cat,[]);cats.get(i.cat).push(i)});
+      let n=0;cats.forEach((is,c)=>{n++;
+        const det=E("details",{class:"ad-cat"},E("summary",null,c,E("span",null,String(is.length))),
+          E("div",{class:"ad-loads"},is.map(i=>E("button",{type:"button",class:"ad-load"+(LAST===h+"|"+i.key?" on":"")+(i.x?" x":""),title:"Load "+i.name+" into the studio",
+            onclick:ev=>{LAST=h+"|"+i.key;i.load();list.querySelectorAll(".ad-load.on").forEach(b=>b.classList.remove("on"));ev.currentTarget.classList.add("on");if(innerWidth<=860)toggle(false)}},i.name))));
+        if(s||n<=2||cats.size<=3)det.open=true;list.append(det)})};
+    q.addEventListener("input",()=>{v.q=q.value;draw()});draw()}
+  function people(pane,h,g){
+    const R=ACAD.RELDATA||{},chip=(o,why)=>E("button",{type:"button",class:"ad-chip",onclick:()=>show({k:"girl",h:o}),title:why||""},face(o,22),HN(o),why?E("em",null,why):null);
+    const sec=(t,list)=>{if(list.length)pane.append(E("div",{class:"ad-h"},t),E("div",{class:"ad-chips"},list))};
+    sec("Best friends",(ACAD.BFOF?ACAD.BFOF(h):[]).map(o=>chip(o)));
+    const sg=(ACAD.SGOF||{})[h];sec("Secret girlfriend",sg?[chip(sg)]:[]);
+    sec("Rivals",((ACAD.RIVALS||{})[h]||[]).map(([o])=>chip(o)));
+    sec("Family",(R.FAM||[]).filter(p=>p[0]===h||p[1]===h).map(p=>chip(p[0]===h?p[1]:p[0],String(p[0]===h?p[3]:p[4]).split(",")[0])));
+    sec("Flings",(R.FLING||[]).filter(p=>p[0]===h||p[1]===h).map(p=>chip(p[0]===h?p[1]:p[0])));
+    if(g)sec("Groupmates",g.members.filter(x=>x!==h).map(o=>chip(o)))}
+  function aboutFacts(h,b){const facts=E("dl",{class:"ad-facts"});[["Age",b.age],["From",b.birthplace],["Studies",b.occupation],["Boyfriend",b.partner]].forEach(([k,x])=>{if(x)facts.append(E("dt",null,k),E("dd",null,String(x)))});
+    const ex=ACAD.extraGroups?ACAD.extraGroups(h):[];
+    if(ex.length)facts.append(E("dt",null,"Banners"),E("dd",null,ex.map((e,i)=>[i?", ":"",link(G(e.g).name,()=>show({k:"group",id:e.g})),e.kind!=="sworn"?E("span",{class:"ad-badge"},(ACAD.BANNER_KINDS||{})[e.kind]||e.kind):null])));
+    return facts}
+
   function render(){if(!dr)return;const v=stack[stack.length-1];body.textContent="";renderCrumbs();body.scrollTop=0;
     if(v.k==="home"){title.textContent="The Academy";
       body.append(E("p",{class:"ad-p muted"},"Every faction, group and girl at Everspire. Pick a girl to load her into the studio, or open her full page."));
@@ -151,20 +219,15 @@
       act("Load her",ACAD.robes?ACAD.robes(h):h+"robes",true);act("Her boyfriend",h+"man");act("Her headmistress",h+"head");
       acts.append(E("button",{type:"button",class:"ad-act",onclick:()=>ENC.open("house:"+h)},"Full page"));
       card.append(acts);body.append(card);
-      if(b.summary)body.append(E("p",{class:"ad-p"},b.summary));
-      const facts=E("dl",{class:"ad-facts"});[["Age",b.age],["From",b.birthplace],["Studies",b.occupation],["Boyfriend",b.partner]].forEach(([k,x])=>{if(x)facts.append(E("dt",null,k),E("dd",null,String(x)))});
-      const ex=ACAD.extraGroups?ACAD.extraGroups(h):[];
-      if(ex.length)facts.append(E("dt",null,"Banners"),E("dd",null,ex.map((e,i)=>[i?", ":"",link(G(e.g).name,()=>show({k:"group",id:e.g})),e.kind!=="sworn"?E("span",{class:"ad-badge"},(ACAD.BANNER_KINDS||{})[e.kind]||e.kind):null])));
-      body.append(facts);
-      /* her people */
-      const R=ACAD.RELDATA||{},chip=(o,why)=>E("button",{type:"button",class:"ad-chip",onclick:()=>show({k:"girl",h:o}),title:why||""},face(o,22),HN(o),why?E("em",null,why):null);
-      const sec=(t,list)=>{if(list.length)body.append(E("div",{class:"ad-h"},t),E("div",{class:"ad-chips"},list))};
-      sec("Best friends",(ACAD.BFOF?ACAD.BFOF(h):[]).map(o=>chip(o)));
-      const sg=(ACAD.SGOF||{})[h];sec("Secret girlfriend",sg?[chip(sg)]:[]);
-      sec("Rivals",((ACAD.RIVALS||{})[h]||[]).map(([o])=>chip(o)));
-      sec("Family",(R.FAM||[]).filter(p=>p[0]===h||p[1]===h).map(p=>chip(p[0]===h?p[1]:p[0],String(p[0]===h?p[3]:p[4]).split(",")[0])));
-      sec("Flings",(R.FLING||[]).filter(p=>p[0]===h||p[1]===h).map(p=>chip(p[0]===h?p[1]:p[0])));
-      if(g)sec("Groupmates",g.members.filter(x=>x!==h).map(o=>chip(o)))}
+      if(b.summary)body.append(E("details",{class:"ad-about"},E("summary",null,"About her"),E("p",{class:"ad-p"},b.summary),aboutFacts(h,b)));
+      /* everything of hers that loads: looks, scenes, after dark, the archive, and her people */
+      const lib=library(h),tab=v.tab||"looks";
+      const tabs=E("div",{class:"ad-tabs",role:"tablist","aria-label":"Her library"});
+      const pane=E("div",{class:"ad-pane"});
+      TABS.forEach(([id,label])=>{const n=id==="people"?null:lib[id].length;if(n===0)return;
+        tabs.append(E("button",{type:"button",role:"tab","aria-selected":id===tab?"true":"false",class:"ad-tab",onclick:()=>{v.tab=id;v.q="";save();render()}},label,n!=null?E("span",null,String(n)):null))});
+      body.append(tabs,pane);
+      if(tab==="people")people(pane,h,g);else shelf(pane,h,lib[tab],tab,v)}
     else if(v.k==="search"){title.textContent="Search";const q=v.q.toLowerCase();
       const hits=(ACAD.HOUSES||[]).filter(h=>{const b=bio(h),g=groupOf(h);return [h,HN(h),b.fullName,b.nickname,g&&g.name].some(x=>String(x||"").toLowerCase().includes(q))}).slice(0,60);
       const gh=(ACAD.GROUPS||[]).filter(g=>g.name.toLowerCase().includes(q));
