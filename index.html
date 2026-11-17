@@ -427,7 +427,11 @@ button,.btn,.chip,.opt,.rail-btn,.pick,.seg button,.tabs button,.swb,.start,labe
 <script>addEventListener("load",function(){var b=document.getElementById("boot");if(b)b.remove()})</script>
 <a class="skip" href="#stepView">Skip to the editor</a>
 <header class="top">
-  <div class="brand"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M4 6h16M5 13h14M7 20h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="6" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><h1>Everspire</h1></div>
+  <div class="brand"><img class="mark" src="assets/icons/icon-192.png" alt="" width="30" height="30"><h1>Everspire</h1></div>
+  <div class="acad-nav" role="group" aria-label="The Academy Encyclopedia">
+    <button class="acad-btn acad-main" id="acadEncBtn" type="button" title="Open the Academy Encyclopedia: the world, its factions, groups, Houses and girls"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v15H5.5A1.5 1.5 0 0 1 4 17.5zM20 5.5c0-.8-.7-1.5-1.5-1.5H13v15h5.5c.8 0 1.5-.7 1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Encyclopedia</span></button>
+    <button class="acad-btn" id="acadBrowseBtn" type="button" aria-expanded="false" aria-controls="acadDrawer" title="Browse the factions, groups, Houses and girls beside the studio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17.5" cy="16.5" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m20 19 2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Browse</span></button>
+  </div>
   <input id="nameInput" class="design-name" type="text" aria-label="Design name" placeholder="Name this design" maxlength="60">
   <div class="top-actions">
     <button class="btn" id="startsBtn" type="button">Starting points</button>
@@ -564,7 +568,8 @@ button,.btn,.chip,.opt,.rail-btn,.pick,.seg button,.tabs button,.swb,.start,labe
 <script src="js/data-unveil.js?v=fdb92d9d"></script>
 <script src="js/blk-unveil.js?v=775a5689"></script>
 <script src="js/blk-groups2.js?v=95318920"></script>
-<script src="js/ev-version.js?v=00cca394"></script>
+<script src="js/blk-ux.js?v=46c0bd37"></script>
+<script src="js/ev-version.js?v=29fa3022"></script>
 <script src="js/part-22.js?v=9e08a57f"></script>
 </body>
 </html>
