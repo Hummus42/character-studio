@@ -2614,12 +2614,13 @@
         lineHead.append(h("b",{text:(kind==="head"?"Faculty":kind==="man"?"Boyfriends":"Lineup")}),h("span",{class:"muted small",text:"Tap someone to add or drop them."}));
         GS.forEach(g=>{const row=h("div",{class:"lineup",role:"group","aria-label":gname(g)+" lineup"});
           row.append(h("span",{class:"lgname"},ACAD.crestImg?ACAD.crestImg(g.id,18):null,h("span",{text:gname(g)})));
-          g.members.forEach(hh=>{const w=at[hh],nm=(ACAD.HNAME&&ACAD.HNAME[hh])||ACAD.cap(hh);
+          const sw=ACAD.swornMembers?ACAD.swornMembers(g.id).filter(x=>!g.members.includes(x)):[];
+          g.members.concat(sw).forEach(hh=>{const w=at[hh],nm=(ACAD.HNAME&&ACAD.HNAME[hh])||ACAD.cap(hh);
             if(!tpl(idFor(hh,kind)))return;
             const label=kind==="head"?nm+" headmistress":kind==="man"?nm+"'s boyfriend":nm;
             const b=h("button",{type:"button",class:"lchip"+(w?" on":"")+(w==="c1"?" me":""),"aria-pressed":w?"true":"false",
               title:w==="c1"?"Character 1 (this design)":w?"In the scene: tap to drop":"Tap to add",disabled:w==="c1"?true:null,onclick:()=>toggle(hh,kind)},
-              ACAD.pixelImg?ACAD.pixelImg(hh,18):null,h("span",{text:label+(w==="c1"?" (you)":kind==="girls"&&hh===g.leader?" ★":"")}));
+              ACAD.pixelImg?ACAD.pixelImg(hh,18):null,h("span",{text:label+(w==="c1"?" (you)":kind==="girls"&&hh===g.leader?" ★":"")+(sw.includes(hh)?" ⚑":"")}));
             row.append(b)});
           lineup.append(row)});
         fitNote.textContent=`${n} in the scene. `+((FIT.find(f=>f[0]===Math.max(2,n))||FIT[FIT.length-1])[1])}

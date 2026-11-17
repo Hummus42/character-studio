@@ -1304,7 +1304,7 @@ window.PORTRAITS=Object.assign(window.PORTRAITS||{},{"androidhead":{"h":"assets/
    ACAD.bioOptions(field) · ACAD.sizeSuggest(c) · ACAD.bioPick(anchor, field, {get, set, c}). ---- */
 (function(){
   if(typeof ACAD==="undefined"||typeof BIOS!=="object")return;
-  const SKIP=new Set(["fullName","nickname","dob","house","group","group2","groupRole","rivalGroup","bestFriends","friends","rivals","yuriBuddy","kin","partner"]);
+  const SKIP=new Set(["fullName","nickname","dob","house","group","group2","group3","groupRole","rivalGroup","bestFriends","friends","rivals","yuriBuddy","kin","partner"]);
   const SIZE=["height","weight","bust","cup","waist","hips","butt","shoe"];
   const girls=()=>ACAD.ROSTER?ACAD.ROSTER.girls():(ACAD.HOUSES||[]);
   const tplOf=h=>typeof tplById==="function"?(tplById((ACAD.robes&&ACAD.robes(h))||h+"robes")||tplById(h+"robes")):null;
@@ -1992,7 +1992,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
 
   /* ---------- the biography fields an admin edits (the rest are worked out from groups and relationships) ---------- */
   const SECS=(window.BIO_FIELDS||[]);
-  const DERIVED=new Set(["house","group","group2","groupRole","rivalGroup"]);
+  const DERIVED=new Set(["house","group","group2","group3","groupRole","rivalGroup"]);
   const ROMANTIC=new Set(["status","partner"]);
   const INTIMATE=new Set(((SECS.find(s=>s[0]==="intimacy")||[0,0,[]])[2]).map(f=>f[0]));
   const FL={};SECS.forEach(s=>s[2].forEach(f=>{FL[f[0]]=f[1]}));

@@ -9,7 +9,7 @@
   const K=ACAD.admin.kit,{h,HN,clone,say,drafts,ensure,commit,linkProblems}=K;
   if(!K.admin)return;
   const SECS=(window.BIO_FIELDS||[]);
-  const SKIP=new Set(["fullName","house","group","group2","groupRole","rivalGroup","friends","occupation","address","romType"]);
+  const SKIP=new Set(["fullName","house","group","group2","group3","groupRole","rivalGroup","friends","occupation","address","romType"]);
   const EXTRA={keeperYears:["Keeper of her House (years)","t"],headSince:["Headmistress since","t"],woke:["Her House woke (year; empty if it never slept)","t"],teaches:["Teaches","t"],choosing:["How she chose her Keeper","a"],shoe:["Shoe size","t"],hand:["Dominant hand","t"],exes:["Exes","t"],pets:["Pets","t"]};
   const boy=x=>{const t=tplById(x+"head");return t&&t.bio&&t.bio.fullName?t:null};
   /* her sections: the girls' biography sections, with only the fields she has; her House's own fields first */

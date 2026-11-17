@@ -9,7 +9,7 @@
   const K=ACAD.admin.kit,{h,HN,clone,say,drafts,ensure,commit,linkProblems}=K;
   if(!K.admin)return;
   const SECS=(window.BIO_FIELDS||[]);
-  const SKIP=new Set(["fullName","house","group","group2","rivalGroup","friends","status","partner","romType"]);
+  const SKIP=new Set(["fullName","house","group","group2","group3","rivalGroup","friends","status","partner","romType"]);
   const EXTRA={title:["His House title","t"],shoe:["Shoe size","t"],hand:["Dominant hand","t"],exes:["Exes","t"],pets:["Pets","t"]};
   const boy=x=>{const t=tplById(x+"man");return t&&t.bio&&t.bio.fullName?t:null};
   /* his sections: the girls' biography sections, with only the fields he has */
