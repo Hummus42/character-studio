@@ -117,7 +117,7 @@ const say=m=>{says=m;clearTimeout(sayT);sayT=setTimeout(()=>{says="";const e=roo
 const codex=id=>ENC.open(id||"home");
 const edition=()=>typeof EVERSPIRE_EDITION!=="undefined"?EVERSPIRE_EDITION:"public";
 /* The version on the title page. Raise it with every push: 1.<number of commits in the repo after the push>. */
-const EV_VERSION="1.74",EV_DATE="Nov 17, 2026";
+const EV_VERSION="1.75",EV_DATE="Nov 17, 2026";
 window.EVERSPIRE_VERSION=EV_VERSION;
 
 /* ---------- title ---------- */
