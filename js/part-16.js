@@ -169,9 +169,9 @@ if(typeof SV249!=="undefined")SV249.groups.forEach(g=>{if(!ACAD_GROUPS.some(x=>x
   /* ---------- relationships: the one source ---------- */
   const {BF,BF_OUT,SG,RV}=ACAD.RELDATA;
   ACAD.REL={BF,SG,RV};
-  const SGOF={};SG.forEach(([a,b])=>{SGOF[a]=b;SGOF[b]=a});
+  const SGOF={},SGLIST={};SG.forEach(([a,b])=>{if(!SGOF[a])SGOF[a]=b;if(!SGOF[b])SGOF[b]=a;(SGLIST[a]=SGLIST[a]||[]).push(b);(SGLIST[b]=SGLIST[b]||[]).push(a)});   /* v327: several girlfriends per girl */
   const RIV={};RV.forEach(([a,b,sc,na,nb])=>{(RIV[a]=RIV[a]||[]).push([b,na,sc]);(RIV[b]=RIV[b]||[]).push([a,nb,sc])});
-  ACAD.SGOF=SGOF;ACAD.RIVALS=RIV;ACAD.BFOF=h=>BF[h]||[];
+  ACAD.SGOF=SGOF;ACAD.SGLIST=SGLIST;ACAD.sgOf=h=>(SGLIST[h]||[]).slice();ACAD.RIVALS=RIV;ACAD.BFOF=h=>BF[h]||[];
 
   /* ---------- biographies ---------- */
   if(typeof BIOS==="object")ACAD_GROUPS.forEach(g=>g.members.forEach(h=>{const b=BIOS[h];if(!b)return;
@@ -184,12 +184,12 @@ if(typeof SV249!=="undefined")SV249.groups.forEach(g=>{if(!ACAD_GROUPS.some(x=>x
     /* friends: every groupmate, then up to two from outside she already had */
     const mates=g.members.filter(x=>x!==h&&!(BF[h]||[]).includes(x));
     const known=(String(b.friends||"").split(/[,;]| and /).map(s=>s.replace(/\(.*?\)/g,"").replace(/^\s*(and|her pack:|plus)\s*/i,"").trim()).filter(Boolean));
-    const outside=[];ACAD.HOUSES.forEach(x=>{if(x===h||g.members.includes(x)||outside.length>=2||(BF[h]||[]).includes(x)||SGOF[h]===x)return;if(known.some(k=>k===HN(x)))outside.push(x)});
+    const outside=[];ACAD.HOUSES.forEach(x=>{if(x===h||g.members.includes(x)||outside.length>=2||(BF[h]||[]).includes(x)||(SGLIST[h]||[]).includes(x))return;if(known.some(k=>k===HN(x)))outside.push(x)});
     b.friends=[mates.length?`In ${gname(g)}: ${mates.map(HN).join(", ")}`:"",outside.length?`Outside it: ${outside.map(HN).join(", ")}`:""].filter(Boolean).join(". ");
     /* rivals */
     b.rivals=(RIV[h]||[]).map(([o,n])=>`${HN(o)} (${n})`).join("; ");
     /* secret girlfriend (the field the earlier versions called the yuri fuckbuddy) */
-    const sg=SG.find(p=>p[0]===h||p[1]===h);b.romType=sg?(sg[4]||"girlfriend"):"";b.yuriBuddy=sg?`${HN(sg[0]===h?sg[1]:sg[0])}. ${sg[0]===h?sg[2]:sg[3]}`:((ACAD.RELDATA.SG_PENDING||{})[h]||"");
+    const sgs=SG.filter(p=>p[0]===h||p[1]===h),sg=sgs[0];b.romType=sg?(sg[4]||"girlfriend"):"";b.yuriBuddy=sgs.length?sgs.map(p=>`${HN(p[0]===h?p[1]:p[0])}. ${p[0]===h?p[2]:p[3]}`).join(" "):((ACAD.RELDATA.SG_PENDING||{})[h]||"");
     /* v249: flings, for adults only (lore; never a scene) */
     const adult=x=>{const a=/\d+/.exec(String(((BIOS||{})[x]||{}).age||""));return !a||+a[0]>=18};
     const fl=(ACAD.RELDATA.FLING||[]).filter(p=>(p[0]===h||p[1]===h)&&adult(p[0])&&adult(p[1]));b.flings=fl.map(p=>`${HN(p[0]===h?p[1]:p[0])}. ${p[0]===h?p[2]:p[3]}`).join(" ");

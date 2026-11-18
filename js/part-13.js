@@ -602,7 +602,7 @@ if(typeof ACAD!=="undefined"&&ACAD.canonApply&&typeof tplById==="function")ACAD.
      a little chosen family, and flings into the Academy (lore only) */
   let FAM=[],FLING=[];
   if(typeof SV249!=="undefined"){const r=SV249.rel;Object.entries(r.BF).forEach(([k,v])=>{if(!BF[k])BF[k]=v.slice()});
-    r.SG.forEach(p=>{if(!SG.some(q=>q[0]===p[0]||q[1]===p[0]||q[0]===p[1]||q[1]===p[1]))SG.push(p.slice())});r.RV.forEach(p=>RV.push(p.slice()));FAM=r.FAM.map(p=>p.slice());FLING=r.FLING.map(p=>p.slice())}
+    r.SG.forEach(p=>{if(!SG.some(q=>(q[0]===p[0]&&q[1]===p[1])||(q[0]===p[1]&&q[1]===p[0])))SG.push(p.slice())});   /* v327: a girl may have several girlfriends; only the same pair twice is skipped */r.RV.forEach(p=>RV.push(p.slice()));FAM=r.FAM.map(p=>p.slice());FLING=r.FLING.map(p=>p.slice())}
   ACAD.RELDATA={BF,BF_OUT,SG,RV,SG_PENDING,FAM,FLING};
 })();
 

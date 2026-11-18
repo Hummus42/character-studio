@@ -204,7 +204,7 @@
     const R=ACAD.RELDATA||{},chip=(o,why)=>E("button",{type:"button",class:"ad-chip",onclick:()=>show({k:"girl",h:o}),title:why||""},face(o,22),HN(o),why?E("em",null,why):null);
     const sec=(t,list)=>{if(list.length)pane.append(E("div",{class:"ad-h"},t),E("div",{class:"ad-chips"},list))};
     sec("Best friends",(ACAD.BFOF?ACAD.BFOF(h):[]).map(o=>chip(o)));
-    const sg=(ACAD.SGOF||{})[h];sec("Secret girlfriend",sg?[chip(sg)]:[]);
+    {const sgs=ACAD.sgOf?ACAD.sgOf(h):[];sec(sgs.length>1?"Secret girlfriends":"Secret girlfriend",sgs.map(x=>chip(x)))}
     sec("Rivals",((ACAD.RIVALS||{})[h]||[]).map(([o])=>chip(o)));
     sec("Family",(R.FAM||[]).filter(p=>p[0]===h||p[1]===h).map(p=>chip(p[0]===h?p[1]:p[0],String(p[0]===h?p[3]:p[4]).split(",")[0])));
     sec("Flings",(R.FLING||[]).filter(p=>p[0]===h||p[1]===h).map(p=>chip(p[0]===h?p[1]:p[0])));

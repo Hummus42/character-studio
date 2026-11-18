@@ -2122,7 +2122,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     return{name:HN(x),bio:Object.fromEntries(Object.keys(FL).filter(f=>!DERIVED.has(f)).map(f=>[f,b[f]==null?"":String(b[f])])),
       group:g?g.id:"",role:(ACAD.GROUP_ROLE||{})[x]||"",
       bf:(R.BF[x]||[]).slice(),
-      sg:sg?{who:sg[0]===x?sg[1]:sg[0],mine:sg[0]===x?sg[2]:sg[3],theirs:sg[0]===x?sg[3]:sg[2],type:sg[4]||"girlfriend"}:null,
+      sg0:sg?(sg[0]===x?sg[1]:sg[0]):"",sg:sg?{who:sg[0]===x?sg[1]:sg[0],mine:sg[0]===x?sg[2]:sg[3],theirs:sg[0]===x?sg[3]:sg[2],type:sg[4]||"girlfriend"}:null,
       rv:R.RV.filter(p=>p[0]===x||p[1]===x).map(p=>p[0]===x?{who:p[1],ground:p[2],mine:p[3],theirs:p[4]}:{who:p[0],ground:p[2],mine:p[4],theirs:p[3]}),
       fm:R.FAM.filter(p=>p[0]===x||p[1]===x).map(p=>p[0]===x?{who:p[1],type:p[2],is:p[3]||"",back:p[4]||""}:{who:p[0],type:p[2],is:p[4]||"",back:p[3]||""}),
       fl:(R.FLING||[]).filter(p=>p[0]===x||p[1]===x).map(p=>p[0]===x?{who:p[1],mine:p[2]||"",theirs:p[3]||""}:{who:p[0],mine:p[3]||"",theirs:p[2]||""}),
@@ -2180,7 +2180,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     before.filter(y=>!W.bf.includes(y)).forEach(y=>{R.BF[y]=(R.BF[y]||[]).filter(z=>z!==x);delete R.BF_OUT[y]});
     W.bf.filter(y=>!before.includes(y)).forEach(y=>{R.BF[y]=R.BF[y]||[];if(!R.BF[y].includes(x))R.BF[y].push(x);delete R.BF_OUT[y]});
     if(JSON.stringify(before)!==JSON.stringify(W.bf))delete R.BF_OUT[x];
-    R.SG=R.SG.filter(p=>p[0]!==x&&p[1]!==x&&!(W.sg&&W.sg.who&&(p[0]===W.sg.who||p[1]===W.sg.who)));
+    {const was=W.sg0||"",now=W.sg&&W.sg.who||"",pair=(p,y)=>(p[0]===x&&p[1]===y)||(p[1]===x&&p[0]===y);R.SG=R.SG.filter(p=>!(was&&pair(p,was))&&!(now&&pair(p,now)))}   /* v327: only the pair being edited changes; her other girlfriends stay */
     if(W.sg&&W.sg.who)R.SG.push([x,W.sg.who,W.sg.mine||"",W.sg.theirs||"",W.sg.type||"girlfriend"]);
     R.RV=R.RV.filter(p=>p[0]!==x&&p[1]!==x).concat(W.rv.filter(r=>r.who).map(r=>[x,r.who,r.ground||"hall",r.mine||"",r.theirs||""]));
     R.FAM=R.FAM.filter(p=>p[0]!==x&&p[1]!==x).concat(W.fm.filter(f=>f.who).map(f=>[x,f.who,f.type==="blood"?"blood":"chosen",f.is||"",f.back||""]));

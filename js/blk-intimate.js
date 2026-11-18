@@ -129,15 +129,17 @@
       add(cat,label,()=>scene(h,key,{partner:pid,penis:false,where:where2||where,name:HN(h)+" and "+HN(o)+", "+cat.replace(/^Her /,"").toLowerCase(),with:o,
         blurb,text:text.replace(/\{o\}/g,HN(o)),count:"2girls, yuri",tags,act:tags.split(",").slice(0,3).join(","),fxKind:"yuri",ex2:"flushed, hungry, half-lidded eyes"}),blurb,o)};
     const R=ACAD.RELDATA||{};
-    const sg=(ACAD.SGOF||{})[h];
-    if(sg){const line=String(b.yuriBuddy||"").replace(/^[^.]*\.\s*/,"");
-      yuri("Her secret girlfriend",sg,"Behind a locked door","sg","The woman and {partner}, her secret girlfriend, tumble onto the bed behind a locked door, kissing hungrily and fingering each other.","yuri, kissing, fingering, on bed, locked door, lying on person, breast press",null,line||`With ${HN(sg)}, in secret.`);
-      yuri("Her secret girlfriend",sg,"Scissoring","sg2","The woman and {partner}, her secret girlfriend, grind against each other, legs interlocked, gasping.","yuri, tribadism, scissoring, legs interlocked, grinding",null,`With ${HN(sg)}.`);
-      yuri("Her secret girlfriend",sg,"Nearly caught","sg3","The woman and {partner}, her secret girlfriend, freeze mid-kiss, tangled and naked, as the door handle starts to turn.","yuri, surprised, door, hiding, blush, kissing, nude",null,`With ${HN(sg)}, and someone at the door.`);
-      if(man)add("Her secret girlfriend","Her boyfriend joins them",()=>{const pid=robesOf(sg);return scene(h,"ffm",{partner:man,penis:true,where,name:HN(h)+", "+HN(sg)+" and "+mn,with:sg,
+    /* v327: one set of scenes per secret girlfriend; the first keeps the old keys, the others carry her House in theirs */
+    const sgs=ACAD.sgOf?ACAD.sgOf(h):((ACAD.SGOF||{})[h]?[(ACAD.SGOF||{})[h]]:[]);
+    sgs.forEach((sg,si)=>{const sx=si?"_"+sg:"",lx=sgs.length>1?" ("+HN(sg)+")":"";
+      const row=(R.SG||[]).find(p=>(p[0]===h&&p[1]===sg)||(p[1]===h&&p[0]===sg)),line=row?(row[0]===h?row[2]:row[3]):"";
+      yuri("Her secret girlfriend",sg,"Behind a locked door"+lx,"sg"+sx,"The woman and {partner}, her secret girlfriend, tumble onto the bed behind a locked door, kissing hungrily and fingering each other.","yuri, kissing, fingering, on bed, locked door, lying on person, breast press",null,line||`With ${HN(sg)}, in secret.`);
+      yuri("Her secret girlfriend",sg,"Scissoring"+lx,"sg2"+sx,"The woman and {partner}, her secret girlfriend, grind against each other, legs interlocked, gasping.","yuri, tribadism, scissoring, legs interlocked, grinding",null,`With ${HN(sg)}.`);
+      yuri("Her secret girlfriend",sg,"Nearly caught"+lx,"sg3"+sx,"The woman and {partner}, her secret girlfriend, freeze mid-kiss, tangled and naked, as the door handle starts to turn.","yuri, surprised, door, hiding, blush, kissing, nude",null,`With ${HN(sg)}, and someone at the door.`);
+      if(man)add("Her secret girlfriend","Her boyfriend joins them"+lx,()=>{const pid=robesOf(sg);return scene(h,"ffm"+sx,{partner:man,penis:true,where,name:HN(h)+", "+HN(sg)+" and "+mn,with:sg,
         more:[{id:pid,outfit:nudeAt(pid),tags:"yuri, kissing, nude"}],blurb:`${HN(h)}, ${HN(sg)} and ${mn}: the secret comes out, and nobody minds.`,
         text:"The woman rides {partner}, her boyfriend, while her secret girlfriend kisses her deeply from behind, all three tangled together on the bed.",count:"2girls, 1boy, ffm threesome",
-        tags:"ffm threesome, cowgirl position, girl on top, yuri, kissing, sex, vaginal",act:"ffm threesome, cowgirl position, kissing",fxKind:"pen"})},`With ${HN(sg)} and ${mn}.`,sg)}
+        tags:"ffm threesome, cowgirl position, girl on top, yuri, kissing, sex, vaginal",act:"ffm threesome, cowgirl position, kissing",fxKind:"pen"})},`With ${HN(sg)} and ${mn}.`,sg)});
     (R.FLING||[]).filter(p=>p[0]===h||p[1]===h).forEach((p,i)=>{const o=p[0]===h?p[1]:p[0],line=p[0]===h?p[2]:p[3];
       yuri("Her flings",o,HN(o),"fl"+i,"The woman and {partner} fall into bed together, kissing and fingering each other, a fling neither of them will admit to.","yuri, kissing, fingering, on bed, messy hair, nude",null,line)});
     ((ACAD.RIVALS||{})[h]||[]).forEach(([o,n,gr],i)=>{if(i>2)return;
@@ -160,7 +162,7 @@
   const E=ENC.E,lnk=(id,t)=>E("a",{href:"#",onclick:ev=>{ev.preventDefault();ENC.go(id)}},t);
   const HS=new Set(ACAD.HOUSES||[]);
   function known(h){const R=ACAD.RELDATA||{},o=[];const m=T(h+"man");if(m)o.push(["Her boyfriend",(m.bio&&m.bio.fullName)||HN(h)+"'s boyfriend",null]);
-    const sg=(ACAD.SGOF||{})[h];if(sg)o.push(["Her secret girlfriend",HN(sg),sg]);
+    (ACAD.sgOf?ACAD.sgOf(h):[]).forEach(sg=>o.push(["Her secret girlfriend",HN(sg),sg]));
     (R.FLING||[]).filter(p=>p[0]===h||p[1]===h).forEach(p=>{const x=p[0]===h?p[1]:p[0];o.push(["A fling",HN(x),x])});return o}
   document.head.append(E("style",null,".ix-dl dt{color:var(--enc-muted,#6b6f86);font-weight:600}.ix-dl dd{margin:0}"));
   ENC.resolvers=ENC.resolvers||[];
