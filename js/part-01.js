@@ -397,7 +397,10 @@ const RULES=[
 /* RULE 2. For ANY age: youth-coded content switches the explicit and
    "sexy, lewd" tags off. Each entry is a signal; any one triggers the rule. */
 const YOUTH_SIGNALS={
-  outfitWords:"school|sailor|uniform|lolita|\\bloli\\b|doll-like|babydoll|bloomer|youthful|kawaii|toy-box|candy-shop|varsity|campus|cheer|pinafore|plush-inspired|pigtail",
+  /* v325: clothing is the wearer's choice: an adult in a sailor blouse, a cheer skirt or a babydoll is still an adult.
+     Only words that describe a child (not a garment) still switch the explicit tags off; the age category, the
+     child-like body, the innocent impression and the under-18 biography checks are unchanged. */
+  outfitWords:"\\bloli\\b|lolicon|youthful|child-like|childlike|child's|children's|toddler|elementary school|grade school|middle school|junior high|randoseru|doll-like",
   impressionWords:"innocent|doll-like",
   childLikeBody:{bustSize:"flat chest|petite chest", heightStature:"very short|petite stature|short compact"},
   reasons:{
