@@ -127,12 +127,15 @@
       E("div",{class:"ad-search"},input),crumbs,body);
     document.body.append(dr);
     dr.addEventListener("keydown",ev=>{if(ev.key==="Escape"){ev.stopPropagation();toggle(false)}});
+    /* v326: remember the scroll position of the view on top (saved a moment after scrolling stops) */
+    let st=0;body.addEventListener("scroll",()=>{if(!dr.classList.contains("open"))return;stack[stack.length-1].sc=body.scrollTop;clearTimeout(st);st=setTimeout(save,250)},{passive:true});
   }
   function setTop(){const hd=document.querySelector("header.top");if(hd)document.documentElement.style.setProperty("--acad-top",Math.round(hd.getBoundingClientRect().bottom)+"px")}
-  function toggle(on){build();on=on===undefined?!dr.classList.contains("open"):on;setTop();
+  const mark=()=>{if(dr&&body&&dr.classList.contains("open")&&stack.length)stack[stack.length-1].sc=body.scrollTop};   /* v326 */
+  function toggle(on){build();on=on===undefined?!dr.classList.contains("open"):on;if(!on)mark();setTop();
     dr.classList.toggle("open",on);const b=document.getElementById("acadBrowseBtn");if(b)b.setAttribute("aria-expanded",on?"true":"false");
     if(on){render();setTimeout(()=>{try{(dr.querySelector(".ad-body button")||input).focus({preventScroll:true})}catch(e){}},60)}else if(b)b.focus({preventScroll:true});save()}
-  function show(v,replace){if(replace&&stack.length>1&&stack[stack.length-1].k==="search"&&v.k==="search")stack[stack.length-1]=v;else stack.push(v);render();save()}
+  function show(v,replace){mark();if(replace&&stack.length>1&&stack[stack.length-1].k==="search"&&v.k==="search")stack[stack.length-1]=v;else stack.push(v);render();save()}
   function back(keepInput){if(stack.length>1)stack.pop();if(!keepInput&&input&&stack[stack.length-1].k!=="search")input.value="";render();save()}
   function home(){stack=[{k:"home"}];if(input)input.value="";render();save()}
   function openFull(){const v=stack[stack.length-1];const id=v.k==="girl"?"house:"+v.h:v.k==="group"?"group:"+v.id:v.k==="faction"?"faction:"+v.id:"home";
@@ -187,10 +190,15 @@
       if(!hits.length){list.append(E("p",{class:"ad-p muted"},"Nothing matches."));return}
       const cats=new Map();hits.forEach(i=>{if(!cats.has(i.cat))cats.set(i.cat,[]);cats.get(i.cat).push(i)});
       let n=0;cats.forEach((is,c)=>{n++;
-        const det=E("details",{class:"ad-cat"},E("summary",null,c,E("span",null,String(is.length))),
+        const det=E("details",{class:"ad-cat","data-c":c},E("summary",null,c,E("span",null,String(is.length))),
           E("div",{class:"ad-loads"},is.map(i=>E("button",{type:"button",class:"ad-load"+(LAST===h+"|"+i.key?" on":"")+(i.x?" x":""),title:(i.tip&&!i.name.includes(i.tip)?i.tip+". ":"")+"Load "+i.name+" into the studio",
             onclick:ev=>{LAST=h+"|"+i.key;i.load();list.querySelectorAll(".ad-load.on").forEach(b=>b.classList.remove("on"));ev.currentTarget.classList.add("on");if(innerWidth<=860)toggle(false)}},i.name))));
-        if(s||n<=2||cats.size<=3)det.open=true;list.append(det)})};
+        /* v326: the sections she left open stay open when the drawer comes back (it closes itself on a phone after a load) */
+        const op=v.open&&v.open[tab];
+        if(s||(op?op.includes(c):n<=2||cats.size<=3))det.open=true;
+        det.addEventListener("toggle",()=>{if((q.value||"").trim())return;v.open=v.open||{};
+          v.open[tab]=[...list.querySelectorAll("details.ad-cat")].filter(d=>d.open).map(d=>d.dataset.c);save()});
+        list.append(det)})};
     q.addEventListener("input",()=>{v.q=q.value;draw()});draw()}
   function people(pane,h,g){
     const R=ACAD.RELDATA||{},chip=(o,why)=>E("button",{type:"button",class:"ad-chip",onclick:()=>show({k:"girl",h:o}),title:why||""},face(o,22),HN(o),why?E("em",null,why):null);
@@ -237,7 +245,7 @@
       const tabs=E("div",{class:"ad-tabs",role:"tablist","aria-label":"Her library"});
       const pane=E("div",{class:"ad-pane"});
       TABS.forEach(([id,label])=>{const n=id==="people"?null:lib[id].length;if(n===0)return;
-        tabs.append(E("button",{type:"button",role:"tab","aria-selected":id===tab?"true":"false",class:"ad-tab",onclick:()=>{v.tab=id;v.q="";save();render()}},label,n!=null?E("span",null,String(n)):null))});
+        tabs.append(E("button",{type:"button",role:"tab","aria-selected":id===tab?"true":"false",class:"ad-tab",onclick:()=>{v.tab=id;v.q="";v.sc=0;save();render()}},label,n!=null?E("span",null,String(n)):null))});
       body.append(tabs,pane);
       if(tab==="people")people(pane,h,g);else shelf(pane,h,lib[tab],tab,v)}
     else if(v.k==="search"){title.textContent="Search";const q=v.q.toLowerCase();
@@ -245,6 +253,8 @@
       const gh=(ACAD.GROUPS||[]).filter(g=>g.name.toLowerCase().includes(q));
       if(gh.length)body.append(E("div",{class:"ad-h"},"Groups"),...gh.map(groupRow));
       body.append(E("div",{class:"ad-h"},hits.length?"Girls":"No girl matches"),...hits.map(girlRow))}
+    /* v326: back to where she was scrolled in this view */
+    if(v.sc){const y=v.sc;body.scrollTop=y;requestAnimationFrame(()=>{if(stack[stack.length-1]===v)body.scrollTop=y})}
   }
   ACAD.academyDrawer={open:v=>{toggle(true);if(v)show(v)},close:()=>toggle(false),toggle:()=>toggle()};
 
