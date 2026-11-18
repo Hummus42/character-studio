@@ -9,8 +9,8 @@
   const A=s=>s.split("|").map(x=>x==="Academy"?x:"Academy "+x);
   const REG=[
     ["Robes and faculty",A("Academy|Signature|House Regalia|Group Colors|Headmistresses|Headmistress Night")],
-    ["Everyday life",A("Day Off|Lazy Sunday|Pajama Day|Morning After|Study Night|Cooking Club|Spa Day|Onsen")],
-    ["Everyday, revealing",A("Spring Fling|Summer Heat|Autumn Tease|Winter Warmer|Gym Bunny|See-Through Yoga|Lowleg Jeans|Caught in the Rain|Lazy Day Tank|Unbuttoned Office|Torn and Teasing|Sideless Errands|Center Opening|Sheer Mesh Night|Answering the Door|Pasties and Leather")],
+    ["Everyday life",A("Day Off|Lazy Sunday|Pajama Day|Morning After|Study Night|Cooking Club|Spa Day|Onsen|Meadow Picnic|Rainy Day Cafe|Farmers' Market|Bookshop Afternoon|Bicycle Ride|Kitten Cafe|Flower Shop|Seaside Stroll|Snow Day|Stargazing Night")],
+    ["Everyday, revealing",A("Spring Fling|Summer Heat|Autumn Tease|Winter Warmer|Gym Bunny|See-Through Yoga|Lowleg Jeans|Caught in the Rain|Lazy Day Tank|Unbuttoned Office|Torn and Teasing|Sideless Errands|Center Opening|Sheer Mesh Night|Answering the Door|Pasties and Leather|Boardwalk Day|Tennis Whites|Festival Day|Laundry Day|Pool Party|Backless Brunch|Morning Jog|Summer Romper|Thigh-High Slit|Cozy Crop")],
     ["Nights out and occasions",A("Date Night|Night Out|Ballgowns|Graduation|Valentine's|New Year's Eve")],
     ["Seasons and holidays",A("Spring Blossoms|Summer Days|Autumn Harvest|Winter Break|Festival|Halloween|Christmas")],
     ["Travel and outdoors",A("Tropical Island|Vacation|Road Trip|City Postcards|Hiking")],
