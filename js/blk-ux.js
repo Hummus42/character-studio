@@ -150,7 +150,7 @@
     E("span",null,E("b",null,HN(h)+(b.fullName?" · "+b.fullName:"")),E("span",{class:"k"},g?g.name:"")))};
 
   /* ---------- a girl's library: everything of hers that loads into the studio ---------- */
-  const TABS=[["looks","Looks"],["scenes","Scenes"],["after","After dark"],["archive","Archive"],["people","People"]];
+  const TABS=[["looks","Looks"],["scenes","Scenes"],["after","After dark"],["intimate","Intimate"],["archive","Archive"],["people","People"]];
   const LIB={};
   function library(h){if(LIB[h])return LIB[h];
     const I=(ENC.index&&ENC.index()[h])||{looks:[],scenes:[],after:[]};
@@ -168,7 +168,8 @@
       arch=rows.map(r=>{const hk=cleanHook(hook(r)),own=clean(vname(r),r.s.name);
         return {cat:RCAT.get(r.s.label)||"More scenes",name:own?r.s.name+" · "+own:per[r.s.si]>1&&hk?r.s.name+" · "+hk:r.s.name,tip:hk,key:"rx"+r.s.si+"."+r.vi,
         x:!!(RX&&RX.explicitOf&&RX.explicitOf(r.s.si,r.vi)),load:()=>{RX.loadWith(r.s.si,r.vi,h);try{ENC.close()}catch(e){}}}})}catch(e){}
-    return LIB[h]={looks:I.looks.map(it),scenes:I.scenes.map(it),after:I.after.map(it),archive:arch}}
+    let ix=[];try{ix=ACAD.intimate?ACAD.intimate(h):[]}catch(e){}
+    return LIB[h]={looks:I.looks.map(it),scenes:I.scenes.map(it),after:I.after.map(it),intimate:ix,archive:arch}}
   const ok18=()=>ACAD.RX_ADULT&&ACAD.RX_ADULT.ok18?ACAD.RX_ADULT.ok18():true;
   const minor=h=>!!(ACAD.isMinor&&ACAD.isMinor(h));
   let LAST="";
@@ -228,6 +229,7 @@
       const act=(label,id,main)=>{if(!T(id))return;acts.append(E("button",{type:"button",class:"ad-act"+(main?" main":""),title:"Load into the studio",onclick:()=>{ENC.load(id);if(innerWidth<=860)toggle(false)}},label))};
       act("Load her",ACAD.robes?ACAD.robes(h):h+"robes",true);act("Her boyfriend",h+"man");act("Her headmistress",h+"head");
       acts.append(E("button",{type:"button",class:"ad-act",onclick:()=>ENC.open("house:"+h)},"Full page"));
+      if(ENC.resolvers&&!minor(h))acts.append(E("button",{type:"button",class:"ad-act",title:"Her intimate life and scenes (18+)",onclick:()=>ENC.open("intimate:"+h)},"Private file"));
       card.append(acts);body.append(card);
       if(b.summary)body.append(E("details",{class:"ad-about"},E("summary",null,"About her"),E("p",{class:"ad-p"},b.summary),aboutFacts(h,b)));
       /* everything of hers that loads: looks, scenes, after dark, the archive, and her people */
