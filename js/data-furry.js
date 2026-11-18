@@ -9,7 +9,7 @@
 (function(){
   if(typeof ACAD==="undefined"||!ACAD.set||typeof tplById!=="function")return;
   const SET=(ACAD.HOUSE_COSTUMES&&ACAD.HOUSE_COSTUMES.setting)||{};
-  const must=(a,s)=>`an anime style with high detail, she is depicted as a sexy anthropomorphic ${a} with an animal head, fur-covered body and her own hair and eye colours, completely nude, ${s}, and particular emphasis on highly detailed fur, hair and eyes`;
+  const must=(a,s)=>`an anime style with high detail, she is depicted as a sexy anthropomorphic ${a} with an animal head, fur-covered body and her own hair and eye colours, ${s}, and particular emphasis on highly detailed fur, hair and eyes`;
   const BODY={
     M:["furry female, body fur, animal nose, snout, pawpads","covered in soft, sleek fur"],
     B:["furry female, bird girl, feathers, beak, winged arms, feathered wings","covered in soft, glossy feathers"],
@@ -17,7 +17,7 @@
     S:["furry female, fish girl, fins, head fins, scales, wet","sleek, wet and glistening"],
     I:["furry female, arthropod girl, antennae, insect wings","smooth, glossy and iridescent"]};
   const FAC={synth:"mechabare, robot joints, glowing eyes",void:"starry sky print, glowing eyes",clock:"gears, robot joints",vigil:"glowing eyes, night"};
-  const NUDE="completely nude, nipples, pussy, navel, looking at viewer, sexually suggestive";
+  const NUDE="nipples, pussy, navel, looking at viewer, sexually suggestive";
   /* house: [animal, body, species tags, faction] */
   const D={
   griffin:["griffin, a feathered eagle-headed lioness","B","lion tail, feathered wings"],
@@ -357,7 +357,7 @@
     /* every value these looks use is a pickable studio option */
     Object.entries(c).forEach(([f,v])=>addOpt(f,v));
     const set=((ACAD.HOUSE_COSTUMES&&ACAD.HOUSE_COSTUMES.setting)||{})[h]||"a softly lit bedroom";
-    t.out=Object.assign({},t.out,{must:`an anime style with high detail, completely nude, ${set}, and particular emphasis on highly detailed fur, hair and eyes`});
+    t.out=Object.assign({},t.out,{must:`an anime style with high detail, ${set}, and particular emphasis on highly detailed fur, hair and eyes`});
     mapped++});
   ACAD.FURRY.studio={mapped,bad,newSpecies:Object.keys(NEW).length,optionsAdded:added};
 })();

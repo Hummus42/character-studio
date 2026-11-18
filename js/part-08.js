@@ -2225,7 +2225,7 @@ poseAction=function(p){return !!p&&/^(\w+ing|curled|propped|perched|crouched|sea
   quick("Academy Lingerie Try-On","Academy Boudoir","tryon","lingerie try-on","boudoir",{tags:["lingerie","fitting room","mirror"],oname:"First try",ex:"sultry",
     must:"a boutique fitting room with a velvet curtain and a three-way mirror",theme:"a lingerie try-on",
     main:()=>({bra:["{c} lace plunge bra with {c2} trim","@primary",null,"@accent"],panties:["{c} lace thong with {c2} trim","@primary",null,"@accent"],legwear:["{c} sheer thigh-high stockings","@primary"]}),
-    poses:["peeking out of the fitting room curtain","checking her reflection in the three-way mirror","turning to look at her butt in the mirror","adjusting a bra strap in the mirror"],
+    poses:["peeking out of the fitting room curtain","checking her reflection in the three-way mirror","turning to look at her butt in the mirror","turning to check herself in the mirror"],
     second:{oname:"Second try",items:()=>({bra:["{c} sheer mesh bra","@secondary"],panties:["{c} sheer mesh panties","@secondary"],waistAccessory:["{c} lace garter belt","@secondary"]})},
     per:{penguin:{pose:"peeking out of the fitting room curtain",must:"a boutique fitting room with a velvet curtain, a three-way mirror and snow-dusted shop windows behind"}}});
 
