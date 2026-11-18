@@ -107,7 +107,9 @@
         text:`The woman and ${"{partner}"}, her boyfriend, make love in her favourite position: ${ph}.`,count:"1girl, 1boy, hetero",tags:tg+(turnTags(b.turnOns).length?", "+turnTags(b.turnOns).join(", "):""),act:tg.split(",").slice(0,3).join(","),
         ex1:"flushed, blissful, half-lidded eyes, open mouth, heart-shaped pupils",fxKind:"pen"}),`From her Biography: ${b.favPosition||"face to face"}.`,man);
       kinksOf(h).slice(0,3).forEach((k,i)=>add("Her tonight","Her kink: "+k.ph.replace(/^./,c=>c.toUpperCase()),()=>scene(h,"kink"+i,{partner:man,penis:true,where:/outside|rain|grass|water/.test(k.ph)?"the Academy grounds at night":where,name:HN(h)+": "+k.ph,
-        blurb:`${HN(h)} and ${mn}: ${k.ph}. From her kinks; her limits are kept.`,text:`The woman and {partner}, her boyfriend, give in to what she loves: ${k.ph}.`,count:"1girl, 1boy, hetero",tags:k.tg,act:k.tg.split(",").slice(0,3).join(","),
+        blurb:`${HN(h)} and ${mn}: ${k.ph}. From her kinks; her limits are kept.`,text:`The woman and {partner}, her boyfriend, give in to what she loves: ${k.ph}. They make love in her favourite position: ${ph}.`,count:"1girl, 1boy, hetero",
+        /* v324: a kink is what they add, not all they do: her favourite position carries the act */
+        tags:k.tg+", "+tg,act:k.tg.split(",").slice(0,2).concat(tg.split(",").slice(0,2)).join(","),
         fxKind:/wax/.test(k.tg)?"wax":/rough|wrestl/.test(k.tg)?"rough":"pen"}),`From her kinks: ${b.kinks||""}`,man));
       add("Her tonight","What gets her going",()=>scene(h,"fore",{partner:man,penis:false,where,name:HN(h)+": foreplay",framing:"cowboy shot",
         blurb:`Foreplay with ${mn}, built from what turns her on: ${b.turnOns||""}.`,text:`The woman and {partner}, her boyfriend, undress each other between deep kisses, his hands roaming over her as she melts into him.`,
