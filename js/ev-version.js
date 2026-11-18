@@ -1,6 +1,6 @@
 /* Everspire: the version, shown beside the title in the studio's header. Bump EV_VERSION and EV_DATE before every push.
    (It lived in game-ui.js until the games were archived on 2026-11-17: branch archive/with-games.) */
-const EV_VERSION="1.85",EV_DATE="Nov 17, 2026";
+const EV_VERSION="1.86",EV_DATE="Nov 17, 2026";
 window.EVERSPIRE_VERSION=EV_VERSION;
 (function(){
   const put=()=>{const b=document.querySelector("header.top .brand");if(!b||b.querySelector(".ev-ver"))return;
