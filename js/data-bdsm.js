@@ -61,17 +61,15 @@
       ["kneeling, hands held to her chest","kneeling, hands behind her head","sitting back on her heels, hands in her lap"],
       "a bedroom against a plain wall",
       "humiliation, bdsm, kneeling, blush, crying, tongue out, looking up"]];
+  /* v320: seven of these were merged into the older After dark looks they duplicated (Collar and Leash, Hogtie, Spanked,
+     Pet Bowl Training, Nipple Clamps, Living Furniture, Sign of Shame); three stay, under plain names, and the wardrobe
+     (data-wardrobe.js) files them: Face Down, Ass Up and Inspection in Bondage, Degrading Words in Humiliation */
+  const KEEP=new Set(["bdwords","bdfacedown","bdinspect"]);
   const LABELS=[];let after=tplById(H[0]+"imppile")?"Academy Impregnation: Piledriver":"Academy White Couch";
-  L.forEach(([suf,name,oname,items,ex,po,set,tags])=>{
-    const label="Academy BDSM: "+name;LABELS.push(label);
+  L.filter(r=>KEEP.has(r[0])).forEach(([suf,name,oname,items,ex,po,set,tags])=>{
+    const label="Academy "+name;LABELS.push(label);
     ACAD.set(label,after,suf,"BDSM, "+name.toLowerCase(),"edgy",{tags:["after dark","explicit","bdsm","humiliation"],oname,c:Object.assign({age:"woman"},AROUSED)},
       H.map((h,i)=>[h,items,ex[i%ex.length],po[i%po.length],"BDSM, "+name.toLowerCase(),{}]));
     after=label;
     H.forEach(h=>{const t=tplById(h+suf);if(!t)return;t.out=Object.assign({},t.out,{must:MUST(set),notes:tags,explicit:true,lewdtag:true})})});
-  function late(){
-    if(Array.isArray(ACAD.CATS)){const S=new Set(LABELS);ACAD.CATS.forEach(c=>{c[1]=c[1].filter(l=>!S.has(l))});
-      for(let i=ACAD.CATS.length-1;i>=0;i--)if(!ACAD.CATS[i][1].length&&ACAD.CATS[i][0]!=="BDSM humiliation")ACAD.CATS.splice(i,1);
-      if(!ACAD.CATS.some(c=>c[0]==="BDSM humiliation")){const i=ACAD.CATS.findIndex(c=>c[0]==="Power play");ACAD.CATS.splice(i<0?ACAD.CATS.length:i+1,0,["BDSM humiliation",LABELS.slice()])}}
-    if(Array.isArray(ACAD.AFTER_CATS)&&!ACAD.AFTER_CATS.includes("BDSM humiliation")){const i=ACAD.AFTER_CATS.indexOf("Power play");ACAD.AFTER_CATS.splice(i<0?ACAD.AFTER_CATS.length:i+1,0,"BDSM humiliation")}}
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",late);else late();
 })();

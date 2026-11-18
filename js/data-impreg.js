@@ -69,10 +69,6 @@
       t.blurb=`${(ACAD.HNAME&&ACAD.HNAME[h])||h}, impregnated ${name.toLowerCase()} by a muscular, dark-skinned faceless man: x-ray creampie and womb cross-section, one image.`}))});
   function late(){
     LATE.forEach(f=>f());
-    /* the Impregnation shelf, at the end of After dark (taken out of wherever the wardrobe filed them) */
-    if(Array.isArray(ACAD.CATS)){const L=new Set(LABELS);ACAD.CATS.forEach(c=>{c[1]=c[1].filter(l=>!L.has(l))});
-      for(let i=ACAD.CATS.length-1;i>=0;i--)if(!ACAD.CATS[i][1].length&&ACAD.CATS[i][0]!=="Impregnation")ACAD.CATS.splice(i,1);
-      if(!ACAD.CATS.some(c=>c[0]==="Impregnation")){const i=ACAD.CATS.findIndex(c=>c[0]==="Explicit");ACAD.CATS.splice(i<0?ACAD.CATS.length:i+1,0,["Impregnation",LABELS.slice()])}}
-    if(Array.isArray(ACAD.AFTER_CATS)&&!ACAD.AFTER_CATS.includes("Impregnation")){const i=ACAD.AFTER_CATS.indexOf("Explicit");ACAD.AFTER_CATS.splice(i<0?ACAD.AFTER_CATS.length:i+1,0,"Impregnation")}}
+    /* its shelf is in the wardrobe list (data-wardrobe.js) */}
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",late);else late();
 })();

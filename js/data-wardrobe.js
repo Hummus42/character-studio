@@ -31,11 +31,15 @@
     ["Lewd costumes and roleplay",A("Classic Bunny|Reverse Bunny Suit|Maid Bikini|Lewd Maid|Lewd Nurse|Office Lady|Lewd Nun|Lewd Shrine Maiden|Harem Dancer")],
     ["Pet play",A("Collar and Leash|Kitten Play|Pony Play|Hucow|Pet Bowl Training")],
     ["Food play",A("Whipped Cream Bikini|Chocolate Valentine|Honey Drizzle|Nyotaimori")],
-    ["Kink and fetish",A("Leather Harness|Latex Catsuit|Dominatrix|Chastity Belt|Spanked|Wax Play|Nipple Clamps|Tickle Torture")],
-    ["Bondage",A("Shibari|Rope Suspension|Breast Bondage|Gag and Blindfold|Cleave Gag|Tape Gag|Spreader Bar|Shackles and Chain|Hogtie|Frogtie|Armbinder|Straitjacket|Pillory|Predicament Bondage|Sensory Deprivation|Latex Hood")],
-    ["Power play",A("Dogeza|Living Furniture|Sign of Shame|Denied|Runny Makeup|Used Condom Display")],
+    /* v320: fetish wear, sensation play, bondage and humiliation no longer overlap (Kink and fetish was split, Power play
+       and the BDSM humiliation shelf became Humiliation, and the duplicate looks were merged in data-afterdark.js) */
+    ["Fetish wear",A("Leather Harness|Latex Catsuit|Dominatrix|Chastity Belt")],
+    ["Sensation play",A("Spanked|Nipple Clamps|Wax Play|Tickle Torture|Denied")],
+    ["Bondage",A("Shibari|Rope Suspension|Breast Bondage|Hogtie|Frogtie|Armbinder|Straitjacket|Spreader Bar|Shackles and Chain|Pillory|Predicament Bondage|Inspection|Face Down, Ass Up|Gag and Blindfold|Cleave Gag|Tape Gag|Sensory Deprivation|Latex Hood")],
+    ["Humiliation",A("Dogeza|Living Furniture|Sign of Shame|Degrading Words|Runny Makeup|Used Condom Display")],
     ["Toys",A("Wand Vibrator|Egg Vibrator|Remote Vibrator in Public|Clothed Masturbation|Dildo Riding|Shower Head|Anal Beads|Jeweled Plug|Sex Machine")],
-    ["Explicit",A("Office Hours|Library After Hours|Fucked Silly|Cum-Covered|Dripping Aftermath|Ruined")]];
+    ["Explicit",A("Office Hours|Library After Hours|Fucked Silly|Cum-Covered|Dripping Aftermath|Ruined")],
+    ["Impregnation positions",A("Impregnation: Missionary|Impregnation: Mating press|Impregnation: Riding|Impregnation: From behind|Impregnation: Prone bone|Impregnation: Against the wall|Impregnation: Legs on his shoulders|Impregnation: Spooning|Impregnation: Full nelson|Impregnation: Reverse cowgirl|Impregnation: Lotus|Impregnation: Piledriver")]];
   const OLD=ACAD.CATS.map(([c,l])=>[c,l.slice()]),OLD_AFTER=new Set(ACAD.AFTER_CATS||["Sensual","Exhibition","Explicit"]);
   const exists=l=>PRESET_GROUPS.start.some(g=>g.label===l);
   const NEW=REG.concat(AFTER).map(([c,l])=>[c,l.slice()]),placed=new Set(NEW.flatMap(([,l])=>l));
