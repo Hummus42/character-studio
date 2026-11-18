@@ -446,7 +446,13 @@ kumiho:"crimson tassel earrings and a gilt half-mask pushed up in her hair, a se
   ["ad2pole","Pole Dancer","Exhibition","Pole dancer",{bra:["sequined bikini top","@primary"],panties:["sequined thong","@primary"],legwear:["platform heels","silver"]},
     ["confident, sultry stare","playful, upside-down grin","heated, focused look"],
     ["spinning on the pole, one leg hooked","hanging upside down from the pole","sliding down the pole, back arched"],
-    "a club stage under spotlights","pole dancing, stripper pole, pole, stage lights, money, high heels, lingerie, spotlight","a pole dancer"]];
+    "a club stage under spotlights","pole dancing, stripper pole, pole, stage lights, money, high heels, lingerie, spotlight","a pole dancer"],
+  /* v315: on a white couch in nothing but a white tee, faceless muscular dark-skinned men standing behind it */
+  ["ad2whitecouch","White Couch","Exhibition","White tee",{top:["simple plain white t-shirt with nothing underneath","white"]},
+    ["sultry, knowing smile","flushed, hungry stare at the viewer","teasing smile, biting her lip"],
+    ["sitting on a white couch, legs crossed, the tee riding up her bare thighs","sitting back on a white couch, knees parted, hands resting on the cushions","sitting sideways on a white couch, one knee drawn up, leaning back against the armrest"],
+    "a bright, minimalist white room with a white couch, several faceless, muscular, dark-skinned men standing close behind the couch, naked, with veiny, rock-hard erections",
+    "white shirt, t-shirt, no bra, no panties, bottomless, covered nipples, sitting, couch, white couch, bare legs, faceless male, multiple boys, dark-skinned male, muscular male, interracial, nude male, penis, erection, veiny penis, large penis, standing, behind couch","a white tee on a white couch",AROUSED]];
   L.push(...L2);
 
   const CATS=["Tease","Bondage and kink","Pet play and roleplay","Power play","Body focus","Toys"];
