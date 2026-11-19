@@ -26,6 +26,8 @@
     outfit:"clothing clipping, floating clothing, malformed clothing, mismatched clothing, distorted accessories, duplicated accessories, color bleeding, bad fabric texture",
     closeups:"portrait, close-up, face focus, headshot, bust shot, cropped shoulders, cropped torso",
     antiReal:"3d, realistic, photorealistic, photo (medium), real life",
+    /* v330: Manga (B&W): colour tags in the negative, so nothing is tinted */
+    antiColor:"1.3::colorful, spot color, partially colored, greyscale with colored background, limited palette::",
     antiAnime:"anime, cartoon, 2d, flat color, cel shading, lineart, manga, illustration, painting, black outline, big eyes, chibi, doll, plastic skin, airbrushed, oversaturated, uncanny face, mannequin"};
   const STY={
     /* v200: merged with the user's tested line: year 2026, framing right after "highly detailed", clarity and sharp focus
@@ -37,7 +39,23 @@
       q:f=>["masterpiece","best quality","amazing quality","very aesthetic","absurdres","highres","year 2026",f]},
     real:{label:"Realistic",lead:"photorealistic, realistic, 3d, photo (medium)",guard:"antiAnime",
       ultra:"depth of field, bokeh, natural lighting, detailed skin, skin texture, realistic eyes, detailed iris, eyelashes, lips, nose",
-      q:f=>["masterpiece","best quality","amazing quality","very aesthetic","absurdres","highres",f]}};
+      q:f=>["masterpiece","best quality","amazing quality","very aesthetic","absurdres","highres",f]},
+    /* v330: black-and-white hentai manga, tested on NovelAI V4.5 (seed 42, Oriole): every tag has Danbooru posts. It only comes
+       out truly black and white when the prompt carries no colour words, so this style strips them (stripColor). */
+    manga:{label:"Manga (B&W)",mono:true,lead:"1.4::monochrome, greyscale::, comic, screentones, halftone, lineart, hatching (texture), crosshatching, ink (medium), pen (medium), traditional media, 1990s (style), retro artstyle, emphasis lines, motion lines, high contrast",
+      guard:"antiColor",free:["monochrome","sketch","halftone","screentone","dithering"],
+      q:f=>["masterpiece","best quality","amazing quality","very aesthetic","absurdres",f]}};
+  /* v330: colour out of a prompt, for Manga (B&W): her palette sentence and every colour word with its modifiers ("flame orange",
+     "honey-brown", "caramel brown") go; black, white, grey, dark, light and pale stay, so hair and skin still read as tones */
+  {const CH="red|crimson|scarlet|ruby|cherry|orange|amber|peach|coral|apricot|yellow|gold|golden|buttercup|honey|mustard|lemon|green|emerald|jade|mint|sage|olive|teal|turquoise|aqua|cyan|blue|navy|cobalt|sapphire|azure|indigo|purple|violet|lavender|lilac|plum|magenta|pink|fuchsia|brown|caramel|chocolate|chestnut|auburn|copper|bronze|beige|ivory|cream|silver|rosy|rose|blonde|brunette|ginger|strawberry";
+   const MOD="deep|warm|vivid|bright|rich|dusty|pastel|flame|sky|honey|baby|hot|pale|light|dark|soft";
+   const RE=new RegExp("\\b(?:(?:"+MOD+")[ -])*(?:"+CH+")(?:[ -](?:"+CH+"))*(?:-(?:brown|haired|colored|tinted|toned))?\\b","gi");
+   window.stripColor=t=>{let s=String(t).split(/(?<=\.)\s+/).filter(x=>!/colou?r palette/i.test(x)).join(" ");
+     s=s.replace(/(^|[.]\s*)[^.]*\ban anime style with high detail[^.]*\./gi,"$1");
+     s=s.replace(RE,"").replace(/\(\s*\)/g,"").replace(/\s+,/g,",").replace(/,\s*,+/g,",").replace(/\b(and|with|in)\s*(?=[,.])/g,"").replace(/,\s*and\s*\./g,".")
+       .replace(/\s{2,}/g," ").replace(/,\s*\./g,".").replace(/\s+\./g,".").replace(/\b(is|are)\s*,\s*/g,"$1 ");
+     s=s.split(/(?<=\.)\s+/).filter(x=>!/\b(is|are|features|in)\.$/.test(x)).join(" ");
+     return s.replace(/\ba (?=[aeiou])/gi,"an ").replace(/^[,\s]+/,"").replace(/,\s*,/g,",").trim()}}
   const pairOf=()=>S&&S.out&&S.out.pair;
   const styleKey=()=>{const p=pairOf();const k=(p&&p.qStyle)||S.out.qStyle||"studio";return STY[k]?k:"studio"};
   const ultraOn=()=>{const k=styleKey();if(!STY[k].ultra)return false;const p=pairOf();return p&&p.ultra!==undefined?!!p.ultra:!!S.out.ultra};
@@ -47,6 +65,7 @@
   qualityText=function(){const k=styleKey();return STY[k].q(window.framingText?window.framingText(S.out.framing):S.out.framing).concat(lewdOk()?["sexy, lewd"]:[]).filter(Boolean).join(", ")};
   /* Ultra-realistic: the studio's anime-only wording would fight the style, so it is rewritten (character prompts too) */
   window.styleText=function(t){
+    if(STY[styleKey()].mono)return stripColor(t);
     if(!(ultraOn()&&styleKey()==="real"))return t;
     return String(t).replace(/\ban anime style with high detail\b/gi,"a photorealistic style with high detail").replace(/\ban anime style\b/gi,"a photorealistic style")
       .replace(/,?\s*(a )?detailed foreground outlined in black/gi,"").replace(/,?\s*\boutlined in black\b/gi,"").replace(/,\s*black outline\b/gi,"").replace(/^black outline,\s*/i,"");
@@ -81,7 +100,7 @@
     const keep=list=>dd(list).split(", ").filter(t=>t&&!new RegExp("(^|[^a-z0-9])"+esc(t.toLowerCase())+"([^a-z0-9]|$)").test(pos)).join(", ");
     const parts=[];
     const av=String(o.avoid||"").trim().replace(/[.\s]+$/,"");if(av)parts.push(av);
-    if(o.negGeneral!==false)parts.push(keep(UC.core));
+    if(o.negGeneral!==false){const fr=STY[styleKey()].free;parts.push(keep(fr?UC.core.split(", ").filter(t=>!fr.includes(t)).join(", "):UC.core))}
     if(o.negCharacter!==false)parts.push(keep(UC.anatomy));
     if(o.negOutfit!==false)parts.push(keep(UC.outfit));
     if(o.negPortrait!==false&&!CLOSE_FRAMES.test(o.framing||"")&&!CLOSE_FRAMES.test(pos))parts.push(keep(UC.closeups));
@@ -142,7 +161,7 @@
         onchange:e=>mut(()=>{const q=pairOf();if(q)q.ultra=e.target.checked;S.out.ultra=e.target.checked})})," Ultra detail")):null;
       const note=h("p",{class:"muted small qucnote",text:(p&&(p.qStyle||p.ultra)?`This scene sets the ${STY[k].label}${ultraOn()?" (ultra)":""} style; picking one here overrides it. `:"")+
         (STY[k].lead?`Adds “${STY[k].lead}” after the quality tags${ultraOn()?", and the ultra detail tags after the prompt":""}.`:"The studio’s own anime look, with no extra style tags.")});
-      f.append(row("Image style",STY[k].ultra?"Ultra detail adds extra detail tags.":"Anime and Realistic add style tags, and can add Ultra detail.",h("div",{},seg,ul,note)));
+      f.append(row("Image style",STY[k].mono?"Black and white: colour words are taken out of every prompt.":STY[k].ultra?"Ultra detail adds extra detail tags.":"Anime, Realistic and Manga add style tags; Anime and Realistic can add Ultra detail.",h("div",{},seg,ul,note)));
       const fr=h("select",{"aria-label":"Framing",onchange:e=>mut(()=>{S.out.framing=e.target.value})},[["cowboy shot","Cowboy shot"],["from waist up","Waist up"],["upper body","Upper body"],["full body","Full body"],["portrait","Portrait"],["standing straight, facing the viewer, arms relaxed at her sides","Standing, facing viewer"],["","None"]].map(([v,l])=>h("option",{value:v,selected:S.out.framing===v?true:null,text:l})));
       f.append(row("Framing","Goes in with the quality tags.",fr));
       f.append(h("div",{class:"checks"},
