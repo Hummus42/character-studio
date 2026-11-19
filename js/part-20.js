@@ -434,13 +434,15 @@ h3.enc-h .adm-loreedit{font-size:12.5px}`;
     const added=isNew||(C.isAddedFaction&&C.isAddedFaction(fid));
     const W={name:f?f.name:"",short:f?f.short:"",motto:f?f.motto||"":"",tagline:f?f.tagline||"":"",wing:f?f.wing:"",sigil:f?f.sigil:"",
       a:f?f.cols.a:"#5d5a7e",b:f?f.cols.b:"#a7a2c8",ink:f?f.cols.ink:"#ffffff",lore:((ENC.FLORE||{})[fid]||[]).join("\n\n"),groups:f?f.groups.slice():[],
-      dname:"",dtitle:"",dlook:"",dlore:"",dquote:""};
+      dname:"",dtitle:"",dlook:"",dlore:"",dquote:"",px:fid&&ACAD.badge?clone(ACAD.badge.get("faction",fid)):null};
     const W0=clone(W);
     const F=form("factionDlg",isNew?"Add a faction":"Edit faction",isNew?"A new faction":f.name,isNew?"A faction gets a page, a dean with a page of his own, and the groups you put in it. Its lore is new lore.":"Change what its page says, its colors and its seat.");
     function draw(){F.pane.textContent="";
       F.pane.append(fld(W,"name","Name","input","The Order of the Ember"),fld(W,"short","Short name","input","Ember","Used in labels: “Sworn to Ember”."),fld(W,"motto","Motto","input","We keep the fire."),
         fld(W,"tagline","In a line","input","Courage, craft and the forge. Those who make."),fld(W,"wing","Its seat","input","the Ember Hall above the forges",ENC.PLACES&&ENC.PLACES.length?"A place you name here; add it to the map from the Locations page.":""),
         fld(W,"sigil","Sigil","input","an anvil under a falling star"),colors(W,[["a","First"],["b","Second"],["ink","Words on them"]]),
+        ACAD.badge?ACAD.badge.field({label:"Its badge",noun:"badge",title:(tidy(W.name)||"The new faction")+"'s badge",file:"faction_badge",get:()=>W.px,set:v=>{W.px=v},
+          start:()=>ACAD.shield32URL?ACAD.shield32URL("facstart:"+W.a+W.b+W.ink,{a:W.a,b:W.b,e:W.ink,f:W.b},[]):"",hint:"Optional. Shown beside its name on its page. It starts as a plain shield in its colors."}):null,
         fld(W,"lore","Its story","textarea","","Separate paragraphs with a blank line. Link with [[group:pack|the Pack]]."));
       F.pane.append(h("h4",null,"Its groups"),h("p",{class:"adm-muted"},K.admin?"A group in another faction moves here. A faction can start with none.":"Groups you are adding can join it. A faction can start with none; add a group later and choose this faction for it."),
         h("div",{class:"adm-chips adm-checkgrid"},(ACAD.GROUPS||[]).filter(g=>!g.apart&&(K.admin||(ACAD.mayEdit&&ACAD.mayEdit("group:"+g.id)))).map(g=>{const cb=h("input",{type:"checkbox",onchange:e=>{if(e.target.checked){if(!W.groups.includes(g.id))W.groups.push(g.id)}else W.groups=W.groups.filter(x=>x!==g.id)}});cb.checked=W.groups.includes(g.id);
@@ -456,10 +458,12 @@ h3.enc-h .adm-loreedit{font-size:12.5px}`;
       const bad=[...linkProblems(W.lore),...linkProblems(W.dlore)];if(bad.length)P.push(`These links don't lead to a page: ${[...new Set(bad)].join(", ")}.`);
       if(F.problems(P))return;
       const d=drafts();const o={name:nm,short:tidy(W.short),motto:tidy(W.motto),tagline:tidy(W.tagline),wing:tidy(W.wing),sigil:tidy(W.sigil),cols:{a:W.a,b:W.b,ink:W.ink},lore:paras(W.lore)};
+      if(W.px){o.px32=W.px.px32;o.px16=W.px.px16||null}
       if(isNew){o.dean={id:"dean"+id,name:tidy(W.dname),title:tidy(W.dtitle)||("Dean of "+nm),look:tidy(W.dlook),lore:paras(W.dlore),quote:tidy(W.dquote)};ensure(d,"add","factions")[id]=o}
       else if(added){const a=ensure(d,"add","factions");a[id]=Object.assign({},((L0().add||{}).factions||{})[id]||{},a[id]||{},o)}
       else{const ch={};["name","short","motto","tagline","wing","sigil"].forEach(k=>{if(o[k]!==tidy(W0[k]))ch[k]=o[k]});if(W.a!==W0.a||W.b!==W0.b||W.ink!==W0.ink)ch.cols=o.cols;
-        if(JSON.stringify(o.lore)!==JSON.stringify(paras(W0.lore)))ch.lore=o.lore;if(Object.keys(ch).length)Object.assign(ensure(d,"edits","factions",id),ch)}
+        if(JSON.stringify(o.lore)!==JSON.stringify(paras(W0.lore)))ch.lore=o.lore;if(JSON.stringify(W.px||null)!==JSON.stringify(W0.px||null)){ch.px32=W.px?W.px.px32:null;ch.px16=W.px?W.px.px16||null:null}
+        if(Object.keys(ch).length)Object.assign(ensure(d,"edits","factions",id),ch)}
       /* groups that join it */
       W.groups.filter(g=>!W0.groups.includes(g)).forEach(gid=>{if(C.isAddedGroup&&C.isAddedGroup(gid)){const a=ensure(d,"add","groups");a[gid]=Object.assign({},((L0().add||{}).groups||{})[gid]||{},a[gid]||{},{faction:id})}
         else ensure(d,"edits","groups",gid).faction=id});
@@ -478,7 +482,7 @@ h3.enc-h .adm-loreedit{font-size:12.5px}`;
     const W={name:g?g.name:"",kind:g?g.kind:"",motto:g?g.motto:"",haunt:g?g.haunt:"",story:g?g.story:"",faction:g?g.faction:"none",kin:g?g.kin||"":"",
       a:g?g.cols.a:"#3b3a58",b:g?g.cols.b:"#b39b62",e:g?g.cols.e:"#efe6cf",f:g?g.cols.f:"#ffffff",w1:g?(g.words||[])[0]||"":"",w2:g?(g.words||[])[1]||"":"",w3:g?(g.words||[])[2]||"":"",
       emblem:g?g.emblemName:"star",houses:g?g.houses.map(x=>({name:x.name,since:x.since,lore:x.lore,also:(ENC.ALSO_ID||{})[x.id]||"",id:x.id})):[{name:"",since:"",lore:"",also:""}],
-      champ:ch0?ch0[0]:"",why:ch0?ch0[1]:""};
+      champ:ch0?ch0[0]:"",why:ch0?ch0[1]:"",px:lid&&ACAD.badge?clone(ACAD.badge.get("lost",lid)):null};
     const W0=clone(W);
     const F=form("lostDlg",isNew?"Add a lost group":"Edit lost group",isNew?"A new lost group":g.name,isNew?"A group on the Roll of Sleeping Houses, with its Houses, waiting to wake. All of it is new lore.":"Change its story, its colors and crest, its Houses and its champion.");
     const groupOpts=()=>(ACAD.GROUPS||[]).map(x=>[x.id,x.name]).concat((ENC.ROLL||[]).filter(x=>x.id!==lid).map(x=>[x.id,x.name+" (sleeping)"]));
@@ -488,7 +492,9 @@ h3.enc-h .adm-loreedit{font-size:12.5px}`;
         sel(W,"kin","Kin to",(ACAD.GROUPS||[]).map(x=>[x.id,x.name]),"No living group"),
         colors(W,[["a","Field"],["b","Band"],["e","Mark"],["f","Highlight"]]),
         h("div",{class:"adm-f"},h("span",null,"Colors in words",h("small",{style:"display:block;font-size:12px"},"A girl who wakes one of its Houses starts in these.")),h("div",{class:"adm-row adm-cols3"},["w1","w2","w3"].map((k,i)=>h("input",{class:"adm-in",type:"text",placeholder:["ember red","soot black","gold"][i],value:W[k],oninput:e=>{W[k]=e.target.value}})))),
-        sel(W,"emblem","Crest emblem",Object.keys(EM).map(k=>[k,k.charAt(0).toUpperCase()+k.slice(1)])));
+        sel(W,"emblem","Crest emblem",Object.keys(EM).map(k=>[k,k.charAt(0).toUpperCase()+k.slice(1)])),
+        ACAD.badge?ACAD.badge.field({label:"Draw the crest",noun:"crest",title:(tidy(W.name)||"The lost group")+"'s crest",file:"lost_crest",preset:"the emblem",get:()=>W.px,set:v=>{W.px=v},
+          start:()=>lid&&!W.px&&ENC.lostCrestURL?ENC.lostCrestURL(lid):(ACAD.shield32URL?ACAD.shield32URL("loststart:"+W.a+W.b,{a:W.a,b:W.b,e:W.e,f:W.f},[]):""),hint:"Optional. The emblem above makes its crest; or draw your own."}):null);
       F.pane.append(h("h4",null,"Its Houses"),h("p",{class:"adm-muted"},"Each sleeping House: its beast, when it fell asleep and what is remembered of it. A second banner is a living group it would also fly."));
       W.houses.forEach((x,i)=>{const c=h("div",{class:"adm-card"});c.append(fld(x,"name","House","input","Salamander"),fld(x,"since","Asleep since","input","1741"),fld(x,"lore","Remembered","textarea",""),
         sel(x,"also","Second banner",groupOpts(),"None"),h("div",{class:"adm-actions"},h("button",{type:"button",class:"adm-btn sm danger",onclick:()=>{W.houses.splice(i,1);draw()}},"Remove House")));c.querySelector("textarea").rows=2;F.pane.append(c)});
@@ -506,11 +512,13 @@ h3.enc-h .adm-loreedit{font-size:12.5px}`;
       if(F.problems(P))return;
       const o={name:nm,kind:tidy(W.kind),motto:tidy(W.motto),haunt:tidy(W.haunt),story:tidy(W.story),faction:W.faction||"none",kin:W.kin||"",cols:{a:W.a,b:W.b,e:W.e,f:W.f},
         words:[W.w1,W.w2,W.w3].map(tidy).filter(Boolean),emblem:W.emblem,houses:W.houses.map(x=>[tidy(x.name),tidy(x.since),tidy(x.lore)])};
+      if(W.px){o.px32=W.px.px32;o.px16=W.px.px16||null}
       const d=drafts();
       if(added)ensure(d,"add","lost")[id]=o;
       else{const ch={};["name","kind","motto","haunt","story","faction","kin","emblem"].forEach(k=>{if(o[k]!==(k==="emblem"?W0.emblem:tidy(W0[k])))ch[k]=o[k]});
         if(JSON.stringify(o.cols)!==JSON.stringify({a:W0.a,b:W0.b,e:W0.e,f:W0.f}))ch.cols=o.cols;if(JSON.stringify(o.words)!==JSON.stringify([W0.w1,W0.w2,W0.w3].map(tidy).filter(Boolean)))ch.words=o.words;
         if(JSON.stringify(o.houses)!==JSON.stringify(W0.houses.map(x=>[tidy(x.name),tidy(x.since),tidy(x.lore)])))ch.houses=o.houses;
+        if(JSON.stringify(W.px||null)!==JSON.stringify(W0.px||null)){ch.px32=W.px?W.px.px32:null;ch.px16=W.px?W.px.px16||null:null}
         if(Object.keys(ch).length)Object.assign(ensure(d,"edits","lost",id),ch)}
       /* second banners, by the House's id */
       const hid=n=>String(n||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"");

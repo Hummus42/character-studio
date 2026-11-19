@@ -1884,7 +1884,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
         h("button",{type:"button",class:"adm-btn",onclick:()=>dl(32)},"Export 32×32"),h("button",{type:"button",class:"adm-btn",onclick:()=>dl(16)},"Export 16×16"),
         h("span",{style:"flex:1"}),
         h("button",{type:"button",class:"adm-btn",onclick:()=>dlg.close()},"Cancel"),
-        o.onUse?h("button",{type:"button",class:"adm-btn primary",onclick:()=>{const empty=g=>g.every(r=>r.every(c=>!c));o.onUse(empty(G[32])?null:fromGrid(G[32]),empty(G[16])?null:fromGrid(G[16]));dlg.close()}},"Use for this character"):null)));
+        o.onUse?h("button",{type:"button",class:"adm-btn primary",onclick:()=>{const empty=g=>g.every(r=>r.every(c=>!c));o.onUse(empty(G[32])?null:fromGrid(G[32]),empty(G[16])?null:fromGrid(G[16]));dlg.close()}},o.useLabel||"Use for this character"):null)));
     document.body.append(dlg);dlg.showModal();drawSizes();drawTools();render();
     return{grid:n=>G[n],set:(n,g)=>{G[n]=g;render()},use:()=>o.onUse&&o.onUse(fromGrid(G[32]),fromGrid(G[16]))}}
   /* v248: a head made from a look. A girl's head (her model's, or a groupmate's) is recolored: every pixel close to one
@@ -2332,6 +2332,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     /* v328: a faction founded in her workflow, with the new group that joins it */
     if(W.pendingFaction&&W.pendingFaction.id&&W.pendingGroup&&W.pendingGroup.entry&&W.pendingGroup.entry.faction===W.pendingFaction.id){const pf=W.pendingFaction,e=pf.entry||{};
       ensure(d,"add","factions")[pf.id]=clone(Object.assign({name:e.name,short:e.short||String(e.name||"").replace(/^The /,""),motto:e.motto||"",tagline:e.tagline||"",opposes:(e.opposes||[]).slice(),cols:e.cols||{},
+        px32:e.px?e.px.px32:undefined,px16:e.px?e.px.px16||null:undefined,
         dean:{id:"dean"+pf.id,name:e.dean||"",title:"Dean of "+String(e.name||pf.id).replace(/^The /,"the "),look:"",lore:[],quote:""}},{}))}
     const bio={};Object.entries(W.bio).forEach(([f,v])=>{if(minor&&(INTIMATE.has(f)||ROMANTIC.has(f)))return;if(v)bio[f]=v});
     if(W.place.kind==="wake"){const g=lostOf(W.place.lost);if(g&&!bio.group2&&W.group!==g.id)bio.group2=g.name}   /* v269: not when she wakes the group itself */
@@ -2341,6 +2342,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
       if(W.sigLook)a.sigLook=W.sigLook;if(String(W.sigName||"").trim())a.sigName=String(W.sigName).trim()}if(minor&&a.men)a.men.man={name:"",blurb:"",look:null};
     if(W.place.kind==="group"&&W.banner2&&W.banner2.lost)a.banner2={lost:W.banner2.lost,oath:String(W.banner2.oath||"").trim()};
     ensure(d,"add","girls")[x]=a;
+    if(W.houseBadge&&W.houseBadge.px32&&W.place.kind!=="house"){const ah=ensure(d,"add","houses");ah[x]=Object.assign({},ah[x]||{},{group:W.group,px32:W.houseBadge.px32,px16:W.houseBadge.px16||null})}
     const W2=Object.assign({},W,{sg:minor?null:W.sg});relDrafts(d,x,W2);return{d,x}}
 
   function loadImg(src){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=no;im.src=src})}
@@ -2524,7 +2526,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
         const rad=(v,l)=>h("label",{class:"adm-radio"},h("input",{type:"radio",name:"admPlace",checked:W.place.kind===v,onchange:()=>{W.place.kind=v;if(v==="group"){if(W.typed)W.name=W.typed}else{const hs=((lostOf(W.place.lost)||{houses:[]}).houses.find(z=>z.id===W.place.house));if(hs)W.name=hs.name}title.textContent=W.name||"New girl";draw()}}),l);
         /* v328: her faction first (new ones too), then her group, then her House */
         {const pf=W.pendingFaction;const facs=(ENC.FACTIONS||[]).slice();
-          const fsel=h("select",{class:"adm-in",onchange:e=>{const v=e.target.value;if(v==="+new"){W.pendingFaction=W.pendingFaction||{id:"",entry:{name:"",motto:"",opposes:[],dean:""}};W.faction="+new"}else{W.faction=v}draw()}},
+          const fsel=h("select",{class:"adm-in",onchange:e=>{const v=e.target.value;if(v==="+new"){W.pendingFaction=W.pendingFaction||{id:"",entry:{name:"",motto:"",opposes:[],dean:"",cols:{a:"#5d5a7e",b:"#a7a2c8",ink:"#ffffff"}}};W.faction="+new"}else{W.faction=v}draw()}},
             h("option",{value:""},"Any faction"),facs.map(f=>{const o=h("option",{value:f.id},f.name);if(W.faction===f.id)o.selected=true;return o}),(()=>{const o=h("option",{value:"+new"},pf&&pf.entry.name?"New: "+pf.entry.name:"+ A new faction");if(W.faction==="+new")o.selected=true;return o})());
           pane.append(h("h4",null,"Her faction"),h("label",{class:"adm-f"},h("span",null,"Faction"),fsel));
           if(W.faction==="+new"){const e=W.pendingFaction.entry;const upd=()=>{W.pendingFaction.id=slug(String(e.name||"").replace(/^the\s+/i,"")).slice(0,24);if(W.pendingGroup&&W.pendingGroup.entry)W.pendingGroup.entry.faction=W.pendingFaction.id};
@@ -2532,10 +2534,17 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
               h("label",{class:"adm-f"},h("span",null,"Its name"),h("input",{class:"adm-in",type:"text",placeholder:"The Tidewardens",value:e.name||"",oninput:ev=>{e.name=ev.target.value;upd()}})),
               h("label",{class:"adm-f"},h("span",null,"Its motto"),h("input",{class:"adm-in",type:"text",placeholder:"We keep the shore.",value:e.motto||"",oninput:ev=>{e.motto=ev.target.value}})),
               h("label",{class:"adm-f"},h("span",null,"Its dean"),h("input",{class:"adm-in",type:"text",placeholder:"Dean Halloran",value:e.dean||"",oninput:ev=>{e.dean=ev.target.value}})),
+              (()=>{e.cols=e.cols||{a:"#5d5a7e",b:"#a7a2c8",ink:"#ffffff"};return h("div",{class:"adm-f"},h("span",null,"Its colors"),h("div",{class:"adm-row"},[["a","First"],["b","Second"],["ink","Words on them"]].map(([k,l])=>h("label",{class:"adm-col"},h("input",{type:"color",value:e.cols[k],oninput:ev=>{e.cols[k]=ev.target.value}}),l))))})(),
+              ACAD.badge?ACAD.badge.field({label:"Its badge",noun:"badge",title:(e.name||"The new faction")+"'s badge",file:"faction_badge",get:()=>e.px||null,set:v=>{e.px=v;keepNew()},
+                start:()=>ACAD.shield32URL?ACAD.shield32URL("facstart:"+e.cols.a+e.cols.b+e.cols.ink,{a:e.cols.a,b:e.cols.b,e:e.cols.ink,f:e.cols.b},[]):"",hint:"Optional. Shown beside its name on its page."}):null,
               h("div",{class:"adm-f"},h("span",null,"It opposes (across the line)"),h("div",{class:"adm-chips adm-checkgrid"},facs.map(f=>{const cb=h("input",{type:"checkbox",onchange:ev=>{e.opposes=(e.opposes||[]).filter(x=>x!==f.id);if(ev.target.checked)e.opposes.push(f.id)}});cb.checked=(e.opposes||[]).includes(f.id);return h("label",{class:"adm-radio"},cb,f.short||f.name)}))),
               h("p",{class:"adm-muted",style:"margin:6px 0 0"},"Factions it doesn't oppose stand apart from it. Now found the group she joins: it belongs to this faction.")))}}
         if(W.faction==="+new"&&W.place.kind!=="group")W.place.kind="group";
         pane.append(h("h4",null,"Her House"),W.faction==="+new"?h("p",{class:"adm-muted"},"A new faction has no Houses yet, so she founds her own: its first House, in its first group."):h("div",{class:"adm-row"},rad("group","Her own new House"),rad("house","Join a living House"),rad("wake","Wake a sleeping House")));
+        /* v329: her new (or woken) House may carry a badge drawn by hand; a House she joins keeps its own */
+        if(W.place.kind!=="house"&&ACAD.badge)pane.append(ACAD.badge.field({label:"Her House's badge",noun:"badge",title:(String(W.name||"").trim()||"Her House")+" House's badge",file:"house_badge",get:()=>W.houseBadge||null,set:v=>{W.houseBadge=v;keepNew()},
+          start:()=>W.img&&W.img.px32?W.img.px32:(W.place.kind==="wake"&&W.place.house&&typeof ENC!=="undefined"&&ENC.sigilURL&&W.place.lost?ENC.sigilURL(W.place.lost,W.name):null),
+          hint:"Optional. Shown on her House's page. Without one, her pixel head stands for her House, as for every House."}));
         if(W.place.kind==="house"){const gl=groupsAll().filter(g=>!W.faction||W.faction==="+new"||((ENC.factionOf&&ENC.factionOf(g.id))||{}).id===W.faction);
           const opts=gl.map(g=>h("optgroup",{label:g.name},(ACAD.housesOf?ACAD.housesOf(g.id):g.members).map(hs=>{const n=ACAD.girlsOf?ACAD.girlsOf(hs).length:1;const o=h("option",{value:hs},HN(hs)+" House"+(n>1?" ("+n+" girls)":""));if(hs===W.place.house)o.selected=true;return o})));
           pane.append(h("label",{class:"adm-f"},h("span",null,"The House she joins"),h("select",{class:"adm-in",onchange:e=>{W.place.house=e.target.value;const g=ACAD.GROUP_OF&&ACAD.GROUP_OF(e.target.value);if(g){W.group=g.id;if(W.isNew&&W.model===undefined)W.model=suggestModel(W.group)}draw()}},h("option",{value:""},"Choose…"),opts)),
@@ -2709,6 +2718,8 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     {const P0=gid&&(ACAD.PRINCIPALS||{})[gid];W.turf=g&&g.rival?((ACAD.GTURF||{})[[gid,g.rival].sort().join("|")]||""):"";W.pfull=P0?P0.full||"":"";W.ptitle=P0?P0.title||"":"";W.pblurb=P0?P0.blurb||"":"";
       W.turf0=W.turf;W.p0=[W.pfull,W.ptitle,W.pblurb].join("\n")}
     while(W.cols.length<3)W.cols.push("");
+    /* v329: a crest drawn in the pixel editor */
+    if(!o.form){const b=gid&&ACAD.badge?ACAD.badge.get("group",gid):null;W.px=b?JSON.parse(JSON.stringify(b)):null}const px0=JSON.stringify(W.px||null);
     /* v247: back from designing the principal: the form as it was, and his new look */
     W.plook=null;if(o.form){Object.assign(W,o.form);if(o.form.plook0&&!W.plook)W.plook=o.form.plook0;delete W.plook0}{const r=takeDesigned("group:"+(gid||"new"));if(r&&r.kind==="principal")W.plook=r.look}
     gdlg=h("dialog",{class:"adm-dlg",id:"groupDlg","aria-label":isNew?"New group":"Edit group"});
@@ -2728,7 +2739,9 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
       if(isNew)pane.append(sel("Based on","base",groupOpts),h("p",{class:"adm-muted"},"Her scenes in the group's hall and hangout, and its Group Colors outfit, start from this group's, in the new colors. The first girl to join leads it until you choose another."));
       pane.append(h("h4",null,"Colors and crest"),h("div",{class:"adm-row adm-cols3"},...[0,1,2].map(i=>h("input",{class:"adm-in",type:"text",placeholder:["first color","second color","third color"][i],value:W.cols[i]||"",oninput:e=>{W.cols[i]=e.target.value}}))),
         inp("Crest","crest",false,"a silver burrow key"),sel("Crest shape","shape",(ACAD.GROUPS||[]).filter(z=>ACAD.CREST&&ACAD.CREST[z.id]).map(z=>{const n=z.name.replace(/^The /,"the ");return[z.id,"Like "+n+(/s$/.test(n)?"'":"'s")]})),
-        h("div",{class:"adm-row adm-crestrow"},crestPreview(W.shape,W.c),...[["a","Field"],["b","Band"],["e","Mark"],["f","Highlight"]].map(([k,l])=>h("label",{class:"adm-col"},h("input",{type:"color",value:W.c[k]||"#888888",oninput:e=>{W.c[k]=e.target.value;const im=pane.querySelector(".adm-crest");if(im)im.replaceWith(crestPreview(W.shape,W.c))}}),l))));
+        h("div",{class:"adm-row adm-crestrow"},crestPreview(W.shape,W.c),...[["a","Field"],["b","Band"],["e","Mark"],["f","Highlight"]].map(([k,l])=>h("label",{class:"adm-col"},h("input",{type:"color",value:W.c[k]||"#888888",oninput:e=>{W.c[k]=e.target.value;const im=pane.querySelector(".adm-crest");if(im)im.replaceWith(crestPreview(W.shape,W.c))}}),l))),
+        ACAD.badge?ACAD.badge.field({label:"Draw the crest",noun:"crest",title:(String(W.name||"").trim()||"The new group")+"'s crest",file:"crest_"+(gid||"new"),preset:"the made crest",
+          get:()=>W.px,set:v=>{W.px=v},start:()=>{const im=pane.querySelector(".adm-crest");return im?(im.src||(im.toDataURL?im.toDataURL():"")):""},hint:"Optional. The shape and colors above make its crest; or draw your own, starting from it."}):null);
       {const bp=(ACAD.PRINCIPALS||{})[W.base];pane.append(h("h4",null,"Principal (optional)"),inp("Name","pfull",false,"Edmund Kingsley"),inp("Title","ptitle",false,"the Sovereign"),inp("In a sentence","pblurb",true,"The group's principal: a tall old man with…"),
         h("p",{class:"adm-muted"},isNew||!(ACAD.PRINCIPALS||{})[gid]?`He answers to the faction's dean and gets a page, a place in the chain of office and his own scenes.`:"He answers to the faction's dean; his page and scenes follow these."));
         const pt=gid&&T("principal"+gid),bt=T("principal"+(isNew||!pt?W.base:gid));
@@ -2739,7 +2752,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
               startDesign({kind:"principal",key:"group:"+(gid||"new"),title:`${nm}, principal of ${String(W.name||"").trim()||"the new group"}`,who:"him",start:src,back:{group:gid||"",form,forNew:!!o.forNew}})}},W.plook?"Design him again":"Design him in the studio"),
             W.plook?h("button",{type:"button",class:"adm-btn sm",onclick:()=>{W.plook=null;draw()}},pt?"Keep his current look":"Back to the draft"):null))}
       if(isNew)pane.append(h("h4",null,"Scene settings (optional)"),inp("Their hall, in scene words","hall",false,"in a lantern-lit cellar hall under the kitchens"),inp("Their hangout, in scene words","hang",false,"a cozy root cellar strewn with cushions"))}
-    const look=()=>({cols:W.cols.map(c=>c.trim()).filter(Boolean),crest:W.crest.trim(),shape:W.shape,c:Object.assign({},W.c)});
+    const look=()=>Object.assign({cols:W.cols.map(c=>c.trim()).filter(Boolean),crest:W.crest.trim(),shape:W.shape,c:Object.assign({},W.c)},W.px?{px32:W.px.px32,px16:W.px.px16||null}:{});
     const saveIt=()=>{const P=[];const nm=W.name.trim();const id=gid||slug(nm.replace(/^the\s+/i,""));
       const wk=W.woken||"";   /* v269: waking a sleeping group keeps its own name and id */
       if(!nm)P.push("Give the group a name.");else if((ACAD.GROUPS||[]).some(z=>z.id!==gid&&z.name.toLowerCase()===nm.toLowerCase())||LOSTG().some(z=>z.id!==wk&&z.name.toLowerCase()===nm.toLowerCase()))P.push(`There is already a group called ${nm}.`);
@@ -2761,7 +2774,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
         if(W.leader)ensure(d.edits=d.edits||{},"groups",gid).leader=W.leader;return commit(d,{page:"group:"+gid})}
       ensure(d,"edits");const ch={};["name","kind","motto","hangout","lore","leader","rival"].forEach(k=>{if(String(W[k]||"")!==String(g[k]||""))ch[k]=W[k]});
       if(Object.keys(ch).length)Object.assign(ensure(d.edits,"groups",gid),ch);
-      const lk=look();if(JSON.stringify(lk.cols)!==JSON.stringify((X.cols||[]).slice(0,3))||lk.crest!==(X.crest||"")||lk.shape!==gid||JSON.stringify(lk.c)!==JSON.stringify(CR.c||{}))ensure(d.edits,"glooks")[gid]=lk;
+      const lk=look();if(JSON.stringify(lk.cols)!==JSON.stringify((X.cols||[]).slice(0,3))||lk.crest!==(X.crest||"")||lk.shape!==gid||JSON.stringify(lk.c)!==JSON.stringify(CR.c||{})||JSON.stringify(W.px||null)!==px0)ensure(d.edits,"glooks")[gid]=lk;
       if(fac&&W.faction!==fac.id)ensure(d.edits,"groups",gid).faction=W.faction;
       {const x=extra();if(String(W.turf||"").trim()!==String(W.turf0||"").trim()||[W.pfull,W.ptitle,W.pblurb].join("\n")!==W.p0)ensure(d.edits,"gextra")[gid]=Object.assign({turf:"",principal:null},x)}
       if(W.plook)ensure(d.edits,"figures")["principal"+gid]=Object.assign({},(d.edits.figures||{})["principal"+gid]||{},{look:W.plook});
