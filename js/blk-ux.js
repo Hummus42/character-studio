@@ -203,6 +203,8 @@
   function people(pane,h,g){
     const R=ACAD.RELDATA||{},chip=(o,why)=>E("button",{type:"button",class:"ad-chip",onclick:()=>show({k:"girl",h:o}),title:why||""},face(o,22),HN(o),why?E("em",null,why):null);
     const sec=(t,list)=>{if(list.length)pane.append(E("div",{class:"ad-h"},t),E("div",{class:"ad-chips"},list))};
+    /* v328: girls who share her House */
+    sec("Her House",(ACAD.housemates?ACAD.housemates(h):[]).map(o=>chip(o,ACAD.isFirstGirl&&ACAD.isFirstGirl(o)?"Keeper":"")));
     sec("Best friends",(ACAD.BFOF?ACAD.BFOF(h):[]).map(o=>chip(o)));
     {const sgs=ACAD.sgOf?ACAD.sgOf(h):[];sec(sgs.length>1?"Secret girlfriends":"Secret girlfriend",sgs.map(x=>chip(x)))}
     sec("Rivals",((ACAD.RIVALS||{})[h]||[]).map(([o])=>chip(o)));

@@ -26,6 +26,13 @@
     add("Family","a family tie that is also a couple or a fling",FAM.filter(r=>rom.has(key2(r[0],r[1]))).map(r=>HN(r[0])+" and "+HN(r[1])));
     add("Family","an elder or younger sister that the ages contradict",FAM.filter(r=>(/younger/.test(r[3])&&!(ageOf(r[1])<ageOf(r[0])))||(/(elder|older)/.test(r[3])&&!(ageOf(r[1])>ageOf(r[0])))).map(r=>HN(r[0])+" and "+HN(r[1])));
     add("Family","a family tie whose biography does not say so",FAM.filter(r=>{const t=x=>String((B[x]||{}).siblings||"")+" "+String((B[x]||{}).family||"");return !t(r[0]).toLowerCase().includes(HN(r[1]).toLowerCase())||!t(r[1]).toLowerCase().includes(HN(r[0]).toLowerCase())}).map(r=>HN(r[0])+" and "+HN(r[1])));
+    /* v328: the world itself: every girl has a House and a group, every faction its groups, every group a faction */
+    if(ACAD.houseOf){const L=ACAD.canon&&ACAD.canon.layer?ACAD.canon.layer():{},AG=(L.add&&L.add.girls)||{},AH=(L.add&&L.add.houses)||{},HS=ACAD.HOUSES||[];
+      add("World","a girl whose House does not exist",Object.entries(AG).filter(([h,a])=>a.place&&a.place.kind==="house"&&a.place.house&&!HS.includes(a.place.house)&&!AH[a.place.house]).map(([h])=>HN(h)));
+      add("World","a girl in no group",HS.filter(h=>!(ACAD.GROUP_OF&&ACAD.GROUP_OF(h))).map(HN));
+      add("World","a faction with no groups",(ENC.FACTIONS||[]).filter(f=>!(f.groups||[]).length).map(f=>f.name));
+      add("World","a group in no faction",groups.filter(g=>!g.apart&&!(ENC.factionOf&&ENC.factionOf(g.id))).map(g=>g.name));
+      add("World","a House with no girls",Object.keys(AH).filter(id=>!ACAD.girlsOf(id).length).map(id=>AH[id].name||id))}
     KINDS.forEach(k=>{const by={};members.forEach(([g,h])=>{const t=tplById(h+k);if(t)(by[t.name]=by[t.name]||[]).push(HN(h))});
       add("Scenes","same "+k+" scene name shared by several Houses",Object.entries(by).filter(([n,l])=>l.length>1).map(([n,l])=>"“"+n+"” ("+l.length+": "+l.slice(0,4).join(", ")+(l.length>4?"…":"")+")"))});
     return out;

@@ -7,7 +7,8 @@
    own biography, looks, wardrobe, relationships and boyfriend. Loads after every file that builds girls and templates. ---- */
 (function(){
   if(typeof ACAD==="undefined")return;
-  const layer=()=>(ACAD.canon&&ACAD.canon.layer?ACAD.canon.layer():{})||{};
+  /* the layer is read once (merging drafts over the base is costly; drafts change by reloading or ACAD.WORLD.refresh) */
+  let LY=null;const layer=()=>LY||(LY=(ACAD.canon&&ACAD.canon.layer?ACAD.canon.layer():{})||{});
   const ADD=()=>((layer().add||{}).girls)||{};
   const ADDH=()=>((layer().add||{}).houses)||{};
   const T=id=>typeof tplById==="function"?tplById(id):null;
@@ -52,5 +53,16 @@
   ACAD.keyFrom=name=>{let b=String(name||"").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"").replace(/^[0-9]+/,"").slice(0,20)||"girl";
     if(!ACAD.keyOk(b))return b;for(let i=2;i<99;i++){const k=b+"x"+i;if(!ACAD.keyOk(k))return k}return ""};
 
-  ACAD.WORLD={v:328};
+  ACAD.WORLD={v:328,refresh:()=>{LY=null}};
+})();
+/* v328: her page names the girls who share her House, and its Keeper */
+(function(){
+  if(typeof ENC==="undefined"||!ENC.buildHouse||!ENC.E||!ACAD.housemates)return;
+  const E=ENC.E,HN=h=>(ENC.HN?ENC.HN(h):h),lnk=(id,t)=>E("a",{href:"#",onclick:ev=>{ev.preventDefault();ENC.go(id)}},t);
+  const bh=ENC.buildHouse;
+  ENC.buildHouse=function(el,h){bh.apply(this,arguments);try{const mates=ACAD.housemates(h);if(!mates.length)return;const side=el.querySelector(".enc-side");if(!side)return;
+    const house=ACAD.houseOf(h),rec=ACAD.houseRec(house),first=ACAD.primaryOf(house);
+    side.append(E("div",{class:"enc-card"},E("h4",null,rec.name+" House"),
+      E("p",{class:"enc-note",style:{marginTop:0}},h===first?"She is its Keeper. Others share her House:":"She shares it with:"),
+      E("ul",{class:"enc-list"},mates.map(x=>E("li",null,ENC.pixel?ENC.pixel(x,20):null," ",lnk("house:"+x,HN(x)),x===first?" (its Keeper)":"")))))}catch(e){console.warn("[world]",e)}};
 })();
