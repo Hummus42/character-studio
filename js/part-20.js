@@ -184,8 +184,7 @@
   PLACES().forEach(p=>wrap("place:"+p.id,el=>{const side=el.querySelector(".enc-side");if(!side||!(ACAD.mayEdit?ACAD.mayEdit("place:"+p.id):K.admin))return;
     const added=C.isAddedPlace&&C.isAddedPlace(p.id);
     side.prepend(card(added?"A place you added. Change what its page says, who it belongs to or where its pin is, or remove it.":"Change the place's name, description, who it belongs to or where its pin is.",btn("Edit place",()=>openPlace(p.id))))}));
-  wrap("places",el=>{const art=el.querySelector(".enc-article");if(!art)return;const n=art.querySelector(".enc-note");
-    const c=card("Add a place to the map. It gets a numbered pin, a page and a place in the list.",btn("Add a place",()=>openPlace(null)));c.classList.add("adm-card-inline");(n||art.firstChild).after(c)});
+  /* v328: adding a place is in Add to Everspire (Start: lore only) */
   wrap("history",el=>{const art=el.querySelector(".enc-article");if(!art)return;const lead=art.querySelector(".enc-lead");
     const c=K.admin?card("Change, add, reorder or remove the eras, the events and the questions the histories leave open.",btn("Edit history",()=>openHistory())):card("Add events to the history: in an era, or in a new era of your own.",btn("Add to the history",()=>openHistory({add:true})));c.classList.add("adm-card-inline");(lead||art.firstChild).after(c);if(!K.admin)return;
     let ei=-1,ii=0;art.querySelectorAll(".enc-timeline > li").forEach(li=>{if(li.classList.contains("era")){ei++;ii=0;return}
@@ -537,8 +536,7 @@ h3.enc-h .adm-loreedit{font-size:12.5px}`;
     side.prepend(card(C.isAddedFaction&&C.isAddedFaction(f.id)?"A faction you added. Change its name, story, colors or seat, or remove it.":"Change the faction's name, motto, story, colors or seat.",btn("Edit faction",()=>openFaction(f.id)),btn(f.dean==="vael"?"Edit Headmaster":"Edit dean",()=>openStaff(f.dean))))}));
   Object.keys(ENC.STAFF||{}).forEach(k=>wrap("staff:"+k,el=>{if(!(ACAD.mayEdit?ACAD.mayEdit("staff:"+k):K.admin))return;const side=el.querySelector(".enc-side");const where=side||el.querySelector(".enc-article")||el;
     const c=card(k==="vael"?"Change the Headmaster's name, title, look and lore.":"Change the dean's name, title, look and lore.",btn(k==="vael"?"Edit Headmaster":"Edit dean",()=>openStaff(k)));if(side)side.prepend(c);else where.prepend(c)}));
-  wrap("groups",el=>{const art=el.querySelector(".enc-article");if(!art)return;const lead=art.querySelector(".enc-lead");const c=card("Add a faction: a name, colors, a dean and the groups that join it.",btn("Add a faction",()=>openFaction(null)));c.classList.add("adm-card-inline");(lead||art.firstChild).after(c)});
-  wrap("roll",el=>{const art=el.querySelector(".enc-article");if(!art)return;const n=art.querySelector(".enc-note");const c=card("Add a lost group to the Roll, with its Houses, crest and allegiance.",btn("Add a lost group",()=>openLost(null)));c.classList.add("adm-card-inline");(n||art.firstChild).after(c)});
+  /* v328: new factions are founded in Add to Everspire (Where she belongs); new lost groups from its Start step */
   (ENC.ROLL||[]).forEach(g=>wrap("lost:"+g.id,el=>{if(!(ACAD.mayEdit?ACAD.mayEdit("lost:"+g.id):K.admin))return;const side=el.querySelector(".enc-side");const c=card(C.isAddedLost&&C.isAddedLost(g.id)?"A lost group you added. Change it, or remove it.":"Change its story, colors and crest, its Houses and its champion.",btn("Edit lost group",()=>openLost(g.id)));
     if(side)side.prepend(c);else{const art=el.querySelector(".enc-article")||el;c.classList.add("adm-card-inline");art.prepend(c)}}));
   /* every chapter's opening, and the World Overview whole */
@@ -659,20 +657,14 @@ h3.enc-h .adm-loreedit{font-size:12.5px}`;
     pdlg=h("dialog",{class:"adm-dlg",id:"playerDlg","aria-label":"My lore"});
     const body=h("div",{class:"adm-body"});
     const nameIn=h("input",{class:"adm-in",type:"text",value:myName(),placeholder:"The name your work is credited to","aria-label":"Your name",oninput:e=>{try{localStorage.setItem(NAMEKEY,e.target.value.trim())}catch(er){}}});
-    body.append(h("h2",null,"My lore"),h("p",{class:"adm-lead"},"Add to Everspire: new girls and their Houses, groups, factions, places, lost groups, and new history, traditions, story seeds and customs. What you add is yours until you submit it; the admin reviews every submission before it becomes canon for everyone."),
+    body.append(h("h2",null,"My changes"),h("p",{class:"adm-lead"},"Everything you've added to Everspire. It is yours until you submit it; the admin reviews every submission before it becomes canon for everyone."),
       h("h3",null,"Your name"),h("p",{class:"adm-muted"},"Your work is credited to this name."),nameIn);
     body.append(h("h3",null,list.length?`What you're adding (${list.length})`:"What you're adding"));
     if(!list.length)body.append(h("p",{class:"adm-muted"},"Nothing yet. Start below."));
     else body.append(h("ul",{class:"adm-changes"},list.map(c=>h("li",null,h("span",null,c.label),h("button",{type:"button",class:"adm-btn sm",onclick:()=>{const x=drafts();K.delPath(x,c.path);commit(x,{admin:true})}},"Remove")))));
     const go=fn=>()=>{pdlg.close();fn()};
-    body.append(h("h3",null,"Start something new"),h("div",{class:"adm-actions"},
-      h("button",{type:"button",class:"adm-btn",onclick:go(()=>ACAD.admin.makeNew())},"A girl, from the studio's character"),
-      h("button",{type:"button",class:"adm-btn",onclick:go(()=>ACAD.admin.group(null))},"A group"),
-      ACAD.admin.faction?h("button",{type:"button",class:"adm-btn",onclick:go(()=>ACAD.admin.faction(null))},"A faction"):null,
-      ACAD.admin.place?h("button",{type:"button",class:"adm-btn",onclick:go(()=>ACAD.admin.place(null))},"A place"):null,
-      ACAD.admin.lost?h("button",{type:"button",class:"adm-btn",onclick:go(()=>ACAD.admin.lost(null))},"A lost group"):null,
-      ACAD.admin.history?h("button",{type:"button",class:"adm-btn",onclick:go(()=>ACAD.admin.history({add:true}))},"History"):null),
-      h("p",{class:"adm-muted"},"Traditions, story seeds, customs, glossary words and mysteries are added from their pages in the Encyclopedia: look for Add."));
+    body.append(h("h3",null,"Add something"),h("div",{class:"adm-actions"},h("button",{type:"button",class:"adm-btn primary",onclick:go(()=>ACAD.admin.addTo?ACAD.admin.addTo():ACAD.admin.makeNew())},"Add to Everspire")),
+      h("p",{class:"adm-muted"},"One workflow for everything new: a girl with her faction, group and House, or lore on its own. Traditions, story seeds, customs, glossary words and mysteries are added from their pages in the Encyclopedia: look for Add."));
     /* the checks, before it goes anywhere */
     const box=h("div");
     const run=()=>{box.textContent="";if(!list.length)return null;const cs=make(d,nameIn.value.trim()||"(your name)",d.note);const r=check(cs);

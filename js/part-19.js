@@ -138,21 +138,16 @@
   if(typeof BIOS!=="undefined")Object.entries(CHAMP).forEach(([k,[h]])=>{if(BIOS[h]&&!BIOS[h].group2)BIOS[h].group2=LOST[k].name});
 
   /* ---------- begin with a House record in her Biography ---------- */
-  ENC.beginSleeping=(g,h)=>{const also=ENC.ALSO[h.id];
-    ENC.markRevived(h.id);
-    ENC.beginGirl({name:h.name,pal:{primary:g.words[0],secondary:g.words[1],third:g.words[2]},
-      bio:Object.assign({house:h.name+" House",group:g.name,groupRole:"Keeper of "+h.name+" House, the first awake in a lifetime"},also?{group2:also}:{}),
-      toast:`${h.name} House is awake. A new girl in ${low(g.name)}'s colors, with her House in her Biography. Undo brings your previous design back.`})};
-  ENC.beginWardBio=hid=>{const t=T(hid+"robes"),pal=t&&t.pal?Object.assign({},t.pal):{},g=ACAD.GROUP_OF(hid),rv=g&&G(g.rival);
-    ENC.beginGirl({name:"Ward of "+HN(hid),pal,bio:Object.assign({house:HN(hid)+" House (ward)",groupRole:"Ward of "+HN(hid)+" House"},g?{group:g.name}:{},rv?{rivalGroup:rv.name}:{}),
-      toast:`Started a ward of ${HN(hid)} House, in its colors, with her House and group in her Biography. Undo brings your previous design back.`})};
+  /* v328: both open Add to Everspire with her place chosen; it is the one way to add a girl */
+  ENC.beginSleeping=(g,h)=>ACAD.admin&&ACAD.admin.addTo({kind:"wake",lost:g.id,house:h.id,name:h.name,group:g.kin||""});
+  ENC.beginWardBio=hid=>ACAD.admin&&ACAD.admin.addTo({kind:"house",house:hid});
 
   /* ---------- 3. the second chair, under the banner; and her second banner in the House record ---------- */
   const bh=ENC.buildHouse;
   ENC.buildHouse=(el,h)=>{bh(el,h);
     const banner=el.querySelector(".enc-banner");
-    const bar=E("div",{class:"enc-chairbar"},E("span",null,E("b",null,"The second chair. "),HN(h)+" is "+HN(h)+" House's Keeper; her headmistress may still choose a ward."),
-      E("button",{type:"button",class:"enc-load",onclick:()=>ENC.beginWard(h)},"Design your own ward of "+HN(h)+" House"));
+    const bar=E("div",{class:"enc-chairbar"},E("span",null,E("b",null,"The second chair. "),HN(h)+" is "+HN(h)+" House's Keeper; her House can hold more girls, who share its headmistress."),
+      E("button",{type:"button",class:"enc-load",onclick:()=>ENC.beginWardBio(ACAD.houseOf?ACAD.houseOf(h):h)},"Add a girl to "+HN(ACAD.houseOf?ACAD.houseOf(h):h)+" House"));
     if(banner)banner.after(bar);
     /* v246: a canon girl's sworn banner (ENC.SWORN[h] = [lost group, oath]), beside the champions */
     const sw=(ENC.SWORN||{})[h];const ch=sw&&LOST[sw[0]]?[sw[0]]:champOf(h);const oath=sw&&LOST[sw[0]]?sw[1]:(ch.length?CHAMP[ch[0]][1]:"");
@@ -211,46 +206,13 @@
       E("p",{class:"enc-note"},lnk("oc","Original Characters")," has a planner for her banners, and her Biography has a Second banner field.")];
     nodes.forEach(n=>at?art.insertBefore(n,at):art.append(n))}}}
 
-  /* ---------- Original Characters: plan her House and banners ---------- */
+  /* ---------- Original Characters: one way in (v328: the planner became Add to Everspire's "Where she belongs") ---------- */
   {const p=ENC.pages["oc"];if(p&&p.build){const ob=p.build;p.build=el=>{ob(el);const art=el.querySelector(".enc-article")||el;
     const at=[...art.querySelectorAll("h3.enc-h")].find(x=>x.textContent==="Making her");
-    const opt=(v,t)=>E("option",{value:v},t);
-    const houseSel=E("select",{"aria-label":"Her House"},opt("","Choose her House"),
-      E("optgroup",{label:"A ward of a living House"},...ACAD.GROUPS.flatMap(g=>g.members.map(h=>opt("live:"+h,HN(h)+" House ("+g.name+")")))),
-      ...ROLL.map(g=>E("optgroup",{label:"Wake a sleeping House: "+g.name},...g.houses.map(h=>opt("lost:"+h.id,h.name+" House")))));
-    const groupOpts=()=>[opt("","None"),E("optgroup",{label:"Living groups"},...ACAD.GROUPS.map(g=>opt(g.id,g.name))),E("optgroup",{label:"Sleeping groups"},...ROLL.map(g=>opt(g.id,g.name)))];
-    const firstSel=E("select",{"aria-label":"Her first banner"},...groupOpts()),secondSel=E("select",{"aria-label":"Her second banner"},...groupOpts());
-    const out=E("div",{class:"enc-plan-out"});
-    const state=()=>{const v=houseSel.value;if(!v)return null;const [k,id]=v.split(":");if(k==="live")return {live:id};return HOUSE[id]?{lost:HOUSE[id]}:null};
-    houseSel.onchange=()=>{const s=state();if(!s)return show();
-      if(s.live){const g=ACAD.GROUP_OF(s.live);firstSel.value=g?g.id:"";secondSel.value=""}
-      else{firstSel.value=s.lost.g.id;secondSel.value=ALSO_ID[s.lost.h.id]||s.lost.g.kin||""}
-      show()};
-    firstSel.onchange=secondSel.onchange=()=>show();
-    const bioFor=()=>{const s=state();if(!s)return null;const b={};
-      if(s.live){b.house=HN(s.live)+" House (ward)";b.groupRole="Ward of "+HN(s.live)+" House"}else{b.house=s.lost.h.name+" House";b.groupRole="Keeper of "+s.lost.h.name+" House"}
-      if(firstSel.value){b.group=gName(firstSel.value);const lg=G(firstSel.value),rv=lg&&G(lg.rival);if(rv)b.rivalGroup=rv.name}
-      if(secondSel.value&&secondSel.value!==firstSel.value)b.group2=gName(secondSel.value);return b};
-    function show(){out.textContent="";const s=state();if(!s){out.append(E("p",{class:"enc-note"},"Choose a House to see where she stands."));return}
-      const a=firstSel.value,b=secondSel.value&&secondSel.value!==firstSel.value?secondSel.value:"";
-      const fa=facOfGroup(a),fb=b?facOfGroup(b):"";const F=FX(fa);
-      const who=s.live?["A ward of ",lnk("house:"+s.live,HN(s.live)+" House"),", known by her own name joined to its own."]:["The Keeper of ",lnk("lost:"+s.lost.g.id,s.lost.h.name+" House"),", awake for the first time in a lifetime, and called by its name."];
-      out.append(E("div",{class:"enc-plan-card"},
-        E("div",{class:"icons"},s.live?ENC.pixel(s.live,48):ENC.rollIcon(s.lost.h.id,48),a?(G(a)?ENC.crest(a,32):ENC.lostCrest(a,32)):null,b?(G(b)?ENC.crest(b,32):ENC.lostCrest(b,32)):null),
-        E("div",null,
-          E("p",null,...who),
-          a?E("p",null,"First banner: ",gLink(a),". ",F?["Sworn to ",lnk("faction:"+F.id,F.name),", under ",lnk("staff:"+F.dean,ENC.STAFF[F.dean].name),"."]:"Unsworn: she answers to the Headmaster until she chooses."):null,
-          b?E("p",null,"Second banner: ",gLink(b),". ",fa&&fb&&fa!=="none"&&fb!=="none"&&fa!==fb?E("b",null,"Across the line between Dawn and Dusk: allowed by the Accord, rare, and always a story."):"She may sit at either table and compete for either, never both at once."):null)),
-        E("div",{class:"enc-loads"},
-          E("button",{type:"button",class:"enc-load",onclick:()=>{const bio=bioFor();if(!bio)return;
-            if(s.live){const t=T(s.live+"robes");ENC.beginGirl({name:"Ward of "+HN(s.live),pal:t&&t.pal?Object.assign({},t.pal):{},bio,toast:`Started a ward of ${HN(s.live)} House with her banners in her Biography. Undo brings your previous design back.`})}
-            else{const g=s.lost.g;ENC.markRevived(s.lost.h.id);ENC.beginGirl({name:s.lost.h.name,pal:{primary:g.words[0],secondary:g.words[1],third:g.words[2]},bio,toast:`${s.lost.h.name} House is awake, with her banners in her Biography. Undo brings your previous design back.`})}}},"Begin her with these banners"),
-          E("button",{type:"button",class:"enc-load",title:"Write her House, group and second banner into the Biography of the design you have open",onclick:()=>{const bio=bioFor();if(!bio||typeof mut!=="function")return;
-            mut(()=>{S.bio=Object.assign({},S.bio||{},bio)});if(s.lost)ENC.markRevived(s.lost.h.id);ENC.close();if(typeof toast==="function")toast("Her House and banners are in her Biography.")}},"Write them into my current design")))}
-    const nodes=[E("h3",{class:"enc-h",id:"banners"},"Plan her House and banners"),
-      E("p",{class:"enc-note"},"A girl flies one group's banner first and may carry a second, living or sleeping. Choose her House and the planner fills in the rest; change either banner as you like. ",lnk("groups","The rules"),". ",tag("n")),
-      E("div",{class:"enc-plan"},E("label",null,E("span",null,"Her House"),houseSel),E("label",null,E("span",null,"First banner"),firstSel),E("label",null,E("span",null,"Second banner"),secondSel)),out];
-    nodes.forEach(n=>at?art.insertBefore(n,at):art.append(n));show()}}}
+    const nodes=[E("h3",{class:"enc-h",id:"banners"},"Add her to Everspire"),
+      E("p",{class:"enc-note"},"One workflow does all of it, in order: her faction, group and House (new ones too), her look from the studio or a saved design, who she is, her people and her pictures. It saves as you go, so you can stop and come back."),
+      E("div",{class:"enc-loads"},E("button",{type:"button",class:"enc-load",onclick:()=>ACAD.admin&&ACAD.admin.addTo()},"Add to Everspire"))];
+    nodes.forEach(n=>at?art.insertBefore(n,at):art.append(n))}}}
 
   /* ---------- styles ---------- */
   const st=document.createElement("style");st.id="encCss230";st.textContent=`
@@ -310,7 +272,7 @@ if(typeof ENC!=="undefined"){ENC.lostCrestURL16=ENC.lostCrestURL;ENC.sigilURL16=
   /* ---------- guests ---------- */
   const GUEST={dawn:{wing:"the Sunward Wing",place:"sunward",pal:{primary:"dawn gold",secondary:"cream",third:"rose pink"}},
                dusk:{wing:"the Duskward Wing",place:"duskward",pal:{primary:"plum",secondary:"silver",third:"midnight blue"}}};
-  ENC.beginGuest=fid=>{const G=GUEST[fid],F=ENC.FACTIONS.find(f=>f.id===fid);if(!G||!F)return;
+  ENC.beginGuest=fid=>{if(ACAD.admin&&ACAD.admin.addTo)return ACAD.admin.addTo();const G=GUEST[fid],F=ENC.FACTIONS.find(f=>f.id===fid);if(!G||!F)return;
     ENC.beginGirl({name:"Guest of "+G.wing.replace(/^the /,"the "),pal:G.pal,
       bio:{house:"No House yet (a guest of "+G.wing+")",groupRole:"Guest of "+F.name+", lodging in "+G.wing,notes:"A guest at Everspire: no House has chosen her yet, and every group would like to be the one that does."},
       toast:`Started a guest of ${G.wing}, in ${F.short}'s colors. Undo brings your previous design back.`})};
@@ -320,13 +282,13 @@ if(typeof ENC!=="undefined"){ENC.lostCrestURL16=ENC.lostCrestURL;ENC.sigilURL16=
     pg.build=el=>{ob(el);const mainCol=el.querySelector(".enc-cols>div");if(!mainCol)return;const F=ENC.FACTIONS.find(f=>f.id===fid);
       const box=E("div",{class:"enc-guestbox"},E("b",null,"Guests of "+G.wing+". "),
         "A girl whom no House has chosen yet, or a visiting scholar here for a term, lodges in "+G.wing+" as a guest of "+F.name.replace(/^The /,"the ")+". She belongs to no group, which means every group is trying to claim her.",
-        E("div",{class:"enc-loads",style:{marginTop:"8px"}},E("button",{type:"button",class:"enc-load",onclick:()=>ENC.beginGuest(fid)},"Begin a guest of "+G.wing.replace(/^the /,"the "))),tag("n"));
+        tag("n"));
       const lead=mainCol.querySelector(".enc-lead");if(lead)lead.after(box);else mainCol.prepend(box)}});
   /* chapter 9: the guest card gets its buttons; the planner gets guests */
   {const p=ENC.pages["oc"];if(p&&p.build){const ob=p.build;p.build=el=>{ob(el);
     const way=[...el.querySelectorAll(".enc-ways .way")].find(w=>/Come as a guest/.test(w.textContent));
     if(way){const l=way.querySelector("a");if(l)l.remove();
-      way.append(E("div",{class:"enc-loads"},E("button",{type:"button",class:"enc-load",onclick:()=>ENC.beginGuest("dawn")},"Begin a guest of Dawn"),E("button",{type:"button",class:"enc-load",onclick:()=>ENC.beginGuest("dusk")},"Begin a guest of Dusk")),
+      way.append(E("div",{class:"enc-loads"},E("button",{type:"button",class:"enc-load",onclick:()=>ACAD.admin&&ACAD.admin.addTo()},"Add to Everspire")),
         E("p",{class:"enc-note",style:{margin:"6px 0 0"}},lnk("place:sunward","The Sunward Wing")," and ",lnk("place:duskward","the Duskward Wing")))}
     const sel=el.querySelector(".enc-plan select");
     if(sel){const og=E("optgroup",{label:"A guest (no House yet)"},E("option",{value:"guest:dawn"},"Guest of the Sunward Wing (Dawn)"),E("option",{value:"guest:dusk"},"Guest of the Duskward Wing (Dusk)"));
@@ -2060,21 +2022,14 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     dlg=h("dialog",{class:"adm-dlg",id:"admDlg","aria-label":"Admin"});
     const close=h("button",{type:"button",class:"adm-x","aria-label":"Close",onclick:()=>dlg.close()},"×");
     const body=h("div",{class:"adm-body"});
-    body.append(h("h2",null,"Admin"),
-      h("p",{class:"adm-lead"},`Changes are drafts in this browser until you save them into a file. This file is revision ${C.rev()}.`));
+    body.append(h("h2",null,"Changes and publishing"),
+      h("p",{class:"adm-lead"},`Changes are drafts in this browser until you save them into a file. This file is revision ${C.rev()}. Everything new is added in Add to Everspire.`),
+      h("div",{class:"adm-actions"},h("button",{type:"button",class:"adm-btn primary",onclick:()=>{dlg.close();addTo()}},"Add to Everspire")));
     if(st)body.append(h("div",{class:"adm-note"},h("b",null,"Older drafts set aside. "),`They were made for revision ${st.base||0}, before this file's changes were saved into it, so they aren't applied. `,
       h("button",{type:"button",class:"adm-btn sm",onclick:()=>{C.saveDrafts(null);openAdmin()}},"Discard them")));
     body.append(h("h3",null,list.length?`Unsaved changes (${list.length})`:"Unsaved changes"));
     if(!list.length)body.append(h("p",{class:"adm-muted"},"None. Open a girl's House page in the Encyclopedia and choose Edit canon."));
     else body.append(h("ul",{class:"adm-changes"},list.map(c=>h("li",null,h("span",null,c.label),h("button",{type:"button",class:"adm-btn sm",onclick:()=>{const x=drafts();delPath(x,c.path);commit(x,{admin:true})}},"Revert")))));
-    body.append(h("h3",null,"New girls"),h("p",{class:"adm-muted"},NEWW?`${NEWW.name||"A new girl"} is waiting to be finished.`:"Design her in the studio first. Her first outfit becomes her robes."),
-      h("div",{class:"adm-actions"},h("button",{type:"button",class:"adm-btn",onclick:()=>{dlg.close();openEditor(null,null,true)}},NEWW?"Continue her":"Make the studio's character canon")));
-    body.append(h("h3",null,"Groups"),h("p",{class:"adm-muted"},"A new group joins a faction with its own colors and crest; girls join it from Edit canon or Make her canon."),
-      h("div",{class:"adm-actions"},h("button",{type:"button",class:"adm-btn",onclick:()=>{dlg.close();openGroup(null)}},"New group")));
-    /* v259: the rest of the world starts here too, not only from its pages */
-    {const go=(fn,...a)=>()=>{dlg.close();const f=ACAD.admin[fn];if(f)f(...a)};const W=[["faction","New faction",null],["lost","New lost group",null],["place","New place",null],["history",ADMIN?"Edit history":"Add to the history",ADMIN?undefined:{add:true}]].filter(([fn])=>ACAD.admin&&ACAD.admin[fn]);
-      if(W.length&&ADMIN)body.append(h("h3",null,"The wider world"),h("p",{class:"adm-muted"},"Factions, the Roll of Sleeping Houses, places on the map and the history. Every page in the Encyclopedia also has its own Edit button."),
-        h("div",{class:"adm-actions"},W.map(([fn,l,arg])=>h("button",{type:"button",class:"adm-btn",onclick:go(fn,arg)},l))))}
     const pub=h("div",{class:"adm-actions"},
       h("button",{type:"button",class:"adm-btn primary",onclick:()=>{try{download("canon.js",buildCanon(),"text/javascript");say("Canon data saved as canon.js. Put it in the site's js folder to publish these changes; these drafts are in it now.")}catch(e){say("The canon data couldn't be written.")}}},"Save canon data (for the site)"),
       h("button",{type:"button",class:"adm-btn",onclick:()=>{buildFile("admin").then(t=>{download(fileName("admin"),t);say("Single-file admin edition saved. Keep the assets folder beside it.")}).catch(()=>say("A single file can only be bundled from the site, not from a saved copy of this page."))}},"Save single-file admin edition"),
@@ -2115,8 +2070,11 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
 
   /* ---------- the header button ---------- */
   let btn=null;
-  function updateBtn(){if(!btn)return;const n=changes(drafts()).length;const L=ADMIN?"Admin":"My lore";btn.textContent=n?`${L} (${n})`:L;btn.title=ADMIN?(n?`${n} unsaved canon ${n===1?"change":"changes"}`:"Admin tools"):(n?`${n} ${n===1?"thing":"things"} in your lore, not yet submitted`:"Add your own girls, groups, places and lore")}
-  function placeBtn(){const b0=document.querySelector(".ed-badge");btn=h("button",{type:"button",class:"btn adm-head",onclick:openAdmin});
+  /* v328: the header button is Add to Everspire, the one way in; its count is the works in progress */
+  function updateBtn(){if(!btn)return;let w=0;try{w=Object.values(WORKS).filter(x=>x&&x.begun).length}catch(e){}const n=changes(drafts()).length;
+    btn.textContent=w?`Add to Everspire (${w})`:"Add to Everspire";
+    btn.title=(w?`${w} ${w===1?"work":"works"} in progress. `:"")+(ADMIN?(n?`${n} unsaved canon ${n===1?"change":"changes"}`:"Add girls, Houses, groups, factions and lore"):(n?`${n} ${n===1?"thing":"things"} in your lore, not yet submitted`:"Add your own girls, Houses, groups and lore"))}
+  function placeBtn(){const b0=document.querySelector(".ed-badge");btn=h("button",{type:"button",class:"btn adm-head",onclick:()=>addTo()});
     if(b0)b0.replaceWith(btn);else{const tb=document.getElementById("themeBtn");if(tb&&tb.parentNode)tb.parentNode.insertBefore(btn,tb)}updateBtn()}
 
   /* ---------- Edit canon ---------- */
@@ -2299,9 +2257,16 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
 
   /* ---------- v243: a new girl (Make her canon) ---------- */
   const NEWKEY="__new",NKEY="everspire.admin.newgirl.v1";let NEWW=null;
-  try{const s0=localStorage.getItem(NKEY);if(s0)NEWW=JSON.parse(s0)}catch(e){}
+  /* v328: Add to Everspire keeps any number of works in progress (everspire.add.works.v1), each saved at every step */
+  const WKEY="everspire.add.works.v1";let WORKS={},CURW="";
+  try{WORKS=JSON.parse(localStorage.getItem(WKEY)||"{}")||{};CURW=localStorage.getItem(WKEY+".cur")||""}catch(e){}
+  try{const s0=localStorage.getItem(NKEY);if(s0){const w=JSON.parse(s0);if(w){w.wid=w.wid||("w"+Date.now().toString(36));WORKS[w.wid]=w;CURW=w.wid}localStorage.removeItem(NKEY)}}catch(e){}
+  NEWW=CURW&&WORKS[CURW]||null;
+  const saveWorks=()=>{try{localStorage.setItem(WKEY,JSON.stringify(WORKS));localStorage.setItem(WKEY+".cur",CURW)}catch(e){}};
   pendingSrc=()=>NEWW&&NEWW.pendingGroup;
-  const keepNew=()=>{try{if(NEWW)localStorage.setItem(NKEY,JSON.stringify(NEWW));else localStorage.removeItem(NKEY)}catch(e){}};
+  const keepNew=()=>{if(NEWW){NEWW.wid=NEWW.wid||("w"+Date.now().toString(36));NEWW.saved=Date.now();WORKS[NEWW.wid]=NEWW;CURW=NEWW.wid}
+    else{if(CURW)delete WORKS[CURW];CURW=""}saveWorks();if(typeof updateBtn==="function")try{updateBtn()}catch(e){}};
+  const worksList=()=>Object.values(WORKS).sort((a,b)=>(b.saved||0)-(a.saved||0));
   const DETF=[["room","Her room","her trophy-lined bedroom"],["bath","Her bathroom","a marble bathroom"],["out","Her outdoor spot","a harbor promenade at golden hour"],
     ["pride","Her title","the undefeated champion"],["role","What she calls herself","the champion"],["pet","Her pet name","Goldie"],["acc","Her accent light","crimson-and-gold accents"],["mot","Her emblem","a golden laurel"]];
   const slug=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"");
@@ -2313,7 +2278,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     const hs=String(b.house||"").replace(/\s*\(?ward\)?$/i,"").replace(/\s+House$/i,"").trim();
     if(hs){const own=(ACAD.HOUSES||[]).find(k=>HN(k).toLowerCase()===hs.toLowerCase());
       const sl=!own&&typeof ENC!=="undefined"&&ENC.sleepingByName?ENC.sleepingByName(hs):null;
-      if(own)W.wardOf=own;
+      if(own){W.place={kind:"house",lost:"",house:own};const g0=ACAD.GROUP_OF&&ACAD.GROUP_OF(own);if(g0)W.group=g0.id}
       else if(sl&&sl.g&&sl.h&&!(typeof ENC!=="undefined"&&ENC.isAwake&&(ACAD.canonAwake?ACAD.canonAwake():[]).includes(sl.h.id))){W.place={kind:"wake",lost:sl.g.id,house:sl.h.id};W.name=sl.h.name;if(GRP(sl.g.kin))W.group=sl.g.kin}
       else W.name=hs.replace(/\b([a-z])/g,(m,c)=>c.toUpperCase());
       W.typed=own?"":hs.replace(/\b([a-z])/g,(m,c)=>c.toUpperCase())}
@@ -2345,24 +2310,33 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
       Object.values(o.items||{}).forEach(t=>{if(Array.isArray(t))t[0]=sw(t[0])});Object.keys(o.details||{}).forEach(k=>{o.details[k]=sw(o.details[k])})}
     return{outfit:o,mate}}
   const emptyOutfit=W=>!W.look||!W.look.outfit||!Object.keys(W.look.outfit.items||{}).length;
-  const keyOfNew=W=>W.place.kind==="wake"&&W.place.house?W.place.house:slug(W.name);
+  const keyOfNew=W=>{if(W.place.kind==="wake"&&W.place.house)return W.place.house;
+    if(W.place.kind==="house"){if(!W.key||W.keyName!==W.name){W.key=ACAD.keyFrom?ACAD.keyFrom(W.name):slug(W.name);W.keyName=W.name}return W.key}
+    return slug(W.name)};
   function checksNew(W){const P=[];const k=keyOfNew(W);
     if(!W.look)P.push("Her look: use the studio's current design (Look).");
     else if(emptyOutfit(W))P.push("Her first outfit is empty: choose “Use robes in her palette” on the Look tab, or give her an outfit in the studio.");
-    if(W.wardOf&&keyOfNew(W)===W.wardOf)P.push(`${HN(W.wardOf)} House already has its Keeper: give her a House of her own.`);
+    /* v328: a House may hold several girls; she joins one with place.kind "house" */
+    if(W.place.kind==="house"){if(!W.place.house||!(ACAD.HOUSES||[]).includes(W.place.house))P.push("Where she belongs: choose the House she joins.");
+      if(!String(W.name||"").trim())P.push("Who she is: give her a name.");else if(ACAD.keyOk){const ko=ACAD.keyOk(k);if(ko)P.push("Her name: "+ko)}}
     if(W.place.kind==="wake"&&!W.place.house)P.push("Placement: choose the sleeping House she wakes.");
     if(!k)P.push("Identity: give her a House name.");
-    else if((ACAD.HOUSES||[]).includes(k)||(typeof BIOS==="object"&&BIOS[k]))P.push(`There is already a House called ${W.name||k}.`);
-    if(!W.group||!GRP(W.group))P.push("Placement: choose her group.");
+    else if(W.place.kind!=="house"&&((ACAD.HOUSES||[]).includes(k)||(typeof BIOS==="object"&&BIOS[k])))P.push(`There is already a House called ${W.name||k}.`);
+    if(W.place.kind==="house"&&W.place.house&&ACAD.GROUP_OF){const hg=ACAD.GROUP_OF(W.place.house);if(hg)W.group=hg.id}
+    if(!W.group||!GRP(W.group))P.push("Where she belongs: choose her group.");
     return P}
   /* edits to a girl who was added: her own entry changes, not edits on top of it */
   const addedEntry=(d,x)=>{const cur=((C.layer().add||{}).girls||{})[x];const a=ensure(d,"add","girls");a[x]=clone(Object.assign({},cur||{},a[x]||{}));return a[x]};
   function toDraftsNew(W){const x=keyOfNew(W);const d=drafts();ensure(d,"edits");const minor=minorW(W);
     if(W.pendingGroup&&W.group===W.pendingGroup.id)ensure(d,"add","groups")[W.pendingGroup.id]=clone(W.pendingGroup.entry);
+    /* v328: a faction founded in her workflow, with the new group that joins it */
+    if(W.pendingFaction&&W.pendingFaction.id&&W.pendingGroup&&W.pendingGroup.entry&&W.pendingGroup.entry.faction===W.pendingFaction.id){const pf=W.pendingFaction,e=pf.entry||{};
+      ensure(d,"add","factions")[pf.id]=clone(Object.assign({name:e.name,short:e.short||String(e.name||"").replace(/^The /,""),motto:e.motto||"",tagline:e.tagline||"",opposes:(e.opposes||[]).slice(),cols:e.cols||{},
+        dean:{id:"dean"+pf.id,name:e.dean||"",title:"Dean of "+String(e.name||pf.id).replace(/^The /,"the "),look:"",lore:[],quote:""}},{}))}
     const bio={};Object.entries(W.bio).forEach(([f,v])=>{if(minor&&(INTIMATE.has(f)||ROMANTIC.has(f)))return;if(v)bio[f]=v});
     if(W.place.kind==="wake"){const g=lostOf(W.place.lost);if(g&&!bio.group2&&W.group!==g.id)bio.group2=g.name}   /* v269: not when she wakes the group itself */
     const lk=W.look?clone(W.look):W.look;if(lk)delete lk.pin;
-    const a={name:W.name.trim(),group:W.group,role:W.role,bio,adult:!minor,look:lk,place:clone(W.place),det:clone(W.det),men:clone(W.men),images:clone(W.img||{})};
+    const a={name:W.name.trim(),group:W.group,role:W.role,bio,adult:!minor,look:lk,place:W.place.kind==="group"?{kind:"group",lost:"",house:""}:clone(W.place),det:clone(W.det),men:clone(W.men),images:clone(W.img||{})};if(W.place.kind==="house"&&a.men)delete a.men.head;   /* v328: her House's Keeper is her headmistress */
     if(W.model&&!minor){a.model=W.model;const wd=Object.entries(W.words||{}).map(([p,q])=>[p,String(q||"").trim()]).filter(([p,q])=>q&&q!==p);if(wd.length)a.words=wd;
       if(W.sigLook)a.sigLook=W.sigLook;if(String(W.sigName||"").trim())a.sigName=String(W.sigName).trim()}if(minor&&a.men)a.men.man={name:"",blurb:"",look:null};
     if(W.place.kind==="group"&&W.banner2&&W.banner2.lost)a.banner2={lost:W.banner2.lost,oath:String(W.banner2.oath||"").trim()};
@@ -2389,9 +2363,9 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     /* v247: a design just made in the studio for her, her boyfriend, her headmistress or her Signature look */
     {const r=takeDesigned(x);if(r){const F=isNew?W.men:W.fig;if((r.kind==="man"||r.kind==="head")&&F&&F[r.kind]){F[r.kind].look=r.look;F[r.kind].reset=false}
       else if(r.kind==="robes")W.look=r.look;else if(r.kind==="her")W.look=Object.assign(r.look,W.look&&W.look.pin?{pin:true}:{});else if(r.kind==="sig")W.sigLook=r.look;if(isNew)keepNew()}}
-    let cur=tab||(isNew?"look":"identity");
-    ed=h("dialog",{class:"adm-dlg adm-ed",id:"canonDlg","aria-label":isNew?"Make her canon":"Edit canon: "+HN(x)});
-    const tabs=isNew?[["look","Look"],["identity","Identity"],["place","Placement"],["details","House details"],["bio","Biography"],["rel","Relationships"],["men","Boyfriend and headmistress"],["images","Images"],["review","Review"]]
+    let cur=tab||(isNew?(W.step||"start"):"identity");
+    ed=h("dialog",{class:"adm-dlg adm-ed",id:"canonDlg","aria-label":isNew?"Add to Everspire":"Edit canon: "+HN(x)});
+    const tabs=isNew?[["start","Start"],["place","Where she belongs"],["look","Her look"],["identity","Who she is"],["bio","Her story"],["rel","Her people"],["men","Boyfriend and headmistress"],["details","House details"],["images","Images"],["review","Review"]]
       :[["identity","Identity"],["group","Group"],["bio","Biography"],["rel","Relationships"],["look","Look"],["men","Boyfriend and headmistress"],["images","Images"]];
     const nav=h("div",{class:"adm-tabs",role:"tablist"});const pane=h("div",{class:"adm-pane"});{const pa=pane.append.bind(pane);pane.append=(...k)=>pa(...k.filter(z=>z!=null&&z!==false))}const msg=h("div",{class:"adm-checks",role:"alert"});
     const field=(f,lab,kind,opt)=>{const v=W.bio[f]||"";let inp;
@@ -2421,13 +2395,34 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     const doneOf=k=>{if(!isNew)return false;const tr=v=>String(v||"").trim();
       switch(k){case"look":return!!W.look&&!emptyOutfit(W);case"identity":return!!(tr(W.name)&&tr(W.bio.fullName));case"place":return!!(W.group&&GRP(W.group)&&(W.place.kind!=="wake"||W.place.house));
         case"details":return DETF.some(([f])=>tr(W.det[f]));case"bio":return!!(tr(W.bio.summary)&&tr(W.bio.backstory));case"rel":return!!(W.bf.length||W.sg||W.rv.length||W.fm.length);
-        case"men":return!!((minorW(W)||tr(W.men.man.name)||W.men.man.look)&&(tr(W.men.head.name)||W.men.head.look));case"images":return!!(W.img.por||W.img.px32);default:return false}};
+        case"men":return!!((minorW(W)||tr(W.men.man.name)||W.men.man.look)&&(W.place.kind==="house"||tr(W.men.head.name)||W.men.head.look));case"images":return!!(W.img.por||W.img.px32);default:return false}};
     function draw(){pane.textContent="";nav.querySelectorAll("button").forEach(b=>{b.setAttribute("aria-selected",b.dataset.t===cur?"true":"false");const dn=doneOf(b.dataset.t);b.classList.toggle("done",dn);b.title=dn?"Done":""});
-      {const i=tabs.findIndex(t=>t[0]===cur);nextBtn.hidden=!isNew||i>=tabs.length-1;if(i<tabs.length-1)nextBtn.textContent="Next: "+tabs[i+1][1]}
-      if(cur==="identity"){const woke=W.isNew&&W.place.kind==="wake";
-        pane.append(h("label",{class:"adm-f"},h("span",null,"House name"),h("input",{class:"adm-in",type:"text",value:W.name,disabled:woke,oninput:e=>{W.name=e.target.value;title.textContent=W.name||"New girl"}})));
+      {const i=tabs.findIndex(t=>t[0]===cur);nextBtn.hidden=!isNew||i>=tabs.length-1;if(i<tabs.length-1)nextBtn.textContent="Next: "+tabs[i+1][1];
+        if(isNew){backBtn.hidden=i<=0;if(i>0)backBtn.textContent="Back: "+tabs[i-1][1];if(W.step!==cur){W.step=cur;if(cur!=="start")W.begun=true;keepNew()}}}
+      if(cur==="start"&&W.isNew){
+        const L=worksList();const nm=w=>String(w.name||"").trim()||"An unnamed girl";const stepName=w=>((tabs.find(t=>t[0]===w.step)||[0,"Start"])[1]);
+        pane.append(h("p",{class:"adm-lead"},"Everything new comes in here, one step at a time: where she belongs (her faction, group and House, made new if you like), her look, who she is, her people, and her pictures. Every step saves itself, so you can close this and come back."),
+          h("h4",null,"What are you adding?"),
+          h("div",{class:"adm-actions"},h("button",{type:"button",class:"adm-btn primary",onclick:()=>{cur="place";draw()}},W.begun?"Continue "+nm(W):"A girl, and her place in Everspire")),
+          h("p",{class:"adm-muted"},"New factions, groups and Houses are made on the way, in Where she belongs."),
+          h("div",{class:"adm-actions"},
+            ACAD.admin&&ACAD.admin.place?h("button",{type:"button",class:"adm-btn sm",onclick:()=>{ed.close();ACAD.admin.place(null)}},"Lore only: a place on the map"):null,
+            ACAD.admin&&ACAD.admin.history?h("button",{type:"button",class:"adm-btn sm",onclick:()=>{ed.close();ACAD.admin.history(ADMIN?undefined:{add:true})}},"Lore only: the history"):null,
+            ACAD.admin&&ACAD.admin.lost?h("button",{type:"button",class:"adm-btn sm",onclick:()=>{ed.close();ACAD.admin.lost(null)}},"Lore only: a sleeping group on the Roll"):null));
+        if(L.length>1||(L.length===1&&L[0]!==W))pane.append(h("h4",null,"Your works in progress"),h("ul",{class:"adm-review"},L.map(w=>h("li",{class:w===W?"ok":"todo"},h("span",{class:"mk","aria-hidden":"true"},w===W?"•":""),
+            h("span",null,nm(w),h("small",{class:"adm-muted"}," · "+stepName(w)+(w.saved?" · saved "+new Date(w.saved).toLocaleString():""))),
+            w===W?h("em",{class:"adm-muted"},"open now"):h("button",{type:"button",class:"adm-btn sm",onclick:()=>{keepNew();NEWW=w;CURW=w.wid;saveWorks();ed.close();openEditor(null,null,true)}},"Continue"),
+            h("button",{type:"button",class:"adm-btn sm danger",onclick:()=>{if(!confirmBox("Delete "+nm(w)+"? This can't be undone."))return;delete WORKS[w.wid];if(w===W){NEWW=null;CURW=""}saveWorks();ed.close();openEditor(null,null,true)}},"Delete")))));
+        pane.append(h("div",{class:"adm-actions"},!W.begun?null:h("button",{type:"button",class:"adm-btn",onclick:()=>{keepNew();NEWW=newWork();NEWW.step="place";keepNew();ed.close();openEditor(null,null,true)}},"Begin another girl"),
+          h("button",{type:"button",class:"adm-btn",onclick:()=>{const f=h("input",{type:"file",accept:"application/json,.json",onchange:e=>{const fl=e.target.files[0];if(!fl)return;fl.text().then(t=>{let j;try{j=JSON.parse(t)}catch(er){return say("That isn't a saved work.")}
+              if(!j||j.format!=="everspire-work"||!j.work)return say("That isn't a saved work.");keepNew();const w=j.work;w.wid="w"+Date.now().toString(36);NEWW=w;keepNew();ed.close();openEditor(null,null,true)})}});f.click()}},"Open a saved work file"),
+          h("button",{type:"button",class:"adm-btn",onclick:()=>{keepNew();download("everspire_work_"+(slug(W.name)||"girl")+".json",JSON.stringify({format:"everspire-work",v:1,saved:Date.now(),work:W},null,1),"application/json")}},"Save this work as a file")),
+          h("h4",null,"Your changes"),h("p",{class:"adm-muted"},ADMIN?"What you've made canon, and publishing.":"What you've made, and sending it in as a submission."),
+          h("div",{class:"adm-actions"},h("button",{type:"button",class:"adm-btn",onclick:()=>{ed.close();openAdmin()}},ADMIN?"Changes and publishing":"My changes and submission")))}
+      else if(cur==="identity"){const woke=W.isNew&&W.place.kind==="wake";
+        pane.append(h("label",{class:"adm-f"},h("span",null,W.place.kind==="house"?"Her name":"House name"),h("input",{class:"adm-in",type:"text",value:W.name,disabled:woke,oninput:e=>{W.name=e.target.value;title.textContent=W.name||"New girl"}})));
         if(woke)pane.append(h("p",{class:"adm-muted"},"She is called by the name of the House she woke."));
-        if(W.isNew){const wn=wardNote(W);if(wn)pane.append(wn)}
+        if(W.place.kind==="house"&&W.place.house)pane.append(h("p",{class:"adm-muted"},`She joins ${HN(W.place.house)} House, so she is called by her own name; her key will be “${keyOfNew(W)}”.`));
         const s=SECS.find(z=>z[0]==="identity");(s?s[2]:[]).filter(f=>!DERIVED.has(f[0])).forEach(f=>pane.append(field(f[0],f[1],f[2],f[3])));pane.append(ageBox);ageNote()}
       else if(cur==="group"){const g0=ACAD.GROUP_OF(x);
         pane.append(h("label",{class:"adm-f"},h("span",null,"Group"),h("select",{class:"adm-in",onchange:e=>{W.group=e.target.value}},(ACAD.GROUPS||[]).map(g=>{const o=h("option",{value:g.id},g.name);if(g.id===W.group)o.selected=true;return o}))),
@@ -2486,7 +2481,30 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
           pane.append(h("button",{type:"button",class:"adm-btn sm",onclick:()=>{W.fl.push({who:"",mine:"",theirs:""});draw()}},"Add a fling"),
             h("p",{class:"adm-muted"},"A fling is a secret on the side, alongside anything else: a girl can have several. It shows on both girls' House pages and is never a scene."))}}
       else if(cur==="look"&&W.isNew){
-        pane.append(h("p",null,"Her look is the studio's current design: face, hair, body, palette and her first outfit, which becomes her robes. Design her in the studio first, then come back here."),
+        /* v328: where her look starts: a clean studio, the studio as it is, a saved design, a designs file, or a starting point */
+        {const take=(st,label)=>{try{if(st&&typeof replaceState==="function")replaceState(typeof normalize==="function"?normalize(JSON.parse(JSON.stringify(st))):JSON.parse(JSON.stringify(st)))}catch(e){return say("That design couldn't be opened.")}
+            const L=lookFromStudio();if(!L)return say("The studio has no design to take.");L.from=label;L.pin=true;W.look=L;keepNew();draw();say("Her look starts from “"+label+"”. The studio has it too (Undo there brings back what you had).")};
+          const saves=typeof readSaves==="function"?readSaves():[];
+          const svSel=h("select",{class:"adm-in",onchange:e=>{const sv=saves.find(x=>x.id===e.target.value);if(sv)take(sv.state,sv.name)}},h("option",{value:""},saves.length?"Choose a saved design…":"No saved designs yet"),saves.map(x=>h("option",{value:x.id},x.name)));
+          /* two steps (a kind, then one of its looks): the studio's starting points run to tens of thousands */
+          const SG=((typeof PRESET_GROUPS!=="undefined"&&PRESET_GROUPS.start)||[]).filter(g=>(g.keys||[]).length);
+          const tSel=h("select",{class:"adm-in",disabled:true,onchange:e=>{const t=tplById(e.target.value);if(!t)return;try{loadStart(t)}catch(er){return say("That starting point couldn't be opened.")}take(null,t.name)}},h("option",{value:""},"Then choose one…"));
+          const tKind=h("select",{class:"adm-in",onchange:e=>{const g=SG[+e.target.value];tSel.textContent="";tSel.append(h("option",{value:""},g?"Choose one of "+g.keys.length+"…":"Then choose one…"));tSel.disabled=!g;
+              if(g)g.keys.forEach(k=>{const t=tplById(k);if(t)tSel.append(h("option",{value:k},t.name))})}},
+            h("option",{value:""},"Choose a kind of starting point…"),SG.map((g,i)=>h("option",{value:String(i)},g.label+" ("+g.keys.length+")")));
+          const imp=h("input",{type:"file",accept:"application/json,.json",style:"display:none",onchange:e=>{const fl=e.target.files[0];if(!fl)return;fl.text().then(t=>{let j;try{j=JSON.parse(t)}catch(er){return say("That isn't a designs file.")}
+            const ds=(j&&j.designs)||[];if(!ds.length)return say("That file has no designs.");if(ds.length===1)return take(ds[0].state,ds[0].name||"Imported design");
+            const pick=h("select",{class:"adm-in",onchange:ev=>{const d0=ds[+ev.target.value];if(d0)take(d0.state,d0.name||"Imported design")}},h("option",{value:""},"Choose one of "+ds.length+" designs…"),ds.map((d0,i)=>h("option",{value:String(i)},d0.name||"Design "+(i+1))));impBox.textContent="";impBox.append(pick)})}});
+          const impBox=h("div");
+          pane.append(h("h4",null,"Where her look starts"),
+            h("div",{class:"adm-actions"},
+              h("button",{type:"button",class:"adm-btn",onclick:()=>{if(typeof replaceState==="function"&&typeof blankState==="function")replaceState(blankState());const L=lookFromStudio()||{pal:{},c:{},outfit:{items:{},details:{}}};L.from="a clean studio";L.pin=true;W.look=L;keepNew();
+                startDesign({kind:"her",key:NEWKEY,title:String(W.name||"").trim()||"your new girl",who:"her",keep:true,start:W.look,back:{editor:NEWKEY,tab:"look"}})}},"Start fresh in a clean studio"),
+              h("button",{type:"button",class:"adm-btn",onclick:()=>take(null,"the studio's current design")},"Use what's in the studio now"),
+              h("button",{type:"button",class:"adm-btn",onclick:()=>imp.click()},"Import a designs file"),imp),
+            impBox,h("label",{class:"adm-f"},h("span",null,"One of my saved designs"),svSel),h("label",{class:"adm-f"},h("span",null,"A starting point or template"),tKind),h("label",{class:"adm-f"},h("span",null,""),tSel),
+            h("p",{class:"adm-muted"},"Then adjust her in the studio with “Load her into the studio” below; she comes back here when you finish."))}
+        pane.append(h("p",null,"Her look: face, hair, body, palette and her first outfit, which becomes her robes."),
           W.look?h("p",{class:"adm-note"},W.look.pin?`Her look is kept as taken from the studio${W.look.from?" (“"+W.look.from+"”)":""}.`:`Her look follows the studio's design${W.look.from?" (“"+W.look.from+"”)":""} until you save her: change her in the studio and the change comes with her.`):h("p",{class:"adm-note"},"No look yet."),
           W.look?h("label",{class:"adm-radio"},h("input",{type:"checkbox",checked:!!W.look.pin,onchange:e=>{if(e.target.checked)W.look.pin=true;else{delete W.look.pin;refreshLook(W)}draw()}}),"Keep this look, whatever the studio shows next"):null,
           h("div",{class:"adm-actions"},h("button",{type:"button",class:"adm-btn",onclick:()=>{const L=lookFromStudio();if(!L)return say("The studio has no design to take.");const pin=W.look&&W.look.pin;W.look=L;if(pin)L.pin=true;draw()}},W.look?"Take the studio's design now":"Use the studio's current design")),
@@ -2504,8 +2522,24 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
             ms?h("label",{class:"adm-f"},h("span",null,"Its name"),h("input",{class:"adm-in",type:"text",placeholder:W.det&&W.det.pride?String(W.det.pride).replace(/^the\s+/i,"").replace(/\b\w/g,z=>z.toUpperCase()):"Moonlit Lodge",value:W.sigName||"",oninput:e=>{W.sigName=e.target.value}})):null)}}
       else if(cur==="place"){
         const rad=(v,l)=>h("label",{class:"adm-radio"},h("input",{type:"radio",name:"admPlace",checked:W.place.kind===v,onchange:()=>{W.place.kind=v;if(v==="group"){if(W.typed)W.name=W.typed}else{const hs=((lostOf(W.place.lost)||{houses:[]}).houses.find(z=>z.id===W.place.house));if(hs)W.name=hs.name}title.textContent=W.name||"New girl";draw()}}),l);
-        pane.append(h("div",{class:"adm-row"},rad("group","Join a group"),rad("wake","Wake a sleeping House")));
-        {const wn=wardNote(W);if(wn)pane.append(wn)}
+        /* v328: her faction first (new ones too), then her group, then her House */
+        {const pf=W.pendingFaction;const facs=(ENC.FACTIONS||[]).slice();
+          const fsel=h("select",{class:"adm-in",onchange:e=>{const v=e.target.value;if(v==="+new"){W.pendingFaction=W.pendingFaction||{id:"",entry:{name:"",motto:"",opposes:[],dean:""}};W.faction="+new"}else{W.faction=v}draw()}},
+            h("option",{value:""},"Any faction"),facs.map(f=>{const o=h("option",{value:f.id},f.name);if(W.faction===f.id)o.selected=true;return o}),(()=>{const o=h("option",{value:"+new"},pf&&pf.entry.name?"New: "+pf.entry.name:"+ A new faction");if(W.faction==="+new")o.selected=true;return o})());
+          pane.append(h("h4",null,"Her faction"),h("label",{class:"adm-f"},h("span",null,"Faction"),fsel));
+          if(W.faction==="+new"){const e=W.pendingFaction.entry;const upd=()=>{W.pendingFaction.id=slug(String(e.name||"").replace(/^the\s+/i,"")).slice(0,24);if(W.pendingGroup&&W.pendingGroup.entry)W.pendingGroup.entry.faction=W.pendingFaction.id};
+            pane.append(h("div",{class:"adm-note"},h("p",{style:"margin:0 0 6px"},"A new faction is founded with the new group she joins, and its dean comes with it."),
+              h("label",{class:"adm-f"},h("span",null,"Its name"),h("input",{class:"adm-in",type:"text",placeholder:"The Tidewardens",value:e.name||"",oninput:ev=>{e.name=ev.target.value;upd()}})),
+              h("label",{class:"adm-f"},h("span",null,"Its motto"),h("input",{class:"adm-in",type:"text",placeholder:"We keep the shore.",value:e.motto||"",oninput:ev=>{e.motto=ev.target.value}})),
+              h("label",{class:"adm-f"},h("span",null,"Its dean"),h("input",{class:"adm-in",type:"text",placeholder:"Dean Halloran",value:e.dean||"",oninput:ev=>{e.dean=ev.target.value}})),
+              h("div",{class:"adm-f"},h("span",null,"It opposes (across the line)"),h("div",{class:"adm-chips adm-checkgrid"},facs.map(f=>{const cb=h("input",{type:"checkbox",onchange:ev=>{e.opposes=(e.opposes||[]).filter(x=>x!==f.id);if(ev.target.checked)e.opposes.push(f.id)}});cb.checked=(e.opposes||[]).includes(f.id);return h("label",{class:"adm-radio"},cb,f.short||f.name)}))),
+              h("p",{class:"adm-muted",style:"margin:6px 0 0"},"Factions it doesn't oppose stand apart from it. Now found the group she joins: it belongs to this faction.")))}}
+        if(W.faction==="+new"&&W.place.kind!=="group")W.place.kind="group";
+        pane.append(h("h4",null,"Her House"),W.faction==="+new"?h("p",{class:"adm-muted"},"A new faction has no Houses yet, so she founds her own: its first House, in its first group."):h("div",{class:"adm-row"},rad("group","Her own new House"),rad("house","Join a living House"),rad("wake","Wake a sleeping House")));
+        if(W.place.kind==="house"){const gl=groupsAll().filter(g=>!W.faction||W.faction==="+new"||((ENC.factionOf&&ENC.factionOf(g.id))||{}).id===W.faction);
+          const opts=gl.map(g=>h("optgroup",{label:g.name},(ACAD.housesOf?ACAD.housesOf(g.id):g.members).map(hs=>{const n=ACAD.girlsOf?ACAD.girlsOf(hs).length:1;const o=h("option",{value:hs},HN(hs)+" House"+(n>1?" ("+n+" girls)":""));if(hs===W.place.house)o.selected=true;return o})));
+          pane.append(h("label",{class:"adm-f"},h("span",null,"The House she joins"),h("select",{class:"adm-in",onchange:e=>{W.place.house=e.target.value;const g=ACAD.GROUP_OF&&ACAD.GROUP_OF(e.target.value);if(g){W.group=g.id;if(W.isNew&&W.model===undefined)W.model=suggestModel(W.group)}draw()}},h("option",{value:""},"Choose…"),opts)),
+            h("p",{class:"adm-muted"},W.place.house?`She takes ${HN(W.place.house)} House's next chair. She shares its crest, rooms and headmistress (its Keeper), joins ${(GRP(W.group)||{name:"its group"}).name}, and keeps her own name, looks, people and boyfriend.`:"Any House can hold several girls. She keeps her own name; the House's Keeper is her headmistress."))}
         if(W.place.kind==="wake"&&W.typed&&W.typed.toLowerCase()===String(W.name).toLowerCase())pane.append(h("p",{class:"adm-note"},`${W.typed} is also a sleeping House on the Roll, so she wakes it. To make ${W.typed} a new House of her own instead, choose Join a group: the name stays.`));
         if(W.place.kind==="group"&&W.name&&typeof ENC!=="undefined"&&ENC.sleepingByName&&ENC.sleepingByName(W.name))pane.append(h("p",{class:"adm-muted"},`There is also a sleeping House called ${W.name} on the Roll. It stays asleep, and hers is a new House.`));
         {const pg=pendingGroup();if(pg)pane.append(h("div",{class:"adm-note"},h("p",{style:"margin:0 0 8px"},`${pg.name} is made canon with her, when you save her.`),
@@ -2513,8 +2547,8 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
         if(W.newGroup&&!groupsAll().some(g=>g.name.toLowerCase()===W.newGroup.toLowerCase()))pane.append(h("div",{class:"adm-note"},h("p",{style:"margin:0 0 8px"},`Her Biography names a group that doesn't exist yet: ${W.newGroup}.`),
           h("button",{type:"button",class:"adm-btn sm",onclick:()=>{ed.close();openGroup(null,{name:W.newGroup,forNew:true})}},`Create ${W.newGroup}`)));
         /* v269: found a new group for her, from her own Place step */
-        if(W.place.kind==="group"&&!pendingGroup())pane.append(h("div",{class:"adm-row"},h("button",{type:"button",class:"adm-btn sm",onclick:()=>{ed.close();openGroup(null,{forNew:true,name:""})}},"Found a new group for her"),
-          h("span",{class:"adm-muted",style:"margin-left:8px"},"Her House is its first. It is forming until it has five.")));
+        if(W.place.kind==="group"&&!pendingGroup())pane.append(h("div",{class:"adm-row"},h("button",{type:"button",class:"adm-btn sm",onclick:()=>{if(W.faction==="+new"&&!(W.pendingFaction&&W.pendingFaction.entry.name))return say("Name the new faction first.");keepNew();ed.close();openGroup(null,{forNew:true,name:"",faction:W.faction==="+new"?W.pendingFaction.id:(W.faction||"")})}},"+ A new group for her House"),
+          h("span",{class:"adm-muted",style:"margin-left:8px"},W.faction==="+new"?"Her new faction's first group. Her House is its first.":"Her House is its first. It is forming until it has five.")));
         if(W.place.kind==="wake"){const g=lostOf(W.place.lost);
           pane.append(h("label",{class:"adm-f"},h("span",null,"Sleeping group"),h("select",{class:"adm-in",onchange:e=>{W.place.lost=e.target.value;W.place.house="";const lg=lostOf(e.target.value);if(lg&&GRP(lg.kin))W.group=lg.kin;draw()}},h("option",{value:""},"Choose…"),
               LOSTG().map(lg=>{const o=h("option",{value:lg.id},lg.name+" ("+lg.kind+")");if(lg.id===W.place.lost)o.selected=true;return o}))));
@@ -2527,7 +2561,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
                 if(v){ed.close();openGroup(null,{forNew:true,name:g.name,form:wakeForm(g)})}else{if(NEWW&&NEWW.pendingGroup&&NEWW.pendingGroup.id===g.id){delete NEWW.pendingGroup;if(W.group===g.id)W.group=GRP(g.kin)?g.kin:"";keepNew()}draw()}}}),l);
               return h("div",null,h("div",{class:"adm-row"},r2(false,`Carry its banner in a living group`),r2(true,`Wake ${g.name} itself`)),
                 h("p",{class:"adm-muted"},wakeIt?`${g.name} wakes with her as a forming group, her House its first and she its leader. Its last principal wakes with it.`:`${g.name} sleeps on, so she joins a living group and carries ${g.name}'s banner as her second. Its kin is ${(GRP(g.kin)||{name:"another group"}).name}.`))})())}
-        pane.append(h("label",{class:"adm-f"},h("span",null,"Her group"),h("select",{class:"adm-in",onchange:e=>{const was=suggestModel(W.group);W.group=e.target.value;if(W.isNew&&(W.model===undefined||W.model===was))W.model=suggestModel(W.group);draw()}},h("option",{value:""},"Choose…"),groupsAll().map(g=>{const o=h("option",{value:g.id},g.name);if(g.id===W.group)o.selected=true;return o}))),
+        pane.append(h("label",{class:"adm-f"},h("span",null,"Her group"),h("select",{class:"adm-in",disabled:W.place.kind==="house",onchange:e=>{const was=suggestModel(W.group);W.group=e.target.value;if(W.isNew&&(W.model===undefined||W.model===was))W.model=suggestModel(W.group);draw()}},h("option",{value:""},"Choose…"),groupsAll().filter(g=>W.place.kind==="house"||g.id===W.group||(W.faction==="+new"?!!pendingGroup(g.id):!W.faction||((ENC.factionOf&&ENC.factionOf(g.id))||{}).id===W.faction)).map(g=>{const o=h("option",{value:g.id},g.name);if(g.id===W.group)o.selected=true;return o}))),
           h("label",{class:"adm-f"},h("span",null,"Role in her group"),h("textarea",{class:"adm-in",rows:3,oninput:e=>{W.role=e.target.value}},W.role)),
           h("p",{class:"adm-muted"},"The role reads best as a short title, a full stop, then a sentence: “The Trickster. The Pack's schemer…”."));
         /* v246: her sets, modeled on one of the eighteen original girls */
@@ -2561,6 +2595,9 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
       else if(cur==="men"){const F=W.isNew?W.men:W.fig;
         pane.append(h("p",{class:"adm-muted"},"Design them the way you designed her. The studio puts your current design aside and loads the draft; a bar at the top shows who you're designing. Choose “Use this design” there and you come back here, with your earlier design back in the studio."));
         [["man","Her boyfriend","him"],["head","Her headmistress","her"]].forEach(([k,l,pr])=>{const m=F&&F[k];if(!m)return;
+          /* v328: a girl who joins a living House shares its headmistress, the House's Keeper */
+          if(k==="head"&&W.isNew&&W.place.kind==="house"&&W.place.house){const kp=T(ACAD.primaryOf?ACAD.primaryOf(W.place.house)+"head":W.place.house+"head");
+            pane.append(h("h4",null,l),h("p",{class:"adm-note"},`She shares ${HN(W.place.house)} House's headmistress${kp&&kp.name?", "+kp.name:""}, with every girl of the House.`));return}
           if(k==="man"&&minorW(W)){pane.append(h("h4",null,l),h("p",{class:"adm-note"},"Not available: her biography age is under 18."));return}
           const His=pr==="him"?"His":"Her";
           const status=m.reset?`Ready to save: ${pr==="him"?"his":"her"} original look comes back.`:m.look?`${His} look: designed in the studio${m.look.from?" (“"+m.look.from+"”)":""}.`:W.isNew?draftNote(W,k):m.exists===false?`${His} draft is made when she's saved.`:`${His} current look. Design ${pr} to change it.`;
@@ -2607,7 +2644,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
         const bf=Object.keys(FL).filter(f=>!DERIVED.has(f)&&!(minor&&(INTIMATE.has(f)||ROMANTIC.has(f))));const filled=bf.filter(f=>String(W.bio[f]||"").trim()).length;
         R(!!W.look&&!emptyOutfit(W),"Her look and robes","look");
         R(!!W.model&&!minor,W.model&&!minor?`Her wardrobe, scenes and Scene Archive shelf, re-cut from ${HN(W.model)}'s`:"Her wardrobe: her robes only (choose a girl to model her sets on)","place");
-        if(!minor)R(!!(W.men.man.name||W.men.man.look),"Her boyfriend: a name or a look of his own","men");R(!!(W.men.head.name||W.men.head.look),"Her headmistress: a name or a look of her own","men");
+        if(!minor)R(!!(W.men.man.name||W.men.man.look),"Her boyfriend: a name or a look of his own","men");if(W.place.kind==="house"&&W.place.house)R(true,`Her headmistress: ${HN(W.place.house)} House's, shared`,"men");else R(!!(W.men.head.name||W.men.head.look),"Her headmistress: a name or a look of her own","men");
         R(filled>=Math.round(bf.length*.6),`Biography: ${filled} of ${bf.length} fields`,"bio");
         [["summary","the lead"],["backstory","Before Everspire"],["notes","Overheard"],["occupation","Studies"],["birthplace","From"],["catchphrase",""]].forEach(([f,l])=>{const id=(SECS.find(z=>z[0]==="identity")||[0,0,[]])[2].some(z=>z[0]===f);
           R(!!String(W.bio[f]||"").trim(),(FL[f]||f)+(l?` (${l} on her page)`:""),(id?"identity":"bio")+":"+f)});
@@ -2634,18 +2671,19 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
           W.look&&W.look!=="reset"?h("p",{class:"adm-note"},"Ready to save: her robes design as you made it in the studio."):null,
           W.look==="reset"?h("p",{class:"adm-note"},"Ready to save: her robes design goes back to the original."):null,
           h("p",{class:"adm-muted"},"Her portrait and pixel art don't change with her look."))}}
-    const title=h("h2",null,isNew?(W.name||"New girl"):HN(x));
+    const title=h("h2",null,isNew?(W.name||"A new girl"):HN(x));
     tabs.forEach(([k,l])=>nav.append(h("button",{type:"button",role:"tab","data-t":k,onclick:()=>{cur=k;draw()}},l)));
     const nextBtn=h("button",{type:"button",class:"adm-btn",onclick:()=>{const i=tabs.findIndex(t=>t[0]===cur);if(i<tabs.length-1){cur=tabs[i+1][0];draw();pane.scrollTop=0;const b=nav.querySelector(`[data-t="${cur}"]`);if(b)b.focus()}}},"Next");
-    const foot=h("div",{class:"adm-foot"},msg,h("div",{class:"adm-actions"},nextBtn,
+    const backBtn=h("button",{type:"button",class:"adm-btn",hidden:true,onclick:()=>{const i=tabs.findIndex(t=>t[0]===cur);if(i>0){cur=tabs[i-1][0];draw();pane.scrollTop=0}}},"Back");
+    const foot=h("div",{class:"adm-foot"},msg,h("div",{class:"adm-actions"},isNew?backBtn:null,nextBtn,
       isNew?h("button",{type:"button",class:"adm-btn danger",onclick:()=>{if(confirmBox("Start this new girl over?")){NEWW=null;keepNew();openEditor(null,null,true)}}},"Start over"):null,
-      h("button",{type:"button",class:"adm-btn",onclick:()=>ed.close()},isNew?"Keep for later":"Cancel"),
+      h("button",{type:"button",class:"adm-btn",onclick:()=>{if(isNew)keepNew();ed.close()}},isNew?"Save and close":"Cancel"),
       h("button",{type:"button",class:"adm-btn primary",onclick:()=>{if(isNew)refreshLook(W);const P=checks(x,W).concat(isNew?checksNew(W):[]);msg.textContent="";if(P.length){msg.append(h("b",null,"Fix these first"),h("ul",null,P.map(p=>h("li",null,p))));return}
         if(isNew){const r=toDraftsNew(W);NEWW=null;keepNew();
           try{if(typeof S!=="undefined"&&S){S.bio=Object.assign({},S.bio||{},{house:r.x});const g=GRP(W.group);if(g)S.bio.group=g.name;if(typeof flushSave==="function")flushSave()}}catch(e){}
           commit(r.d,{page:"house:"+r.x})}else commit(toDrafts(x,W),{page:"house:"+x})}},isNew?"Make her canon":"Save changes")));
     ed.append(h("button",{type:"button",class:"adm-x","aria-label":"Close",onclick:()=>ed.close()},"×"),
-      h("div",{class:"adm-body"},h("p",{class:"adm-kicker"},isNew?"Make her canon":"Edit canon"),title,nav,pane),foot);
+      h("div",{class:"adm-body"},h("p",{class:"adm-kicker"},isNew?"Add to Everspire":"Edit canon"),title,nav,pane),foot);
     if(isNew)ed.addEventListener("close",keepNew);
     document.body.append(ed);ed.showModal();draw()}
 
@@ -2665,7 +2703,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     const fac=gid&&typeof ENC!=="undefined"&&ENC.factionOf?ENC.factionOf(gid):null;
     const base0=(ACAD.GROUPS||[])[0]||{};const BX=ACAD.GX?ACAD.GX[base0.id]||{}:{};const BC=(ACAD.CREST||{})[base0.id]||{c:{}};
     const W={name:g?g.name:(o.name||""),kind:g?g.kind:"",motto:g?g.motto:"",hangout:g?g.hangout:"",lore:g?g.lore:"",leader:g?g.leader:"",rival:g?g.rival:"",
-      faction:fac?fac.id:((typeof ENC!=="undefined"&&ENC.FACTIONS&&ENC.FACTIONS[0]||{}).id||""),base:base0.id||"",
+      faction:fac?fac.id:(o.faction||(typeof ENC!=="undefined"&&ENC.FACTIONS&&ENC.FACTIONS[0]||{}).id||""),base:base0.id||"",
       cols:(g?X.cols:BX.cols||[]).slice(0,3),crest:g?X.crest||"":"",shape:gid||base0.id,c:Object.assign({},(g?CR.c:BC.c)||{}),hall:"",hang:""};
     /* v246: where they clash with their rivals, and a principal */
     {const P0=gid&&(ACAD.PRINCIPALS||{})[gid];W.turf=g&&g.rival?((ACAD.GTURF||{})[[gid,g.rival].sort().join("|")]||""):"";W.pfull=P0?P0.full||"":"";W.ptitle=P0?P0.title||"":"";W.pblurb=P0?P0.blurb||"":"";
@@ -2683,7 +2721,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     function draw(){pane.textContent="";
       if(W.woken)pane.append(h("p",{class:"adm-note"},`${W.name} wakes from the Roll of Sleeping Houses with her: its name, motto, haunt, colors and sigil are its own, and its last principal wakes with it. Its other Houses stay asleep on the Roll as its open places.`));
       pane.append(inp("Name","name",false,"The Burrow"),inp("Kind","kind",false,"Burrowing animals"),inp("Motto","motto",false,"Dig deep."),inp("Hangout","hangout",false,"The old cellars under the kitchens"),inp("Who they are","lore",true));
-      pane.append(sel("Faction","faction",((typeof ENC!=="undefined"&&ENC.FACTIONS)||[]).map(f=>[f.id,f.name])),sel("Rival group","rival",groupOpts,"None"),
+      pane.append(sel("Faction","faction",((typeof ENC!=="undefined"&&ENC.FACTIONS)||[]).map(f=>[f.id,f.name]).concat(o.forNew&&NEWW&&NEWW.pendingFaction&&NEWW.pendingFaction.id?[[NEWW.pendingFaction.id,(NEWW.pendingFaction.entry.name||"Her new faction")+" (new)"]]:[])),sel("Rival group","rival",groupOpts,"None"),
         inp("Where they clash","turf",false,"in the great hall, fighting over the best table"),h("p",{class:"adm-muted"},"With their rivals. It reads after “They clash …” on both groups' pages and sets the rivalry scenes."));
       if(!isNew)pane.append(h("div",{class:"adm-f"},h("span",null,"Leader"),h("p",{class:"adm-muted",style:"margin:0 0 6px"},g&&g.leader?`${HN(g.leader)} leads it. A new leader takes the title Leader, and ${HN(g.leader)} a new role, so the change is made in its own step.`:"Nobody yet: the first girl to join leads it."),
         g&&g.members.length>1&&ACAD.admin&&ACAD.admin.leader?h("button",{type:"button",class:"adm-btn sm",onclick:()=>{gdlg.close();ACAD.admin.leader(gid)}},"Change leader"):null));   /* v268 */
@@ -2751,7 +2789,15 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     side.prepend(h("div",{class:"enc-card adm-card-enc"},h("h4",null,"Canon"),h("p",{style:"margin:0 0 10px;font-size:14px;line-height:1.5"},"Change her identity, group, biography, relationships or look."),
       h("div",{class:"enc-loads"},h("button",{type:"button",class:"enc-load",onclick:()=>openEditor(x)},"Edit canon"))))}}
 
-  ACAD.admin={design:{start:startDesign,end:endDesign,active:()=>DS?JSON.parse(JSON.stringify(Object.assign({},DS,{stash:!!DS.stash,work:!!DS.work}))):null,figure:designFigure,tryScene,backFromScene,warnings:designWarnings},suggestWord,open:openAdmin,group:openGroup,robesFor,robesPrompts,promptGirls,edit:openEditor,makeNew:()=>openEditor(null,null,true),newWork:()=>NEWW,setNew:w=>{NEWW=w},checksNew,toDraftsNew,keyOfNew,portraitFrom,recrop,buildFile,buildCanon,changes:()=>changes(drafts()),
+  /* v328: every "begin a girl here" shortcut opens Add to Everspire with her place chosen (p: {kind,house,lost,name,group}) */
+  const addTo=p=>{if(DS){say(`Finish designing ${DS.title} first: use the bar at the top of the studio.`);showBar();return}
+    if(p&&NEWW&&(NEWW.name||NEWW.group||NEWW.place.house)){keepNew();NEWW=null}
+    if(!NEWW){NEWW=newWork();NEWW.wid="w"+Date.now().toString(36)}
+    if(p){NEWW.place={kind:p.kind||"group",lost:p.lost||"",house:p.house||""};if(p.name)NEWW.name=p.name;
+      const g=p.group||(p.kind==="house"&&ACAD.GROUP_OF&&(ACAD.GROUP_OF(p.house)||{}).id)||"";if(g&&GRP(g)){NEWW.group=g;if(NEWW.model===undefined)NEWW.model=suggestModel(g);const f=typeof ENC!=="undefined"&&ENC.factionOf&&ENC.factionOf(g);NEWW.faction=f?f.id:""}
+      NEWW.step="place"}
+    keepNew();if(typeof ENC!=="undefined"&&ENC.close)try{ENC.close()}catch(e){}openEditor(null,null,true)};
+  ACAD.admin={addTo,design:{start:startDesign,end:endDesign,active:()=>DS?JSON.parse(JSON.stringify(Object.assign({},DS,{stash:!!DS.stash,work:!!DS.work}))):null,figure:designFigure,tryScene,backFromScene,warnings:designWarnings},suggestWord,open:openAdmin,group:openGroup,robesFor,robesPrompts,promptGirls,edit:openEditor,makeNew:()=>openEditor(null,null,true),newWork:()=>NEWW,setNew:w=>{NEWW=w},checksNew,toDraftsNew,keyOfNew,portraitFrom,recrop,buildFile,buildCanon,changes:()=>changes(drafts()),
     /* v250: what later admin tools build on */
     refreshBtn:()=>updateBtn(),
     kit:{admin:ADMIN,T:PWT,h,HN,GRP,clone,say,drafts,ensure,commit,linkProblems,portraitFrom,recrop,slug:s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,""),addChanges:f=>MORE.push(f),C,addPanel:f=>PANEL.push(f),changesOf:d=>changes(d),download,ROMANTIC,INTIMATE,FL,delPath,ageOfWork},checks,toDrafts,workOf,lookFromStudio,fileName};

@@ -577,7 +577,7 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
         E("div",{class:"enc-members"},f.groups.map(gid=>{const g=G(gid),c=ENC.crestCols(gid),r=G(g.rival);
           return E("a",{href:"#",class:"enc-member",style:{"--gc":c.band},onclick:ev=>{ev.preventDefault();ENC.go("group:"+gid)}},ENC.crest(gid,56),E("b",null,g.name),E("span",{class:"role"},(g.leader?"Led by "+HN(g.leader):"No leader yet")),E("span",{class:"who"},"Rivals: "+(r?r.name:"")),ACAD.formingLabel&&ACAD.formingLabel(g)?E("span",{class:"enc-forming"},ACAD.formingLabel(g)):null)})));
       const side=E("aside",{class:"enc-side"},E("div",{class:"enc-card"},E("h4",null,"The dean"),E("p",{style:{margin:"0 0 6px",fontWeight:600}},lnk("staff:"+f.dean,d.name)),E("p",{class:"enc-note",style:{margin:0}},d.look?d.look.split(". ")[0].replace(/\.$/,"")+".":""),tag("n")),
-        E("div",{class:"enc-card"},E("h4",null,f.neutral?"Above the dean":"Above both deans"),E("p",{style:{margin:0}},lnk("staff:vael","Headmaster Cassius Vael"),", who keeps the Balance."),tag("n")));
+        E("div",{class:"enc-card"},E("h4",null,f.neutral?"Above the dean":ENC.FACTIONS.filter(x=>!x.neutral).length>2?"Above every dean":"Above both deans"),E("p",{style:{margin:0}},lnk("staff:vael","Headmaster Cassius Vael"),", who keeps the Balance."),tag("n")));
       art.append(mainCol,side);el.append(art)}})});
 
   /* ---------- group pages: the main way in ---------- */
@@ -2279,11 +2279,11 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
     const mainCol=E("div");
     mainCol.append(E("p",{class:"enc-lead enc-n"},g.story,tag("n")),
       E("h3",{class:"enc-h"},"The ten sleeping Houses"),
-      E("p",{class:"enc-note"},"Each is waiting for a Keeper. Begin a girl for one, and she starts in ",low(g.name),"'s colors: ",g.words.join(", "),". ",tag("n")),
+      E("p",{class:"enc-note"},"Each is waiting for a Keeper. Wake one and Add to Everspire opens with her place chosen, in ",low(g.name),"'s colors: ",g.words.join(", "),". ",tag("n")),
       E("div",{class:"enc-sleepers"},g.houses.map(h=>E("div",{class:"sl",id:"sl-"+h.id,style:{"--gc":g.cols.a}},
         ENC.sigil(g.id,h.name,56),
         E("div",{class:"tx"},E("b",null,h.name+" House"),E("small",null,"Asleep since "+h.since),E("p",null,h.lore)),
-        E("button",{type:"button",class:"enc-load",title:`Start a new design named ${h.name}, in ${low(g.name)}'s colors`,onclick:()=>beginLost(g,h)},"Begin a girl for "+h.name)))));
+        E("button",{type:"button",class:"enc-load",title:`Add a girl who wakes ${h.name} House`,onclick:()=>beginLost(g,h)},"Wake "+h.name+" House")))));
     mainCol.append(E("h3",{class:"enc-h"},"If she wakes it"),
       E("p",{class:"enc-p enc-n"},"A girl who wakes one of these Houses becomes its Keeper and is called by its name. She may revive ",low(g.name)," itself, the first of its Houses awake in a lifetime, or ask to sit with a living group",kin?[" (",low(g.name)," has always been close to ",lnk("group:"+kin.id,low(kin.name)),")"]:"",", which may take her as an eleventh. ",
         f?["Her allegiance is ",lnk("faction:"+f.id,f.name),"'s unless she chooses otherwise, and she answers to ",lnk("staff:"+f.dean,ENC.STAFF[f.dean].name),"."]:["The Unsworn answer only to ",lnk("staff:vael","the Headmaster")," until they choose."],tag("n")));
@@ -2318,7 +2318,7 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
       /* three ways in */
       art.append(E("h3",{class:"enc-h"},"Three ways in"),E("div",{class:"enc-ways"},
         E("div",{class:"way"},E("b",null,"Wake a sleeping House"),E("p",null,"She becomes the Keeper of one of the "+ACAD.numWords(ROLL.filter(g=>!(ACAD.wokenGroup&&ACAD.wokenGroup(g.id))).reduce((n,g)=>n+g.houses.length,0))+" sleeping Houses on the Roll, the first girl it has chosen in a lifetime, and is called by its name. She may revive its lost group or sit with a living one."),lnk("roll","The Roll of Sleeping Houses")),
-        E("div",{class:"way"},E("b",null,"Take a second chair"),E("p",null,"She becomes a ward of one of the "+ACAD.CT.b("houses")+" living Houses: Tamsin of Fox, Mira of Serpent. She wears its colors, joins its group and answers to its headmistress; the Keeper keeps the House's name."),lnk("groups","Choose a group, then a House")),
+        E("div",{class:"way"},E("b",null,"Take a second chair"),E("p",null,"She joins one of the "+ACAD.CT.b("houses")+" living Houses as its next girl: Tamsin of Fox, Mira of Serpent. She keeps her own name and shares its crest, rooms, group and headmistress; the Keeper keeps the House's name."),lnk("groups","Choose a group, then a House")),
         E("div",{class:"way"},E("b",null,"Come as a guest"),E("p",null,"She has finished her candidate year and no House has chosen her yet, or she is a visiting scholar from abroad for a term. She belongs to no group, which means every group is trying to claim her."),lnk("places","Find her somewhere to stay"))));
       /* the finder */
       art.append(E("h3",{class:"enc-h"},"Find her a House"),E("p",{class:"enc-note"},"Choose an allegiance and a kind; every sleeping House that fits is shown. Choose one to read about it, or let the Roll choose."));
@@ -2334,14 +2334,14 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
       /* the steps */
       art.append(E("h3",{class:"enc-h"},"Making her"),E("ol",{class:"enc-steps"},
         E("li",null,E("b",null,"Choose her way in."),E("span",null," A sleeping House to wake, a living House's second chair, or a guest's room in the Sunward or Duskward Wing.")),
-        E("li",null,E("b",null,"Begin her."),E("span",null," Every sleeping House has a ",E("i",null,"Begin a girl")," button, and every living girl's page has ",E("i",null,"Design your own ward"),": either starts a new design named for the House, in its colors. Undo brings your previous design back.")),
+        E("li",null,E("b",null,"Add her."),E("span",null," ",E("i",null,"Add to Everspire")," takes her from start to finish: where she belongs, her look, who she is, her people and her pictures. Every sleeping House has a ",E("i",null,"Wake")," button and every living girl's page has ",E("i",null,"Add a girl to her House"),": both open it with her place chosen.")),
         E("li",null,E("b",null,"Give her a look."),E("span",null," Turn on ",E("i",null,"Take parts")," at the top of the Encyclopedia and choose any look in ",lnk("wardrobe","the Wardrobe")," to bring in just its outfits, hair or palette: a living House's robes for a ward, a group's colors for an eleventh member.")),
         E("li",null,E("b",null,"Find her people."),E("span",null," A best friend, a rival, a girlfriend and a boyfriend. ",lnk("conflicts","Conflicts and Stories")," lists every rivalry and every secret across the line; a newcomer is the perfect excuse to start another.")),
         E("li",null,E("b",null,"Put her in a scene."),E("span",null," Save her, then turn on ",E("i",null,"Keep my character in scenes")," in Starting points and choose any scene in ",lnk("scenebook","the Scene Book"),": she takes the first character's place.")),
         E("li",null,E("b",null,"Write her into the world."),E("span",null," Answer one of the ",lnk("history","open questions")," or ",lnk("conflicts","mysteries"),", or take a story seed from her group. The Encyclopedia leaves them open for her."))));
       /* the rules */
       art.append(E("h3",{class:"enc-h"},"What every girl at Everspire shares"),E("ul",{class:"enc-list enc-n"},[
-        "She belongs to one House, as its Keeper or as a ward, never both and never two.",
+        "She belongs to one House, as its Keeper or as one of its girls, never two.",
         "She was chosen. Whatever else is true of her, a headmistress, a House or the Roll itself decided she belonged here.",
         "Everything that happens between the Academy's people is chosen, too."].map(x=>E("li",null,x)),E("li",{class:"enc-list-tag"},tag("n"))));
       el.append(art)}});
