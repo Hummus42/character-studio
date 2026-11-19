@@ -985,7 +985,8 @@ window.PORTRAITS=Object.assign(window.PORTRAITS||{},{"androidhead":{"h":"assets/
   /* v246: the girl whose robes, boyfriend and headmistress a new girl's drafts start from: a groupmate from the hundred,
      else the girl her sets are modeled on, else a girl of the group her new group was based on, else the first House */
   const ADDG0=(L.add&&L.add.groups)||{};
-  ACAD.canonMate=(h,a,gid)=>{const ok=x=>x&&x!==h&&!ACAD.canon.isAdded(x)&&T(x+"robes");gid=gid||(a&&a.group)||"";
+  ACAD.canonMate=(h,a,gid)=>{const ok=x=>x&&x!==h&&!ACAD.canon.isAdded(x)&&T(x+"robes");gid=gid||(a&&a.group)||(((L.add&&L.add.houses)||{})[h]||{}).group||"";   /* v328: a new House knows its group */
+    if(!gid&&a&&a.place&&a.place.kind==="house"&&a.place.house&&ACAD.GROUP_OF){const hg=ACAD.GROUP_OF(a.place.house);if(hg)gid=hg.id}
     const G=id=>(ACAD.GROUPS||[]).find(z=>z.id===id);const g=G(gid)||(h&&ACAD.GROUP_OF?ACAD.GROUP_OF(h):null);
     let m=g&&g.members.find(ok);if(m)return m;
     if(a&&ok(a.model))return a.model;
@@ -1010,6 +1011,8 @@ window.PORTRAITS=Object.assign(window.PORTRAITS||{},{"androidhead":{"h":"assets/
     /* v246: a girl whose biography age is under 18 has no boyfriend */
     const age=(()=>{const b=(typeof BIOS==="object"&&BIOS[h])||a.bio||{};const m=/\d+/.exec(String(b.age||""));return m?+m[0]:null})();const minor=a.adult===false||(age!=null&&age<18);
     [["man","boyfriend","Academy Boyfriends"],["head","headmistress","Academy Headmistresses"]].forEach(([suf,word,label])=>{if(suf==="man"&&minor)return;
+      /* v328: a girl who joins a living House shares its headmistress (blk-world.js aliases her) */
+      if(suf==="head"&&a.place&&a.place.kind==="house"&&a.place.house&&a.place.house!==h)return;
       const m=(a.men&&a.men[suf])||{};
       if(T(h+suf)){if(!waved)return;const t=T(h+suf);t.name=m.name?(suf==="head"?m.name+", Headmistress of "+nm+" House":m.name):nm+" "+word;if(m.name||m.bio)t.bio=Object.assign({},t.bio||{},m.name?{fullName:m.name}:{},m.bio||{});if(m.blurb)t.blurb=m.blurb;
         if(m.look&&m.look.outfit){t.pal=clone(m.look.pal||{});t.c=clone(m.look.c||{});t.outfit=clone(m.look.outfit);if(Array.isArray(m.look.more))t.more=clone(m.look.more)}return}const src=mate?T(mate+suf):null;if(!src&&!m.look)return;

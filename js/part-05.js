@@ -28,6 +28,10 @@
      houses:[[House,asleep since,lore]]}} and add.lost:{id:{...}} (the Roll's lost groups); edits.champ:{lost group:[girl,why]
      or null} and edits.also:{sleeping House:group or null} (champions and second banners). The World Overview's blocks
      and each chapter's opening are edits.lore keys ("world.blocks", "lead.<page>").
+   v328: Houses of their own. add.houses:{id:{name,group,since,lore,cols,emblem,det}} is a brand-new House (its first girl
+     takes the House's id as her key). A girl may join a House that already has girls: add.girls[g].place={kind:"house",
+     house:<House id>}; she joins that House's group beside her housemates and shares its headmistress (the Keeper).
+     factions may carry opposes:[faction ids] (across the line); any other pair of factions stands apart.
    v255: content as data. EVERSPIRE_DATA (canon255data.js) is the canon as written, by kind, in the same shapes the data
      blocks define: {format:1, names, bios, roles, groups, houses, rel, looks, places, history, factions, staff, flore,
      roll, champ, lore:{key:value}}. Where it is present each kind is read from it instead of the code, and then the
@@ -50,7 +54,9 @@
      history events she adds to (the checks hold existing entries fixed) */
   const PLAYER_LORE=/^(group\.traditions\.|conflicts\.seeds\.|cast\.customs$|ref\.gloss$|conflicts\.myst$|culture\.year$|culture\.rules$)/;
   const playerOnly=d=>{if(!d||typeof d!=="object")return null;const o={format:1,base:d.base,edits:{},add:{}};
-    ["girls","groups","factions","places","lost"].forEach(k=>{if(d.add&&d.add[k])o.add[k]=d.add[k]});
+    ["girls","groups","factions","places","lost","houses"].forEach(k=>{if(d.add&&d.add[k])o.add[k]=d.add[k]});
+    /* v328: second and third banners, for her own girls only */
+    {const G2=d.edits&&d.edits.groups2,mine=(d.add&&d.add.girls)||{};if(G2){const g2={};Object.keys(G2).forEach(h=>{if(mine[h])g2[h]=G2[h]});if(Object.keys(g2).length)o.edits.groups2=g2}}
     const E0=d.edits||{};if(E0.rel)o.edits.rel=E0.rel;if(E0.history&&E0.history.eras)o.edits.history={eras:E0.history.eras};
     if(E0.lore)Object.keys(E0.lore).forEach(k=>{if(PLAYER_LORE.test(k)){o.edits.lore=o.edits.lore||{};o.edits.lore[k]=E0.lore[k]}});
     if(E0.also)o.edits.also=E0.also;if(E0.champ)o.edits.champ=E0.champ;if(d.note)o.note=d.note;return o};
@@ -65,7 +71,7 @@
   const merge=(a,b)=>{if(!isObj(b))return b;const o=isObj(a)?Object.assign({},a):{};Object.keys(b).forEach(k=>{o[k]=isObj(b[k])&&isObj(o[k])?merge(o[k],b[k]):b[k]});return o};
   const layer=()=>drafts?merge(base,drafts):base;
   const L=layer();
-  const E=L.edits||{},ADD=(L.add&&L.add.girls)||{},ADDG=(L.add&&L.add.groups)||{};
+  const E=L.edits||{},ADD=(L.add&&L.add.girls)||{},ADDG=(L.add&&L.add.groups)||{},ADDH=(L.add&&L.add.houses)||{};
 
   const PLACEF=["name","area","x","y","lead","lore","groups","turf","faction"];
   /* v255: the canon as written, read from the data file where it has a kind; CAP is what was read (for the next data file) */
@@ -126,7 +132,11 @@
       /* v245: new groups first, so girls and edits can name them */
       Object.entries(ADDG).forEach(([id,a])=>{if(t.some(x=>x.id===id))return;t.push({id,name:a.name||id,kind:a.kind||"",leader:a.leader||"",rival:a.rival||"",members:(a.members||[]).slice(),motto:a.motto||"",hangout:a.hangout||"",lore:a.lore||"",apart:!!a.apart})});
       Object.entries(E.groups||{}).forEach(([id,p])=>{const g=t.find(x=>x.id===id);if(g)Object.assign(g,p)});
-      Object.entries(ADD).forEach(([h,a])=>{const g=t.find(x=>x.id===a.group);if(g&&!g.members.includes(h))g.members.push(h)});
+      /* v328: a girl who joins a living House joins its group, seated after her housemates */
+      Object.entries(ADD).forEach(([h,a])=>{const hs=a.place&&a.place.kind==="house"&&a.place.house&&a.place.house!==h?a.place.house:"";
+        const g=t.find(x=>x.id===(a.group||(ADDH[h]&&ADDH[h].group)))||(hs?t.find(x=>x.members.includes(hs)):null);if(!g||g.members.includes(h))return;
+        if(hs&&g.members.includes(hs)){let i=g.members.indexOf(hs);while(i+1<g.members.length&&ADD[g.members[i+1]]&&ADD[g.members[i+1]].place&&ADD[g.members[i+1]].place.house===hs)i++;g.members.splice(i+1,0,h)}
+        else g.members.push(h)});
       t.forEach(g=>{if((!g.leader||!g.members.includes(g.leader))&&g.members.length&&ADDG[g.id])g.leader=g.members[0]})}
     else if(kind==="rel"){const r=E.rel||{};["BF","BF_OUT","SG","RV","SG_PENDING","FAM","FLING"].forEach(k=>{if(r[k]!==undefined)t[k]=r[k]});if(!t.FAM)t.FAM=[];if(!t.FLING)t.FLING=[];if(ACAD.ROM)ACAD.ROM.settle(t)}
     /* v242: her look (pal, c, outfit) replaces her robes design's; t is the template lookup */
