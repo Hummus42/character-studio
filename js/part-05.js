@@ -152,8 +152,8 @@
        the Roll (t: {roll, EM, slug}), champions and second banners (t: {CHAMP, ALSO_ID}) */
     else if(kind==="factions"){const AF=(L.add&&L.add.factions)||{},EF=E.factions||{};
       Object.entries(AF).forEach(([id,a])=>{if(t.some(f=>f.id===id))return;t.push({id,name:a.name||id,short:a.short||String(a.name||id).replace(/^The /,""),groups:[],dean:(a.dean&&a.dean.id)||("dean"+id),
-        cols:Object.assign({a:"#5d5a7e",b:"#a7a2c8",ink:"#ffffff"},a.cols||{}),wing:a.wing||"",sigil:a.sigil||"",motto:a.motto||"",tagline:a.tagline||"",added:true})});
-      t.forEach(f=>{const e=EF[f.id];if(!e)return;["name","short","motto","tagline","wing","sigil"].forEach(k=>{if(e[k]!==undefined)f[k]=e[k]});if(e.cols)f.cols=Object.assign({},f.cols,e.cols)})}
+        cols:Object.assign({a:"#5d5a7e",b:"#a7a2c8",ink:"#ffffff"},a.cols||{}),wing:a.wing||"",sigil:a.sigil||"",motto:a.motto||"",tagline:a.tagline||"",opposes:Array.isArray(a.opposes)?a.opposes.slice():[],added:true})});
+      t.forEach(f=>{const e=EF[f.id];if(!e)return;["name","short","motto","tagline","wing","sigil"].forEach(k=>{if(e[k]!==undefined)f[k]=e[k]});if(Array.isArray(e.opposes))f.opposes=e.opposes.slice();if(e.cols)f.cols=Object.assign({},f.cols,e.cols)})}
     else if(kind==="staff"){Object.entries((L.add&&L.add.factions)||{}).forEach(([id,a])=>{const d=a.dean||{};const k=d.id||("dean"+id);
         if(!t[k])t[k]={name:d.name||"",title:d.title||("Dean of "+(a.name||id)),look:d.look||"",lore:(d.lore||[]).slice(),quote:d.quote||""}});
       Object.entries(E.staff||{}).forEach(([k,e])=>{if(!t[k]||!e)return;["name","title","look","quote"].forEach(f=>{if(e[f]!==undefined)t[k][f]=e[f]});if(Array.isArray(e.lore))t[k].lore=e.lore.slice()})}

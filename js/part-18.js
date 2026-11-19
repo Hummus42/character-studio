@@ -379,6 +379,15 @@ if(typeof ACAD!=="undefined"&&ACAD.canonApply&&typeof tplById==="function")ACAD.
   if(ACAD.canonApply)ACAD.canonApply("factions",ENC.FACTIONS);
   ENC.factionOf=gid=>ENC.FACTIONS.find(f=>f.groups.includes(gid));
   ACAD.FACTIONS=ENC.FACTIONS;ACAD.FACTION_OF=h=>{const g=ACAD.GROUP_OF(h);return g?ENC.factionOf(g.id):null};
+  /* v328: factions name the factions they oppose; a tie between opposed factions is across the line, between any other two
+     it stands apart. Dawn and Dusk oppose each other; the Lattice and the Starless Court oppose no one. */
+  ENC.FACTIONS.forEach(f=>{if(!Array.isArray(f.opposes))f.opposes=f.id==="dawn"?["dusk"]:f.id==="dusk"?["dawn"]:[]});
+  ACAD.factionLink=(a,b)=>{a=a&&a.id||a||"";b=b&&b.id||b||"";if(!a||!b)return "apart";if(a===b)return "same";const F=id=>ENC.FACTIONS.find(f=>f.id===id),fa=F(a),fb=F(b);
+    return (fa&&(fa.opposes||[]).includes(b))||(fb&&(fb.opposes||[]).includes(a))?"across":"apart"};
+  ACAD.girlLink=(x,y)=>{const fx=ACAD.FACTION_OF(x),fy=ACAD.FACTION_OF(y);return ACAD.factionLink(fx&&fx.id,fy&&fy.id)};
+  /* " between Dawn and Dusk" while those two are the only opposed pair; otherwise the line is just the line */
+  ACAD.lineWords=()=>{const P=new Set();ENC.FACTIONS.forEach(f=>(f.opposes||[]).forEach(o=>P.add([f.id,o].sort().join("|"))));
+    if(P.size===1&&P.has("dawn|dusk"))return " between Dawn and Dusk";if(P.size===1){const [a,b]=[...P][0].split("|").map(id=>(ENC.FACTIONS.find(f=>f.id===id)||{}).short||id);return " between "+a+" and "+b}return ""};
   ENC.STAFF={
     vael:{name:"Cassius Vael",title:"Headmaster of Everspire Academy",
       look:"A towering, grizzled ancient with a mane of iron-white hair, a beard like frost on stone, a scar from brow to jaw and pale winter-gray eyes that make first-years forget their own names. He wears a black greatcoat older than the castle's newest wing and carries a staff of black iron that rings on the flagstones like a bell.",
@@ -523,7 +532,7 @@ hive:{history:"The Hive grew up around the Academy's old apiary and the moth-lit
     const cover=E("section",{class:"enc-cover","aria-label":"Everspire Academy"});
     ENC.FACTIONS.filter(f=>!f.neutral).forEach((f,i)=>{
       cover.append(E("div",{class:f.id},E("div",{class:"side"+(i?" r":"")},
-        E("h2",null,lnk("faction:"+f.id,f.name)),E("p",null,f.id==="dawn"?"Honor, tradition and the open hand. Those who protect.":"Ambition, secrets and the closed fist. Those who want."),
+        E("h2",null,lnk("faction:"+f.id,f.name)),E("p",null,f.id==="dawn"?"Honor, tradition and the open hand. Those who protect.":f.id==="dusk"?"Ambition, secrets and the closed fist. Those who want.":(f.tagline||f.motto||"")),
         E("div",{class:"enc-crests"},f.groups.map(g=>E("a",{href:"#",onclick:ev=>{ev.preventDefault();ENC.go("group:"+g)}},ENC.crest(g,44),E("span",null,G(g).name.replace(/^The /,"")))))))) });
     cover.insertAdjacentHTML("beforeend",TOWER);
     cover.append(E("div",{class:"ttl"},E("h1",null,"Everspire Academy"),E("p",null,"That the stories may live")));
@@ -1800,13 +1809,14 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
       /* Dawn and Dusk */
       art.append(E("h3",{class:"enc-h"},"Dawn against Dusk"),
         E("div",{class:"enc-dd"},ENC.FACTIONS.map(f=>E("a",{href:"#",style:{background:`linear-gradient(135deg,${f.cols.a},${f.cols.b})`,color:f.cols.ink},onclick:ev=>{ev.preventDefault();ENC.go("faction:"+f.id)}},
-          E("b",null,f.name),E("span",null,f.tagline?f.tagline:f.id==="dawn"?"Tradition, protection and the open hand. Wants to keep what it has.":"Ambition, secrets and the closed fist. Wants what Dawn has.")))),
+          E("b",null,f.name),E("span",null,f.tagline?f.tagline:f.id==="dawn"?"Tradition, protection and the open hand. Wants to keep what it has.":f.id==="dusk"?"Ambition, secrets and the closed fist. Wants what Dawn has.":(f.motto||""))))),
         E("p",{class:"enc-p enc-n"},ACAD.lore("conflicts.accord","The Accord of 1726 keeps the peace: Dawn keeps the light, Dusk keeps the rest, and the Headmaster keeps them both. Nobody breaks it openly. Everybody bends it. Every one of the five great rivalries runs across the line, and so do many of the Academy's loves. The oldest rivalry of all, between the Synth and the Void, runs along no line at all: it is older than the Accord, older than the Houses, and nobody but the Headmaster knows how it began."),tag("n")));
       /* the five great rivalries */
-      art.append(E("h3",{class:"enc-h"},"The great rivalries"),E("p",{class:"enc-note"},"Five across the line between Dawn and Dusk, and the Synth against the Void, apart from both. Groups, leaders, principals and ground are canon; what is at stake is new lore. ",tag("c")));
+      art.append(E("h3",{class:"enc-h"},"The great rivalries"),E("p",{class:"enc-note"},(()=>{/* v328: counted from the groups' rivals */const seen=new Set(),n={across:0,apart:0,same:0};ACAD.GROUPS.forEach(g=>{const r=G(g.rival);if(!r)return;const k=[g.id,r.id].sort().join("|");if(seen.has(k))return;seen.add(k);const fa=ENC.factionOf(g.id),fb=ENC.factionOf(r.id);n[ACAD.factionLink(fa&&fa.id,fb&&fb.id)]++});
+        const W=x=>ACAD.cap?ACAD.cap(ACAD.numWords(x)):ACAD.numWords(x);return [n.across?W(n.across)+" across the line"+ACAD.lineWords():"",n.apart?ACAD.numWords(n.apart)+" between factions that stand apart":"",n.same?ACAD.numWords(n.same)+" inside one faction":""].filter(Boolean).join(", ")+". Groups, leaders, principals and ground are canon; what is at stake is new lore. "})(),tag("c")));
       const seen=new Set();
       ACAD.GROUPS.forEach(g=>{const r=G(g.rival);if(!r)return;const k=[g.id,r.id].sort().join("|");if(seen.has(k))return;seen.add(k);
-        const [a,b]=ENC.factionOf(g.id)&&ENC.factionOf(g.id).id==="dawn"?[g,r]:[r,g];
+        const fi=x=>ENC.FACTIONS.indexOf(ENC.factionOf(x.id)),[a,b]=fi(g)<=fi(r)?[g,r]:[r,g];   /* v328: the earlier faction first (Dawn before Dusk) */
         const ca=ENC.crestCols(a.id),cb=ENC.crestCols(b.id),Pa=(ACAD.PRINCIPALS||{})[a.id],Pb=(ACAD.PRINCIPALS||{})[b.id];
         const sc=[["rgshow","Showdown"],["rgtruce","Truce mixer"],["rgfeud","Leaders' feud"]].map(([p,n])=>[ENC.loadBtn(p+a.id,n+" ("+a.name.replace(/^The /,"")+")"),ENC.loadBtn(p+b.id,n+" ("+b.name.replace(/^The /,"")+")")]).flat().filter(Boolean);
         art.append(E("div",{class:"enc-vs"},
@@ -2314,11 +2324,11 @@ dusk:["The Court of Dusk is the faction of wanting. Its five groups prize ambiti
       art.append(E("h3",{class:"enc-h"},"Find her a House"),E("p",{class:"enc-note"},"Choose an allegiance and a kind; every sleeping House that fits is shown. Choose one to read about it, or let the Roll choose."));
       const state={al:"any",k:"any"},res=E("div",{class:"enc-finder-res"}),count=E("p",{class:"enc-note"});
       const row=(opts,key)=>E("div",{class:"enc-filter",role:"group"},opts.map(([v,t])=>E("button",{type:"button",class:"enc-chip","data-v":v,"aria-pressed":state[key]===v?"true":"false",onclick:ev=>{state[key]=v;ev.target.parentNode.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v?"true":"false"));run()}},t)));
-      const pool=()=>ROLL.filter(g=>(state.al==="any"||g.faction===state.al)&&(state.k==="any"||KIND_OF[g.id]===state.k)).flatMap(g=>g.houses.map(h=>[g,h]));
+      const pool=()=>ROLL.filter(g=>(state.al==="any"||g.faction===state.al||(state.al==="none"&&!ENC.FACTIONS.some(f=>f.id===g.faction)))&&(state.k==="any"||KIND_OF[g.id]===state.k)).flatMap(g=>g.houses.map(h=>[g,h]));
       const run=()=>{const p=pool();res.textContent="";count.textContent=p.length+" sleeping Houses fit.";
         p.forEach(([g,h])=>res.append(E("a",{href:"#",title:h.name+" House, "+g.name+": "+h.lore,onclick:ev=>{ev.preventDefault();openHouse(g,h)}},ENC.sigil(g.id,h.name,32),E("span",null,h.name))))};
       const openHouse=(g,h)=>{ENC.go("lost:"+g.id);setTimeout(()=>{const x=document.getElementById("sl-"+h.id);if(x){x.scrollIntoView({block:"center"});x.classList.add("hot");setTimeout(()=>x.classList.remove("hot"),1600)}},30)};
-      art.append(row([["any","Any allegiance"],["dawn","Dawn"],["dusk","Dusk"],["none","Unsworn"]],"al"),row(KINDS,"k"),
+      art.append(row([["any","Any allegiance"]].concat(ENC.FACTIONS.filter(f=>ROLL.some(g=>g.faction===f.id)).map(f=>[f.id,f.short||f.name])).concat(ROLL.some(g=>!ENC.FACTIONS.some(f=>f.id===g.faction))?[["none","Unsworn"]]:[]),"al"),row(KINDS,"k"),
         E("div",{class:"enc-loads",style:{margin:"6px 0"}},E("button",{type:"button",class:"enc-load",onclick:()=>{const p=pool();if(p.length){const [g,h]=p[Math.floor(Math.random()*p.length)];openHouse(g,h)}}},"Let the Roll choose")),
         count,res);run();
       /* the steps */

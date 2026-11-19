@@ -389,7 +389,7 @@ if(typeof SV249!=="undefined")SV249.groups.forEach(g=>{if(!ACAD_GROUPS.some(x=>x
       panel.append(row)});
     /* v230: the sleeping Houses, by lost group; choosing one wakes it for her */
     if(window.ENC&&ENC.ROLL){const det=h("details",{class:"bio-sleep"},h("summary",{text:"Wake a sleeping House (200 on the Roll)"}));
-      ENC.ROLL.forEach(g=>{det.append(h("div",{class:"bio-hg",text:g.name+" · sleeping · "+(g.faction==="dawn"?"Dawn":g.faction==="dusk"?"Dusk":"Unsworn")}));
+      ENC.ROLL.forEach(g=>{det.append(h("div",{class:"bio-hg",text:g.name+" · sleeping · "+(((typeof ENC!=="undefined"&&ENC.FACTIONS||[]).find(f=>f.id===g.faction)||{}).short||"Unsworn")}));
         const row=h("div",{class:"bio-hrow"});
         g.houses.forEach(x=>{const nm=x.name+" House";row.append(h("button",{type:"button",class:"bio-hopt"+(v===nm?" on":""),"aria-pressed":v===nm?"true":"false",onclick:()=>{const b=S.bio||{};setBio("house",nm);if(!b.group)setBio("group",g.name);
           const al=ENC.ALSO&&ENC.ALSO[x.id];if(al&&!b.group2)setBio("group2",al);if(ENC.markRevived)ENC.markRevived(x.id);renderMain()}},ENC.rollIconOrSigil?ENC.rollIconOrSigil(g.id,x,32):null,h("span",{text:x.name})))});

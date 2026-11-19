@@ -416,7 +416,7 @@ if(typeof ENC!=="undefined"){ENC.lostCrestURL16=ENC.lostCrestURL;ENC.sigilURL16=
       const walk=x=>E("a",{href:"#",class:"enc-link",onclick:ev=>{ev.preventDefault();show(x)}},HN(x));
       const rows=[];
       if(C.bf.length)rows.push(E("div",{class:"rel bf"},E("b",null,C.bf.length>1?"Best friends":"Best friend"),E("span",null,andEls(C.bf.map(x=>walk(x))))));
-      C.sg.forEach(s=>rows.push(E("div",{class:"rel sg"},E("b",null,ACAD.ROM?ACAD.ROM.label(s.type):"Girlfriend"),E("span",null,walk(s.who),gOf(s.who)!==gid?(facOf(s.who)!==facOf(h)?E("em",null," across the line"):E("em",null," of "+G(gOf(s.who)).name.replace(/^The /,"the "))):null),q(s.mine))));
+      C.sg.forEach(s=>rows.push(E("div",{class:"rel sg"},E("b",null,ACAD.ROM?ACAD.ROM.label(s.type):"Girlfriend"),E("span",null,walk(s.who),gOf(s.who)!==gid?(ACAD.factionLink(facOf(s.who),facOf(h))==="across"?E("em",null," across the line"):E("em",null," of "+G(gOf(s.who)).name.replace(/^The /,"the "))):null),q(s.mine))));
       C.rv.forEach(r=>rows.push(E("div",{class:"rel rv"},E("b",null,"Rival"),E("span",null,walk(r.who),E("em",null," "+(GN[r.ground]||r.ground))),q(r.mine?r.mine.charAt(0).toUpperCase()+r.mine.slice(1)+".":""))));
       (C.fm||[]).forEach(f=>{const w=String(f.is||"").split(",")[0].trim(),why=String(f.is||"").split(",").slice(1).join(",").trim();
         rows.push(E("div",{class:"rel fm"},E("b",null,w?w.charAt(0).toUpperCase()+w.slice(1):"Family"),E("span",null,walk(f.who),E("em",null,(why?", "+why:"")+(f.type==="blood"?", by blood":", step, adoptive or chosen")))))});
@@ -460,7 +460,7 @@ if(typeof ENC!=="undefined"){ENC.lostCrestURL16=ENC.lostCrestURL;ENC.sigilURL16=
       svg.append(S("line",{x1:cx,y1:26,x2:cx,y2:H-10,class:"divide"}));
       const g=S("g",null);
       Object.entries(by).forEach(([k,list])=>{const [x,y]=k.split("|");if(x===y||!(x in ang||x in APX)||!(y in ang||y in APX))return;const [x1,y1]=P(x),[x2,y2]=P(y);   /* v307: the four groups that stand apart are not on the ring */
-        const across=facOf(G(x).members[0])!==facOf(G(y).members[0]);
+        const across=ACAD.factionLink(facOf(G(x).members[0]),facOf(G(y).members[0]))==="across";
         const dim=focus&&focus!==x&&focus!==y;
         g.append(S("path",{d:`M${x1},${y1} Q${cx},${cy} ${x2},${y2}`,class:"ch "+(across?"across":"within")+(dim?" dim":""),"stroke-width":1.4+list.length*1.6},S("title",null,`${G(x).name} and ${G(y).name}: ${list.length}`)))});
       svg.append(g);
@@ -474,18 +474,19 @@ if(typeof ENC!=="undefined"){ENC.lostCrestURL16=ENC.lostCrestURL;ENC.sigilURL16=
       svgBox.textContent="";svgBox.append(svg);
       /* the numbers */
       const APG=new Set(ACAD.GROUPS.filter(g=>g.apart).map(g=>g.id)),isAp=p=>APG.has(p.ga)||APG.has(p.gb);
-      const total=ps.length,inG=ps.filter(p=>p.ga===p.gb).length,apx=ps.filter(p=>p.ga!==p.gb&&isAp(p)).length,acr=ps.filter(p=>p.ga!==p.gb&&!isAp(p)&&facOf(p.a)!==facOf(p.b)).length,same=total-inG-acr-apx;
+      const total=ps.length,inG=ps.filter(p=>p.ga===p.gb).length,apx=ps.filter(p=>p.ga!==p.gb&&isAp(p)).length,acr=ps.filter(p=>p.ga!==p.gb&&!isAp(p)&&ACAD.factionLink(facOf(p.a),facOf(p.b))==="across").length,apf=ps.filter(p=>p.ga!==p.gb&&!isAp(p)&&ACAD.factionLink(facOf(p.a),facOf(p.b))==="apart").length,same=total-inG-acr-apx-apf;
+      const LW=ACAD.lineWords(),apF=apf?", "+apf+" between factions that stand apart":"";
       const apT=apx?`, and ${apx} that reach past the Academy, between ${ACAD.apartWords()} and the Houses`:"";
       stat.textContent="";
-      stat.append(mode==="fm"?`${total} family ties: ${inG} inside one group, ${same} between groups of the same faction, ${acr} across the line between Dawn and Dusk${apT}. `:mode==="sg"?`${total} couples: ${inG} inside one group, ${same} between groups of the same faction, ${acr} across the line between Dawn and Dusk${apT}. `
-        :`${total} rivalries: ${inG} inside one group, ${same} between groups of the same faction, ${acr} across the line between Dawn and Dusk${apx?`, and ${apx} between ${ACAD.apartWords()} and the Houses`:""}. `,tag("c"));
+      stat.append(mode==="fm"?`${total} family ties: ${inG} inside one group, ${same} between groups of the same faction, ${acr} across the line${LW}${apF}${apT}. `:mode==="sg"?`${total} couples: ${inG} inside one group, ${same} between groups of the same faction, ${acr} across the line${LW}${apF}${apT}. `
+        :`${total} rivalries: ${inG} inside one group, ${same} between groups of the same faction, ${acr} across the line${LW}${apF}${apx?`, and ${apx} between ${ACAD.apartWords()} and the Houses`:""}. `,tag("c"));
       /* the list for the focused group */
       list.textContent="";
       if(focus){const mine=ps.filter(p=>p.ga===focus||p.gb===focus).sort((p,q)=>(p.ga===p.gb)-(q.ga===q.gb));
         list.append(E("h4",null,ENC.crest(focus,18)," ",G(focus).name,mode==="sg"?": every secret":mode==="fm"?": every family tie":": every rivalry"),
           E("ul",null,mine.map(p=>E("li",null,ENC.pixel(p.a,18),lnk("circle:"+p.a,HN(p.a))," and ",ENC.pixel(p.b,18),lnk("circle:"+p.b,HN(p.b)),
             p.ground?E("small",null," "+(GN[p.ground]||p.ground)):p.rel?E("small",null," "+HN(p.b)+" is "+HN(p.a)+"'s "+p.rel.split(",")[0]):null,
-            p.ga!==p.gb&&facOf(p.a)!==facOf(p.b)?E("small",{class:"acr"}," across the line"):p.ga===p.gb?E("small",null," inside the group"):null))))}
+            p.ga!==p.gb&&ACAD.factionLink(facOf(p.a),facOf(p.b))==="across"?E("small",{class:"acr"}," across the line"):p.ga===p.gb?E("small",null," inside the group"):null))))}
       else list.append(E("p",{class:"enc-note"},"Choose a group's crest to see its pairs. Lines across the middle cross the line between Dawn and Dusk; the thicker the line, the more pairs."))}
     box.append(filt,E("div",{class:"gweb-body"},svgBox,list),stat);draw();return box}
 
@@ -508,16 +509,16 @@ if(typeof ENC!=="undefined"){ENC.lostCrestURL16=ENC.lostCrestURL;ENC.sigilURL16=
       const done=new Set(),comps=[];g.members.forEach(h=>{if(done.has(h))return;const c=[],st=[h];done.add(h);while(st.length){const x=st.pop();c.push(x);adj[x].forEach(y=>{if(!done.has(y)){done.add(y);st.push(y)}})}comps.push(c)});
       return E("div",{class:"bfg",style:{"--gc":vis(g.id)}},E("div",{class:"gh"},ENC.crest(g.id,20),lnk("group:"+g.id,g.name)),
         E("ul",null,comps.map(c=>{const out=c.length===1?(R2.BF[c[0]]||[]).find(x=>gOf(x)!==g.id):null;
-          if(out)return E("li",null,E("span",{class:"heads"},ENC.pixel(c[0],22),ENC.pixel(out,22)),E("span",null,lnk("circle:"+c[0],HN(c[0]))," and ",lnk("circle:"+out,HN(out)),E("small",null," of "+G(gOf(out)).name.replace(/^The /,"the ")+(facOf(out)!==facOf(c[0])?", across the line":""))));
+          if(out)return E("li",null,E("span",{class:"heads"},ENC.pixel(c[0],22),ENC.pixel(out,22)),E("span",null,lnk("circle:"+c[0],HN(c[0]))," and ",lnk("circle:"+out,HN(out)),E("small",null," of "+G(gOf(out)).name.replace(/^The /,"the ")+(ACAD.factionLink(facOf(out),facOf(c[0]))==="across"?", across the line":""))));
           return E("li",null,E("span",{class:"heads"},c.map(h=>ENC.pixel(h,22))),E("span",null,andEls(c.map(h=>lnk("circle:"+h,HN(h)))),c.length>2?E("small",null," ("+(c.length===3?"a trio":"a circle of "+c.length)+")"):null))})))}))}
 
   /* ---------- every secret pair ---------- */
   function secretPairs(){
     const box=E("div");let m="all";
     const grid=E("div",{class:"enc-sgs"});
-    const kindOf=p=>gOf(p[0])===gOf(p[1])?"in":facOf(p[0])===facOf(p[1])?"same":"across";
-    const LAB={in:"Inside one group",same:"Between groups",across:"Across the line"};
-    const filt=E("div",{class:"enc-filter",role:"group","aria-label":"Show"},[["all","All "+ACAD.numWords(REL().SG.length)],["in","Inside one group"],["same","Between groups, same faction"],["across","Across the line"]].map(([v,t])=>E("button",{type:"button",class:"enc-chip","aria-pressed":v===m?"true":"false",onclick:ev=>{m=v;filt.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b===ev.currentTarget?"true":"false"));draw()}},t)));
+    const kindOf=p=>{if(gOf(p[0])===gOf(p[1]))return "in";const l=ACAD.factionLink(facOf(p[0]),facOf(p[1]));return l==="same"?"same":l};   /* v328: across or apart */
+    const LAB={in:"Inside one group",same:"Between groups",across:"Across the line",apart:"Between factions that stand apart"};
+    const filt=E("div",{class:"enc-filter",role:"group","aria-label":"Show"},[["all","All "+ACAD.numWords(REL().SG.length)],["in","Inside one group"],["same","Between groups, same faction"],["across","Across the line"]].concat(REL().SG.some(p=>kindOf(p)==="apart")?[["apart","Between factions that stand apart"]]:[]).map(([v,t])=>E("button",{type:"button",class:"enc-chip","aria-pressed":v===m?"true":"false",onclick:ev=>{m=v;filt.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b===ev.currentTarget?"true":"false"));draw()}},t)));
     function draw(){grid.textContent="";REL().SG.filter(p=>m==="all"||kindOf(p)===m).forEach(p=>{const k=kindOf(p);
       grid.append(E("div",{class:"sgc "+k},E("div",{class:"pair"},ENC.pixel(p[0],32),ENC.pixel(p[1],32),E("div",null,E("b",null,lnk("circle:"+p[0],HN(p[0]))," and ",lnk("circle:"+p[1],HN(p[1]))),E("small",{class:"k"},LAB[k]+(ACAD.ROM?", "+ACAD.ROM.label(p[4]).toLowerCase()+"s":"")))),
         E("p",null,p[2]),p[3]&&p[3]!==p[2]?E("p",{class:"theirs"},p[3]):null))})}
@@ -2654,7 +2655,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
   /* v269: a sleeping group woken whole: the New group form filled from the Roll (name, kind, motto, haunt, colors, crest,
      story, faction, kin), with its last principal waking with it */
   const wakeForm=lg=>{const kin=(ACAD.GROUPS||[]).find(z=>z.id===lg.kin);const cols=(lg.words||[]).slice(0,3);while(cols.length<3)cols.push("");
-    const nm=lg.name;return {name:nm,kind:lg.kind||"",motto:lg.motto||"",hangout:lg.haunt||"",lore:lg.story||"",faction:lg.faction==="dawn"||lg.faction==="dusk"?lg.faction:((typeof ENC!=="undefined"&&ENC.FACTIONS&&ENC.FACTIONS[0]||{}).id||""),
+    const nm=lg.name;return {name:nm,kind:lg.kind||"",motto:lg.motto||"",hangout:lg.haunt||"",lore:lg.story||"",faction:(ENC.FACTIONS||[]).some(f=>f.id===lg.faction)?lg.faction:((typeof ENC!=="undefined"&&ENC.FACTIONS&&ENC.FACTIONS[0]||{}).id||""),
       rival:"",base:kin?kin.id:((ACAD.GROUPS||[])[0]||{}).id||"",cols,crest:(lg.emblemName||"")?`a ${lg.emblemName}`:"",shape:kin?kin.id:"",c:Object.assign({},lg.cols||{}),
       rows:typeof ENC!=="undefined"&&ENC.lostCrestRows?ENC.lostCrestRows(lg.id):null,woken:lg.id,hall:"",hang:"",
       pfull:"",ptitle:`the last principal of ${nm.replace(/^The /,"the ")}`,pblurb:`${nm}'s principal when it slept, who walked out with it the morning it woke, no more than a few years older than the day its doors closed.`}};
