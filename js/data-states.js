@@ -47,11 +47,11 @@
   /* ===== MARYLAND: blue crabs on the Chesapeake, the flag's black-and-gold as a checkered print, black-eyed Susans (yellow
      flowers), summer on the pier. Every piece is a common tag. ===== */
   {id:"usmd",name:"Maryland, the Old Line State",tone:"light",body:"hg",
-    blurb:"A Chesapeake Bay girl holding up a blue crab on the pier: black-and-yellow checkered bikini, yellow flowers in her hair, tan lines.",
+    blurb:"A Chesapeake Bay girl holding up a crab on the pier: the flag's black and gold in a checkered bikini top, its red and white in striped thighhighs and a ribbon, yellow flowers in her hair.",
     pal:{primary:"yellow",secondary:"black",third:"red",accent:"white",extra:"blue"},oname:"Crabs on the bay",look:"swimwear",
-    h:["high ponytail with a yellow flower","very long","blonde","wispy see-through bangs"],e:"blue",x:"grin",p:"holding up a crab",
+    h:["high ponytail with a red ribbon","very long","blonde","wispy see-through bangs"],e:"blue",x:"grin",p:"holding up a crab",
     imp:"a sunny Chesapeake Bay girl",m:"tanlines, freckles",
-    items:{top:R("black and yellow checkered bikini top"),bottom:R("denim shorts"),legwear:R("a pair of black and yellow striped thighhighs"),
+    items:{top:R("black and yellow checkered bikini top"),bottom:R("denim shorts"),legwear:R("a pair of red and white striped thighhighs"),
       headwear:R("yellow flower hair ornament"),heldItem:R("crab")},
     must:"pier, ocean, sunset"},
 
@@ -73,11 +73,11 @@
     items:{top:R("orange bikini top"),bottom:R("brown fringe trim shorts"),legwear:R("brown cowboy boots"),headwear:R("brown cowboy hat"),neckAccessory:R("aqua gemstone necklace")},
     must:"desert, cactus, sunset"},
 
-  {id:"usar",name:"Arkansas, the Natural State",tone:"light",body:"busty",blurb:"Red plaid and overall shorts with pig ears, out in the Ozark forest. Woo pig sooie.",
-    pal:{primary:"red",secondary:"white",third:"blue",accent:"silver",extra:"green"},oname:"Razorback country",look:"casual",
-    h:["long wavy hair","long","brown","curtain bangs"],e:"hazel",x:"grin, open mouth",p:"waving",imp:"an Ozark country girl",
-    items:{top:R("red plaid shirt, tied shirt"),bottom:R("blue overall shorts"),legwear:R("brown cowboy boots"),headwear:R("pig ears"),neckAccessory:R("diamond necklace")},
-    must:"forest, mountain"},
+  {id:"usar",name:"Arkansas, the Natural State",tone:"light",body:"busty",blurb:"Hot Springs and diamonds: a red bikini under an open plaid shirt, diamonds sparkling, steam rising from a forest hot spring.",
+    pal:{primary:"red",secondary:"white",third:"blue",accent:"silver",extra:"green"},oname:"Hot springs",look:"resort",
+    h:["long wavy hair","long","brown","curtain bangs"],e:"hazel",x:"smile, blush",p:"sitting in a hot spring",imp:"a natural forest beauty",m:"wet skin",
+    items:{top:R("red bikini"),outerwear:R("open red plaid shirt, off shoulder"),earAccessory:R("diamond earrings"),neckAccessory:R("diamond necklace")},
+    must:"onsen, steam, forest, mountain"},
 
   {id:"usca",name:"California, the Golden State",tone:"tan",body:"tall",blurb:"Beach-blonde surfer starlet in a white bikini with a surfboard and sunglasses on her head.",
     pal:{primary:"white",secondary:"blue",third:"orange",accent:"gold",extra:"pink"},oname:"Malibu",look:"swimwear",
@@ -97,11 +97,11 @@
     items:{top:R("white tennis uniform"),outerwear:R("pink sweater around neck"),neckAccessory:R("pearl necklace"),headwear:R("navy blue headband"),legwear:R("white sneakers"),heldItem:R("tennis racket")},
     must:"tennis court, sunny day"},
 
-  {id:"usde",name:"Delaware, the First State",tone:"light",body:"petite",blurb:"Small and overlooked office lady: blue blazer, pencil skirt and an armful of shopping bags.",
+  {id:"usde",name:"Delaware, the First State",tone:"light",body:"hg",blurb:"Tax-free shopping queen: a plunging blue dress, gold jewelry and an armful of shopping bags on a golden-hour shopping street.",
     pal:{primary:"blue",secondary:"beige",third:"gold",accent:"white",extra:"black"},oname:"First State, tax free",look:"glam",
-    h:["bob cut","short","light brown","blunt bangs"],e:"blue",x:"pout",p:"carrying shopping bags",imp:"a tiny office lady",
-    items:{outerwear:R("blue blazer"),top:R("white shirt, unbuttoned"),bottom:R("black pencil skirt"),legwear:R("pantyhose, high heels"),eyewear:R("glasses"),heldItem:R("shopping bag")},
-    must:"city, street"},
+    h:["long wavy hair","long","light brown","long side-swept bangs"],e:"blue",x:"confident smile",p:"carrying shopping bags",imp:"a glamorous shopping queen",
+    items:{top:R("blue dress, plunging neckline"),neckAccessory:R("gold necklace"),earAccessory:R("gold earrings"),eyewear:R("sunglasses, eyewear on head"),legwear:R("high heels"),heldItem:R("shopping bag")},
+    must:"shop, street, sunset, lens flare, sparkle"},
 
   {id:"usfl",name:"Florida, the Sunshine State",tone:"tan",body:"busty",blurb:"Sun-baked and fearless in a pink micro bikini with an orange in hand, flamingos and palms behind.",
     pal:{primary:"pink",secondary:"orange",third:"aqua",accent:"white",extra:"green"},oname:"Florida sunshine",look:"swimwear",
@@ -180,7 +180,7 @@
     pal:{primary:"blue",secondary:"red",third:"silver",accent:"white",extra:"navy blue"},oname:"The Mitten",look:"street",
     h:["long straight hair","long","brown","long side-swept bangs"],e:"blue",x:"smile",p:"holding up a mitten",imp:"a Motor City mechanic girl",
     items:{outerwear:R("blue jumpsuit, clothes around waist"),top:R("white tank top"),gloves:R("blue mittens"),legwear:R("boots"),heldItem:R("wrench")},
-    must:"lake, blue sky"},
+    must:"car, city, lake"},
 
   {id:"usmn",name:"Minnesota, the Land of 10,000 Lakes",tone:"fair",body:"tall",blurb:"Ice-skating Nordic blonde in a blue sweater, earmuffs and snow by a lake.",
     pal:{primary:"blue",secondary:"white",third:"black",accent:"red",extra:"green"},oname:"Frozen lake",look:"sporty",
@@ -194,11 +194,11 @@
     items:{top:R("white lace dress"),headwear:R("white hair flower"),gloves:R("white elbow gloves"),legwear:R("white thighhighs, high heels"),heldItem:R("white parasol")},
     must:"river, sunset"},
 
-  {id:"usmo",name:"Missouri, the Show-Me State",tone:"light",body:"hg",blurb:"Barbecue girl in a red crop top and cowboy boots with a plate of meat, city behind.",
-    pal:{primary:"red",secondary:"gold",third:"silver",accent:"white",extra:"brown"},oname:"Show me",look:"casual",
-    h:["long wavy hair","long","auburn","curtain bangs"],e:"hazel",x:"smirk",p:"hand on own hip",imp:"a barbecue-loving Midwest girl",
-    items:{top:R("red crop top"),bottom:R("white shorts"),legwear:R("brown cowboy boots"),heldItem:R("meat")},
-    must:"city, barbecue, sunny day"},
+  {id:"usmo",name:"Missouri, the Show-Me State",tone:"light",body:"hg",blurb:"Barbecue girl: a red bikini under a white apron, grilling skewers in the smoke under city lights.",
+    pal:{primary:"red",secondary:"white",third:"silver",accent:"gold",extra:"brown"},oname:"Barbecue night",look:"casual",
+    h:["long wavy hair","long","auburn","curtain bangs"],e:"hazel",x:"smirk",p:"grilling",imp:"a barbecue-loving Midwest girl",
+    items:{top:R("red bikini"),waistAccessory:R("white apron"),legwear:R("brown cowboy boots"),heldItem:R("skewer")},
+    must:"grill, smoke, night, city lights"},
 
   {id:"usmt",name:"Montana, Big Sky Country",tone:"light",body:"tall",blurb:"Mountain ranch girl in an open plaid shirt and cowboy hat with a fishing rod by the river.",
     pal:{primary:"blue",secondary:"brown",third:"red",accent:"green",extra:"white"},oname:"Big Sky",look:"casual",
@@ -272,11 +272,11 @@
     items:{outerwear:R("open yellow raincoat"),top:R("white bikini top"),bottom:R("brown skirt"),headwear:R("green beanie"),legwear:R("brown boots"),heldItem:R("umbrella")},
     must:"rain, forest"},
 
-  {id:"uspa",name:"Pennsylvania, the Keystone State",tone:"light",body:"hg",blurb:"Philly girl in a green jersey crop with bell earrings and a sandwich.",
+  {id:"uspa",name:"Pennsylvania, the Keystone State",tone:"light",body:"hg",blurb:"Philly girl in a green jersey crop holding up a big bell, brick walls and autumn leaves behind.",
     pal:{primary:"green",secondary:"silver",third:"black",accent:"white",extra:"brown"},oname:"Philly",look:"street",
-    h:["high ponytail","long","brown","no bangs"],e:"brown",x:"grin",p:"eating a sandwich",imp:"a cocky Philly girl",
-    items:{top:R("green jersey crop top"),bottom:R("black bike shorts"),legwear:R("white sneakers"),earAccessory:R("bell earrings"),heldItem:R("sandwich")},
-    must:"city, street"},
+    h:["high ponytail","long","brown","no bangs"],e:"brown",x:"grin",p:"holding a bell",imp:"a cocky Philly girl",
+    items:{top:R("green jersey crop top"),bottom:R("black bike shorts"),legwear:R("white sneakers"),heldItem:R("bell")},
+    must:"city, brick wall, autumn leaves"},
 
   {id:"usri",name:"Rhode Island, the Ocean State",tone:"fair",body:"petite",blurb:"The littlest state as a sailor sweetheart: sailor collar, sailor hat and anchors, sailboats behind.",
     pal:{primary:"navy blue",secondary:"white",third:"gold",accent:"blue",extra:"yellow"},oname:"Ocean State sailor",look:"preppy",
@@ -294,7 +294,7 @@
     pal:{primary:"black",secondary:"silver",third:"grey",accent:"light blue",extra:"gold"},oname:"Biker rally",look:"edgy",
     h:["long straight hair","very long","brown","no bangs"],e:"grey",x:"smirk",p:"leaning on a motorcycle",imp:"a biker babe",
     items:{top:R("black leather bikini"),bottom:R("chaps"),headwear:R("black bandana"),eyewear:R("sunglasses"),gloves:R("fingerless gloves"),legwear:R("black boots")},
-    must:"motorcycle, mountain, road"},
+    must:"motorcycle, road, mountain, sunset, wind"},
 
   {id:"ustn",name:"Tennessee, the Volunteer State",tone:"fair",body:"big",blurb:"Country singer in a white cowboy hat, denim skirt and cowboy boots with an acoustic guitar on stage.",
     pal:{primary:"orange",secondary:"white",third:"blue",accent:"silver",extra:"brown"},oname:"Country stage",look:"glam",
@@ -302,11 +302,11 @@
     items:{top:R("orange crop top"),outerwear:R("white fringe trim jacket"),bottom:R("denim skirt"),headwear:R("white cowboy hat"),legwear:R("white cowboy boots"),heldItem:R("acoustic guitar")},
     must:"stage, spotlight"},
 
-  {id:"ustx",name:"Texas, the Lone Star State",tone:"light",body:"big",blurb:"Everything's bigger: cowgirl in a star print bikini and cowboy hat with a lasso.",
+  {id:"ustx",name:"Texas, the Lone Star State",tone:"light",body:"big",blurb:"Everything's bigger: cowgirl in a leather bikini, silver stars and a cowboy hat with a lasso at a desert fence.",
     pal:{primary:"red",secondary:"white",third:"blue",accent:"silver",extra:"brown"},oname:"Rodeo",look:"costume",
     h:["long wavy hair","very long","blonde","no bangs"],e:"blue",x:"grin",p:"holding a lasso",imp:"a big rodeo cowgirl",
-    items:{top:R("blue star print bikini top"),bottom:R("denim shorts"),belt:R("brown belt with a silver star buckle"),headwear:R("white cowboy hat"),legwear:R("red cowboy boots"),heldItem:R("lasso")},
-    must:"desert, sunset"},
+    items:{top:R("brown leather bikini top"),bottom:R("denim shorts"),belt:R("brown belt with a silver star buckle"),headwear:R("white cowboy hat"),legwear:R("red cowboy boots"),earAccessory:R("silver star earrings"),heldItem:R("lasso")},
+    must:"desert, fence, sunset"},
 
   {id:"usut",name:"Utah, the Beehive State",tone:"fair",body:"hg",blurb:"Beehive hairdo and a honeycomb bikini, honey in hand, red rocks behind. Wholesome, mostly.",
     pal:{primary:"yellow",secondary:"orange",third:"black",accent:"white",extra:"light blue"},oname:"Beehive",look:"sweet",
@@ -329,8 +329,8 @@
   {id:"uswa",name:"Washington, the Evergreen State",tone:"light",body:"hg",blurb:"Grunge girl in the rain with plaid around her waist, combat boots and a coffee cup.",
     pal:{primary:"green",secondary:"grey",third:"red",accent:"brown",extra:"black"},oname:"Grunge in the rain",look:"street",
     h:["long straight wet hair","long","black","long side-swept bangs"],e:"grey",x:"half-closed eyes",p:"holding a coffee cup",imp:"a moody grunge girl",
-    items:{top:R("black crop top"),waistAccessory:R("green plaid shirt, clothes around waist"),bottom:R("black skirt"),legwear:R("fishnets, combat boots"),heldItem:R("disposable coffee cup")},
-    must:"rain, city, forest"},
+    items:{top:R("black crop top"),waistAccessory:R("green plaid shirt, clothes around waist"),bottom:R("black skirt"),legwear:R("fishnets, combat boots"),earAccessory:R("apple earrings"),heldItem:R("disposable coffee cup")},
+    must:"rain, city lights, mountain, forest"},
 
   {id:"uswv",name:"West Virginia, the Mountain State",tone:"fair",body:"hg",blurb:"Mountain girl in a hard hat with a headlamp, overalls and a lantern on a country road.",
     pal:{primary:"black",secondary:"gold",third:"navy blue",accent:"white",extra:"red"},oname:"Country roads",look:"casual",
