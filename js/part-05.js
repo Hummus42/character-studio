@@ -2125,12 +2125,13 @@
       :{id:v,outfit:0,scene:"",act:"",dir:"mutual",compact:false,fit:true}},"pairPartner")});
   /* character 1: load a starting point in place of this design, keeping the pair */
   const selfSel=h("select",{id:"pairSelf","aria-label":"Character 1",onchange:e=>{const v=e.target.value;e.target.value="";const t=v&&tpl(v);if(!t)return;
-    const keep=S.out.pair?JSON.parse(JSON.stringify(S.out.pair)):null,o={explicit:S.out.explicit,lewdtag:S.out.lewdtag,model:S.out.model};
+    const keep=S.out.pair?JSON.parse(JSON.stringify(S.out.pair)):null,o={explicit:S.out.explicit,lewdtag:S.out.lewdtag,model:S.out.model,...(keep?{must:S.out.must,framing:S.out.framing}:{})};
     const st=t._state?stOf(t):stateFromTemplate(t);st.out={...st.out,...o,pair:keep};
     /* the scene's settings only go onto a design the safeguard allows explicit content for */
     let ok=false;{const keepS=S;try{S=normalize(JSON.parse(JSON.stringify(st)));ok=Policy.explicitAllowed()}finally{S=keepS}}
     if(keep&&(!keep.explicit||ok)){const male=st.c.sex==="male";
       if(keep.c1&&!male)Object.entries(keep.c1).forEach(([k,x])=>{if(x==null)delete st.c[k];else st.c[k]=x});
+      if(!(keep.c1&&keep.c1.posture)&&(keep.arch||keep.scene))delete st.c.posture;   /* v343: the scene's pose, not the look's own */
       const so=sceneOutfit(keep.w1,male,st);
       if(so){st.outfits.push(so);st.cur=st.outfits.length-1}
       else if(keep.explicit){const i=outfitNames(t).indexOf("Nude");if(i>=0)st.cur=i}

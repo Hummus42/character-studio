@@ -105,6 +105,7 @@ function setC1(id,wear){
   const male=st.c.sex==="male";
   if(wear==="nude"&&!ok){say((Policy.reason&&Policy.reason())||"That isn't available for this character.");wear="own"}
   if(keep&&keep.c1&&!male&&(!keep.explicit||ok))Object.entries(keep.c1).forEach(([k,x])=>{if(x==null)delete st.c[k];else st.c[k]=x});
+  if(keep&&inScene(keep)&&!(keep.c1&&keep.c1.posture))delete st.c.posture;   /* v343: a look's own pose ("sitting at a wooden table") would fight the scene */
   if(wear==="scene"&&keep&&keep.w1){const so=PAIR.sceneOutfit(keep.w1,male,st);if(so){so.name=so.name||keep.w1.name||"Scene outfit";st.outfits.push(so);st.cur=st.outfits.length-1}else wear="own"}
   else if(wear==="nude"){st.outfits.push(newOutfit("Nude"));st.cur=st.outfits.length-1}
   else if(typeof wear==="number"){st.cur=Math.min(Math.max(0,wear),st.outfits.length-1)}
@@ -651,5 +652,37 @@ if(typeof renderMain==="function"){const rm=renderMain;renderMain=function(){rm.
     body.prepend(E("div",{class:"scstart callout"},E("span",{text:"Making a scene? Skip the design steps: pick a scene, who is in it and what they wear."}),
       E("button",{type:"button",class:"btn sm primary",onclick:sceneStart},"Make a scene →")))}catch(e){}}}
 {const st=document.createElement("style");st.textContent=".scstart{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin:0 0 14px}.scstart span{flex:1 1 240px;min-width:0}";document.head.append(st)}
+/* ---------- v343: a starting point loaded while a scene is open takes character 1's place in it ----------
+   Loading any look keeps the open scene (the new design is built over S.out), but the look came in as it is: its own
+   expression, pose, outfit, held prop and setting words ("wooden table, seafood, pier, sunset") fought the scene. Now it is
+   cast like a girl picked as character 1: her face, hair, body and skin; the scene's character 1 settings (expression, pose,
+   arousal details), the scene's outfit for her (or Nude in an explicit scene), and the scene's own style text and framing.
+   A look that carries a scene of its own loads that scene as before. Undo goes straight back to the previous design. */
+function inScene(p){return !!(p&&(p.arch||p.scene||p.solo))}
+function castInto(st,keep,prev,t){
+  const male=!!(st.c&&st.c.sex==="male");
+  let ok=false;{const keepS=S;try{S=normalize(JSON.parse(JSON.stringify(st)));ok=Policy.explicitAllowed()&&!minor(personOf(t.id))}catch(e){ok=false}finally{S=keepS}}
+  if(keep.explicit&&!ok)return false;
+  if(keep.c1&&!male)Object.entries(keep.c1).forEach(([k,x])=>{if(x==null)delete st.c[k];else st.c[k]=x});
+  if(!(keep.c1&&keep.c1.posture))delete st.c.posture;
+  let wear="own";
+  const so=keep.w1?PAIR.sceneOutfit(keep.w1,male,st):null;
+  if(so){so.name=so.name||keep.w1.name||"Scene outfit";st.outfits.push(so);st.cur=st.outfits.length-1;wear="scene"}
+  else if(keep.explicit){const i=st.outfits.findIndex(o=>/^nude$/i.test(o.name||"")&&!Object.keys(o.items||{}).length);
+    if(i>=0)st.cur=i;else{st.outfits.push(newOutfit("Nude"));st.cur=st.outfits.length-1}wear="nude"}
+  else{const o=st.outfits[st.cur];if(o&&o.items&&o.items.heldItem){const c=JSON.parse(JSON.stringify(o));delete c.items.heldItem;st.outfits[st.cur]=c}}
+  if(wear==="nude")nudeTags(keep,"tags1",true);
+  st.out=Object.assign({},st.out,{pair:keep,must:prev.must,framing:prev.framing,
+    explicit:keep.explicit?true:prev.explicit,lewdtag:keep.explicit?true:prev.lewdtag,c1look:t.id,c1wear:wear});
+  return true}
+if(typeof loadStart==="function"){const ls0=loadStart;
+  loadStart=function(t){
+    const prev=S,keep=prev&&prev.out&&inScene(prev.out.pair)?JSON.parse(JSON.stringify(prev.out.pair)):null;
+    if(!keep||!t||(t.out&&t.out.pair))return ls0.apply(this,arguments);
+    const prevOut=Object.assign({},prev.out);
+    const r=ls0.apply(this,arguments);
+    try{if(S!==prev){const st=JSON.parse(JSON.stringify(S));if(castInto(st,keep,prevOut,t)){const n=UNDO.length;replaceState(st);if(UNDO.length>n)UNDO.splice(UNDO.length-1,1);
+        try{toast(`“${t.name}” is character 1 in the scene now.`)}catch(e){}}}}catch(e){console.warn("[cast]",e)}
+    return r}}
 window.CASTQ={setC1,setC2,setX,addX,swap,personOf,looksOf,index,render,sceneKind,castKind,currentKind,mismatch,wearAll,stepGirl,shuffle,pickScene,foldCards,openCard,sexOf};
 })();
