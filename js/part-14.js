@@ -27,7 +27,7 @@
     closeups:"portrait, close-up, face focus, headshot, bust shot, cropped shoulders, cropped torso",
     antiReal:"3d, realistic, photorealistic, photo (medium), real life",
     /* v337: Vice City is flat 2D cover art: no 3D render, no glossy skin */
-    anti3d:"3d, realistic, photorealistic, shiny skin",
+    anti3d:"3d, realistic, photorealistic, shiny skin, white outline",
     /* v330: Manga (B&W): colour tags in the negative, so nothing is tinted */
     antiColor:"1.3::colorful, spot color, partially colored, greyscale with colored background, limited palette::",
     antiAnime:"anime, cartoon, 2d, flat color, cel shading, lineart, manga, illustration, painting, black outline, big eyes, chibi, doll, plastic skin, airbrushed, oversaturated, uncanny face, mannequin"};
@@ -54,7 +54,8 @@
     /* v337: flatter, 2D cover art: flat color added; the Standard shading tags (expert shading, detailed shadows, ambient
        occlusion, highly detailed) dropped, they pushed it toward a 3D render; 3d and shiny skin in the negative; the
        characters' "dewy, glowing skin" is read as smooth skin */
-    vice:{label:"Vice City",retro:true,lead:"western comics (style), 1980s (style), retro artstyle, synthwave, flat color, thick lineart, poster (medium), neon palette, neon lights, pink theme, purple theme, high contrast, chromatic aberration, lens flare",
+    /* v338: the lineart weighted (owner: "emphasize the thick line art and black outlines more") */
+    vice:{label:"Vice City",retro:true,lead:"1.4::thick lineart, black outline, thick outlines::, western comics (style), 1980s (style), retro artstyle, synthwave, flat color, poster (medium), neon palette, neon lights, pink theme, purple theme, high contrast, chromatic aberration, lens flare",
       guard:"anti3d",free:["chromatic aberration"],
       q:f=>["1.3::masterpiece::","best quality","amazing quality","very aesthetic","absurdres",f]}};
   /* v330: colour out of a prompt, for Manga (B&W): her palette sentence and every colour word with its modifiers ("flame orange",
