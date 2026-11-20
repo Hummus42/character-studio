@@ -44,16 +44,15 @@
   const R=v=>[v,"-"];
 
   const S=[
-  /* ===== MARYLAND: blue crabs on the Chesapeake, the flag's black-and-gold as a checkered print, black-eyed Susans (yellow
-     flowers), summer on the pier. Every piece is a common tag. ===== */
+  /* ===== MARYLAND (the owner's pick, MD09 of ten, 2026-11-19): a crab shack on the Chesapeake at sunset: crab in hand,
+     a black-eyed Susan (yellow flower) in her bun, red apron, pier-side table. Every piece is a common tag. ===== */
   {id:"usmd",name:"Maryland, the Old Line State",tone:"light",body:"hg",
-    blurb:"A Chesapeake Bay girl holding up a crab on the pier: the flag's black and gold in a checkered bikini top, its red and white in striped thighhighs and a ribbon, yellow flowers in her hair.",
-    pal:{primary:"yellow",secondary:"black",third:"red",accent:"white",extra:"blue"},oname:"Crabs on the bay",look:"swimwear",
-    h:["high ponytail with a red ribbon","very long","blonde","wispy see-through bangs"],e:"blue",x:"grin",p:"holding up a crab",
+    blurb:"At the crab shack on the bay: a white tank top, denim shorts and a red apron, a yellow flower in her bun and a crab in hand at a pier-side table at sunset.",
+    pal:{primary:"yellow",secondary:"black",third:"red",accent:"white",extra:"blue"},oname:"Crab shack",look:"casual",
+    h:["messy bun","very long","blonde","wispy see-through bangs"],e:"blue",x:"grin, open mouth",p:"sitting at a wooden table",
     imp:"a sunny Chesapeake Bay girl",m:"tanlines, freckles",
-    items:{top:R("black and yellow checkered bikini top"),bottom:R("denim shorts"),legwear:R("a pair of red and white striped thighhighs"),
-      headwear:R("yellow flower hair ornament"),heldItem:R("crab")},
-    must:"pier, ocean, sunset"},
+    items:{top:R("white tank top"),bottom:R("denim shorts"),waistAccessory:R("red apron"),headwear:R("yellow flower hair ornament"),heldItem:R("crab")},
+    must:"wooden table, seafood, pier, sunset"},
 
   {id:"usal",name:"Alabama, the Heart of Dixie",tone:"light",body:"hg",blurb:"Crimson cheerleader in houndstooth with a big hair bow and pom-poms.",
     pal:{primary:"crimson",secondary:"white",third:"black",accent:"white",extra:"gold"},oname:"Game day",look:"sporty",
