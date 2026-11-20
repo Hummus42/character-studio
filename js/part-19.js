@@ -2120,7 +2120,9 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
       if(W.img){a.images=Object.assign({},a.images||{});if(W.img.por)a.images.por={h:W.img.por.h,c:W.img.por.c};if(W.img.px32)a.images.px32=W.img.px32;if(W.img.px16)a.images.px16=W.img.px16}
       if(W.fig){a.men=Object.assign({},a.men||{});["man","head"].forEach(k=>{const f=W.fig[k];if(!f)return;if(k==="man"&&minor){a.men.man={name:"",blurb:"",look:null};return}
         a.men[k]=Object.assign({},a.men[k]||{},{name:String(f.name||"").trim(),blurb:String(f.blurb||"").trim()});if(f.look)a.men[k].look=f.look;if(f.reset)a.men[k].look=null})}
+      if(W.sig&&ACAD.sigwear&&ACAD.sigwear.changed(x,W.sig))ensure(d.edits,"sigwear")[x]=ACAD.sigwear.clean(W.sig);   /* edits.sigwear wins over add.girls[x].sigwear */
       relDrafts(d,x,W);return d}
+    if(W.sig&&ACAD.sigwear&&ACAD.sigwear.changed(x,W.sig))ensure(d.edits,"sigwear")[x]=ACAD.sigwear.clean(W.sig);
     if(W.fig)["man","head"].forEach(k=>{const f=W.fig[k];if(!f)return;const id=x+k;
       if(f.reset){if(d.edits.figures)delete d.edits.figures[id];return}
       const o=Object.assign({},(d.edits.figures||{})[id]||{});if(String(f.name||"").trim()!==String(f.name0||""))o.fullName=String(f.name||"").trim();if(String(f.blurb||"").trim()!==String(f.blurb0||""))o.blurb=String(f.blurb||"").trim();if(f.look)o.look=f.look;
@@ -2337,7 +2339,7 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
     const bio={};Object.entries(W.bio).forEach(([f,v])=>{if(minor&&(INTIMATE.has(f)||ROMANTIC.has(f)))return;if(v)bio[f]=v});
     if(W.place.kind==="wake"){const g=lostOf(W.place.lost);if(g&&!bio.group2&&W.group!==g.id)bio.group2=g.name}   /* v269: not when she wakes the group itself */
     const lk=W.look?clone(W.look):W.look;if(lk)delete lk.pin;
-    const a={name:W.name.trim(),group:W.group,role:W.role,bio,adult:!minor,look:lk,place:W.place.kind==="group"?{kind:"group",lost:"",house:""}:clone(W.place),det:clone(W.det),men:clone(W.men),images:clone(W.img||{})};if(W.place.kind==="house"&&a.men)delete a.men.head;   /* v328: her House's Keeper is her headmistress */
+    const a={name:W.name.trim(),group:W.group,role:W.role,bio,adult:!minor,look:lk,place:W.place.kind==="group"?{kind:"group",lost:"",house:""}:clone(W.place),det:clone(W.det),men:clone(W.men),images:clone(W.img||{})};if(W.sig&&ACAD.sigwear){const sg=ACAD.sigwear.clean(W.sig);if(Object.keys(sg).length)a.sigwear=sg}if(W.place.kind==="house"&&a.men)delete a.men.head;   /* v328: her House's Keeper is her headmistress */
     if(W.model&&!minor){a.model=W.model;const wd=Object.entries(W.words||{}).map(([p,q])=>[p,String(q||"").trim()]).filter(([p,q])=>q&&q!==p);if(wd.length)a.words=wd;
       if(W.sigLook)a.sigLook=W.sigLook;if(String(W.sigName||"").trim())a.sigName=String(W.sigName).trim()}if(minor&&a.men)a.men.man={name:"",blurb:"",look:null};
     if(W.place.kind==="group"&&W.banner2&&W.banner2.lost)a.banner2={lost:W.banner2.lost,oath:String(W.banner2.oath||"").trim()};
@@ -2515,6 +2517,8 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
           W.look&&W.look.robesFrom?h("p",{class:"adm-note"},`Robes in her palette, cut like ${HN(W.look.robesFrom)}'s.`):null,
           W.look?h("div",{class:"adm-actions"},h("button",{type:"button",class:"adm-btn sm",onclick:()=>startDesign({kind:"her",key:NEWKEY,title:String(W.name||"").trim()||"your new girl",who:"her",keep:true,start:W.look,back:{editor:NEWKEY,tab:"look"}})},"Load her into the studio")):null,
           h("p",{class:"adm-muted"},"You can close this window to work in the studio; your new girl waits here until you save her or start over."));
+        /* v332: her signature wear, in every look she has */
+        if(ACAD.sigwear)pane.append(ACAD.sigwear.field(W,String(W.name||"").trim()||"she"));
         /* v247: her Signature look, cut from her model's */
         if(W.model&&!minorW(W)){const ms=T(W.model+"signature");
           pane.append(h("h4",null,"Her Signature look"),h("p",{class:"adm-note"},W.sigLook?"Designed in the studio.":ms?`Cut from ${HN(W.model)}'s Signature look (“${String(ms.name||"").replace(/\s*\(.*\)$/,"")}”), on her face and palette.`:`${HN(W.model)} has no Signature look to cut hers from.`),
@@ -2679,7 +2683,8 @@ if(typeof TEMPLATES!=="undefined")TEMPLATES.forEach(t=>{if(!t||typeof t.blurb!==
             has?h("button",{type:"button",class:"adm-btn",onclick:()=>{W.look="reset";draw()}},"Restore her original look"):null),
           W.look&&W.look!=="reset"?h("p",{class:"adm-note"},"Ready to save: her robes design as you made it in the studio."):null,
           W.look==="reset"?h("p",{class:"adm-note"},"Ready to save: her robes design goes back to the original."):null,
-          h("p",{class:"adm-muted"},"Her portrait and pixel art don't change with her look."))}}
+          h("p",{class:"adm-muted"},"Her portrait and pixel art don't change with her look."));
+        if(ACAD.sigwear){if(!W.sig)W.sig=ACAD.sigwear.of(x);pane.append(ACAD.sigwear.field(W,HN(x)))}}}
     const title=h("h2",null,isNew?(W.name||"A new girl"):HN(x));
     tabs.forEach(([k,l])=>nav.append(h("button",{type:"button",role:"tab","data-t":k,onclick:()=>{cur=k;draw()}},l)));
     const nextBtn=h("button",{type:"button",class:"adm-btn",onclick:()=>{const i=tabs.findIndex(t=>t[0]===cur);if(i<tabs.length-1){cur=tabs[i+1][0];draw();pane.scrollTop=0;const b=nav.querySelector(`[data-t="${cur}"]`);if(b)b.focus()}}},"Next");
