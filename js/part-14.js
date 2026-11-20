@@ -44,7 +44,14 @@
        out truly black and white when the prompt carries no colour words, so this style strips them (stripColor). */
     manga:{label:"Manga (B&W)",mono:true,lead:"1.4::monochrome, greyscale::, comic, screentones, halftone, lineart, hatching (texture), crosshatching, ink (medium), pen (medium), traditional media, 1990s (style), retro artstyle, emphasis lines, motion lines, high contrast",
       guard:"antiColor",free:["monochrome","sketch","halftone","screentone","dithering"],
-      q:f=>["masterpiece","best quality","amazing quality","very aesthetic","absurdres",f]}};
+      q:f=>["masterpiece","best quality","amazing quality","very aesthetic","absurdres",f]},
+    /* v336: Vice City: 80s neon comic art. Only tags that change how the image is drawn and colored, never what is in it
+       (no cars, cities, skies or neon clothing trim), so any outfit, scene or setting keeps its own content. Tested at seed 42
+       on a sunflower field, snow and aurora, a plain portrait and a beach (2026-11-19). The studio's anime wording and
+       "year 2026" are dropped (they fight the 80s look), and chromatic aberration is let through the negative. */
+    vice:{label:"Vice City",retro:true,lead:"western comics (style), 1980s (style), retro artstyle, synthwave, thick lineart, poster (medium), neon palette, neon lights, pink theme, purple theme, high contrast, chromatic aberration, lens flare",
+      free:["chromatic aberration"],
+      q:f=>["1.3::masterpiece::","best quality","amazing quality","very aesthetic","absurdres","highly detailed",f,"expert shading","clarity","sharp focus","detailed shadows","ambient occlusion"]}};
   /* v330: colour out of a prompt, for Manga (B&W): her palette sentence and every colour word with its modifiers ("flame orange",
      "honey-brown", "caramel brown") go; black, white, grey, dark, light and pale stay, so hair and skin still read as tones */
   {const CH="red|crimson|scarlet|ruby|cherry|orange|amber|peach|coral|apricot|yellow|gold|golden|buttercup|honey|mustard|lemon|green|emerald|jade|mint|sage|olive|teal|turquoise|aqua|cyan|blue|navy|cobalt|sapphire|azure|indigo|purple|violet|lavender|lilac|plum|magenta|pink|fuchsia|brown|caramel|chocolate|chestnut|auburn|copper|bronze|beige|ivory|cream|silver|rosy|rose|blonde|brunette|ginger|strawberry";
@@ -66,6 +73,7 @@
   /* Ultra-realistic: the studio's anime-only wording would fight the style, so it is rewritten (character prompts too) */
   window.styleText=function(t){
     if(STY[styleKey()].mono)return stripColor(t);
+    if(STY[styleKey()].retro)return String(t).replace(/(Additional details include )an anime style with high detail, and /gi,"$1").replace(/\ban anime style with high detail\b/gi,"a retro comic style");
     if(!(ultraOn()&&styleKey()==="real"))return t;
     return String(t).replace(/\ban anime style with high detail\b/gi,"a photorealistic style with high detail").replace(/\ban anime style\b/gi,"a photorealistic style")
       .replace(/,?\s*(a )?detailed foreground outlined in black/gi,"").replace(/,?\s*\boutlined in black\b/gi,"").replace(/,\s*black outline\b/gi,"").replace(/^black outline,\s*/i,"");
@@ -161,7 +169,7 @@
         onchange:e=>mut(()=>{const q=pairOf();if(q)q.ultra=e.target.checked;S.out.ultra=e.target.checked})})," Ultra detail")):null;
       const note=h("p",{class:"muted small qucnote",text:(p&&(p.qStyle||p.ultra)?`This scene sets the ${STY[k].label}${ultraOn()?" (ultra)":""} style; picking one here overrides it. `:"")+
         (STY[k].lead?`Adds “${STY[k].lead}” after the quality tags${ultraOn()?", and the ultra detail tags after the prompt":""}.`:"The studio’s own anime look, with no extra style tags.")});
-      f.append(row("Image style",STY[k].mono?"Black and white: colour words are taken out of every prompt.":STY[k].ultra?"Ultra detail adds extra detail tags.":"Anime, Realistic and Manga add style tags; Anime and Realistic can add Ultra detail.",h("div",{},seg,ul,note)));
+      f.append(row("Image style",STY[k].mono?"Black and white: colour words are taken out of every prompt.":STY[k].retro?"80s neon comic art; it changes the look only, never the scene.":STY[k].ultra?"Ultra detail adds extra detail tags.":"Anime, Realistic, Manga and Vice City add style tags; Anime and Realistic can add Ultra detail.",h("div",{},seg,ul,note)));
       const fr=h("select",{"aria-label":"Framing",onchange:e=>mut(()=>{S.out.framing=e.target.value})},[["cowboy shot","Cowboy shot"],["from waist up","Waist up"],["upper body","Upper body"],["full body","Full body"],["portrait","Portrait"],["standing straight, facing the viewer, arms relaxed at her sides","Standing, facing viewer"],["","None"]].map(([v,l])=>h("option",{value:v,selected:S.out.framing===v?true:null,text:l})));
       f.append(row("Framing","Goes in with the quality tags.",fr));
       f.append(h("div",{class:"checks"},
