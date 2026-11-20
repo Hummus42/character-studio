@@ -2030,6 +2030,24 @@
     const nsfwX=X.some(x=>NX.test(x.r.prompt));
     if(a.blocked||b.blocked||p.explicit||X.length){a.prompt=a.prompt.replace(NX,"");b.prompt=b.prompt.replace(NX,"");X.forEach(x=>{x.r.prompt=x.r.prompt.replace(NX,"")})}
     const futa=!!p.penis&&!b.male&&!a.male&&!held;
+    /* v339: a scene written for an unseen faceless man (the Cut-outs, BLACKED and the like) with a real character picked as
+       character 2: that character takes the man's place. His count line, his tags (faceless, dark-skinned, muscular,
+       interracial, head out of frame) and his words in the scene go; the scene names character 2 instead ("the futanari
+       woman" with he/his/him as she/her, or "the man"). Everything else in the scene stays word for word. Group scenes (two
+       or more men) are left as they are, and so are scenes where the faceless man is an extra beside character 2 (pair.gmSlot
+       marks the scenes written with him as character 2). */
+    if(p.id&&p.gmSlot&&!X.length&&!held){const FACE=/\bfaceless (man|men|male)\b/i,GROUP=/\b(\d+boys|multiple boys)\b/i;
+      if(FACE.test((p.count||"")+" "+(p.scene||"")+" "+(p.act||""))&&!GROUP.test(p.count||"")){
+        const who=b.male?"the man":futa?"the futanari woman":"the other woman";
+        const TAGS=/(^|,)\s*(faceless male|dark-skinned male|muscular male|interracial|head out of frame)\s*(?=,|$)/gi;
+        const tags=s=>String(s||"").replace(TAGS,"$1").replace(/,\s*(,\s*)+/g,", ").replace(/^\s*,\s*|\s*,\s*$/g,"");
+        let sc=String(p.scene||"").replace(/\b(?:a|the) (?:(?:muscular|dark-skinned|tall|huge|big|strong),? )*(?:(?:standing|kneeling|lying|sitting|seated) )?faceless (?:man|male)('s)?/gi,(m,s2)=>who+(s2||""));
+        if(!b.male)sc=sc.replace(/\bHe\b/g,"She").replace(/\bhe\b/g,"she").replace(/\bHis\b/g,"Her").replace(/\bhis\b/g,"her").replace(/\bhimself\b/g,"herself").replace(/\bhim\b/g,"her");
+        sc=sc.replace(/(^|[.!?]\s+)the /g,"$1The ");
+        /* the tag list at the end of the scene: his tags out; with a woman partner, hetero and 1boy out too */
+        sc=tags(sc);if(!b.male)sc=sc.replace(/(^|,)\s*(hetero|1boy)\s*(?=,|$)/gi,"$1").replace(/,\s*(,\s*)+/g,", ");
+        p={...p,scene:sc,act:tags(p.act),count:null};
+        a.prompt=String(a.prompt).replace(/,? and on the contrast between her skin and his dark skin/gi,"")}}
     let count=a.male&&b.male?"2boys":a.male||b.male?"1girl, 1boy":"2girls";
     /* v163: a scene can set its own count line (e.g. "2girls, 1boy" for a threesome with an unseen third person) */
     if(X.length){   /* v216: three or more characters */
@@ -2203,6 +2221,7 @@
     const p=JSON.parse(JSON.stringify(src));
     const cur=keep&&keep.id&&tpl(keep.id)?keep.id:"";
     p.id=cur||(src.id&&tpl(src.id)?src.id:"");
+    if(src.gm||src.gmSlot)p.gmSlot=src.gmSlot||src.gm;   /* v339: the scene was written with the faceless man as character 2 */
     if(!cur&&keep&&keep.gm){p.id="";p.gm=keep.gm}else if(cur||!src.gm)delete p.gm;   /* a scene written for the faceless man keeps him unless you have a partner */   /* v203: a faceless man stays in place too */
     const pt=p.id&&tpl(p.id);
     p.outfit=p.w2?"scene":p.explicit&&pt?nudeIndex(pt):cur&&keep.outfit!=="scene"?keep.outfit||0:0;

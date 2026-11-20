@@ -1541,6 +1541,7 @@ ACAD.ARCH233={"P":["an anime style with high detail, a harbor promenade at golde
       Object.keys(r).filter(k=>k.startsWith("texts."+i+".")).forEach(k=>{it[k.split(".")[2]]=r[k]});p.texts.push(it)}}
     ["dir","penis","explicit","couple","emph","ultra","qStyle","txTags","compact","fit","ex1k","ex2k","panels"].forEach(k=>{if(k in r)p[k]=r[k]});
     if(r.gm&&!p.id)p.gm=r.gm;
+    if(r.gm||part.gm)p.gmSlot=r.gm||part.gm;   /* v339: character 2 is the faceless man in this scene, even after someone is picked */
     p.sv=sv;p.idv=opt.idv||{};p.arch={s:si,v:vi};
     if(TIDY3.has(SETS[si].label))tidy3(p);
     const nm=R(f.name||"").replace(/^\s*[,&:]\s*/,"").trim();
