@@ -26,6 +26,8 @@
     outfit:"clothing clipping, floating clothing, malformed clothing, mismatched clothing, distorted accessories, duplicated accessories, color bleeding, bad fabric texture",
     closeups:"portrait, close-up, face focus, headshot, bust shot, cropped shoulders, cropped torso",
     antiReal:"3d, realistic, photorealistic, photo (medium), real life",
+    /* v337: Vice City is flat 2D cover art: no 3D render, no glossy skin */
+    anti3d:"3d, realistic, photorealistic, shiny skin",
     /* v330: Manga (B&W): colour tags in the negative, so nothing is tinted */
     antiColor:"1.3::colorful, spot color, partially colored, greyscale with colored background, limited palette::",
     antiAnime:"anime, cartoon, 2d, flat color, cel shading, lineart, manga, illustration, painting, black outline, big eyes, chibi, doll, plastic skin, airbrushed, oversaturated, uncanny face, mannequin"};
@@ -49,9 +51,12 @@
        (no cars, cities, skies or neon clothing trim), so any outfit, scene or setting keeps its own content. Tested at seed 42
        on a sunflower field, snow and aurora, a plain portrait and a beach (2026-11-19). The studio's anime wording and
        "year 2026" are dropped (they fight the 80s look), and chromatic aberration is let through the negative. */
-    vice:{label:"Vice City",retro:true,lead:"western comics (style), 1980s (style), retro artstyle, synthwave, thick lineart, poster (medium), neon palette, neon lights, pink theme, purple theme, high contrast, chromatic aberration, lens flare",
-      free:["chromatic aberration"],
-      q:f=>["1.3::masterpiece::","best quality","amazing quality","very aesthetic","absurdres","highly detailed",f,"expert shading","clarity","sharp focus","detailed shadows","ambient occlusion"]}};
+    /* v337: flatter, 2D cover art: flat color added; the Standard shading tags (expert shading, detailed shadows, ambient
+       occlusion, highly detailed) dropped, they pushed it toward a 3D render; 3d and shiny skin in the negative; the
+       characters' "dewy, glowing skin" is read as smooth skin */
+    vice:{label:"Vice City",retro:true,lead:"western comics (style), 1980s (style), retro artstyle, synthwave, flat color, thick lineart, poster (medium), neon palette, neon lights, pink theme, purple theme, high contrast, chromatic aberration, lens flare",
+      guard:"anti3d",free:["chromatic aberration"],
+      q:f=>["1.3::masterpiece::","best quality","amazing quality","very aesthetic","absurdres",f]}};
   /* v330: colour out of a prompt, for Manga (B&W): her palette sentence and every colour word with its modifiers ("flame orange",
      "honey-brown", "caramel brown") go; black, white, grey, dark, light and pale stay, so hair and skin still read as tones */
   {const CH="red|crimson|scarlet|ruby|cherry|orange|amber|peach|coral|apricot|yellow|gold|golden|buttercup|honey|mustard|lemon|green|emerald|jade|mint|sage|olive|teal|turquoise|aqua|cyan|blue|navy|cobalt|sapphire|azure|indigo|purple|violet|lavender|lilac|plum|magenta|pink|fuchsia|brown|caramel|chocolate|chestnut|auburn|copper|bronze|beige|ivory|cream|silver|rosy|rose|blonde|brunette|ginger|strawberry";
@@ -73,7 +78,8 @@
   /* Ultra-realistic: the studio's anime-only wording would fight the style, so it is rewritten (character prompts too) */
   window.styleText=function(t){
     if(STY[styleKey()].mono)return stripColor(t);
-    if(STY[styleKey()].retro)return String(t).replace(/(Additional details include )an anime style with high detail, and /gi,"$1").replace(/\ban anime style with high detail\b/gi,"a retro comic style");
+    if(STY[styleKey()].retro)return String(t).replace(/(Additional details include )an anime style with high detail, and /gi,"$1").replace(/\ban anime style with high detail\b/gi,"a retro comic style")
+      .replace(/\bdewy, glowing skin\b/gi,"smooth skin").replace(/,?\s*\b(glossy|oiled|shiny) skin\b/gi,"");
     if(!(ultraOn()&&styleKey()==="real"))return t;
     return String(t).replace(/\ban anime style with high detail\b/gi,"a photorealistic style with high detail").replace(/\ban anime style\b/gi,"a photorealistic style")
       .replace(/,?\s*(a )?detailed foreground outlined in black/gi,"").replace(/,?\s*\boutlined in black\b/gi,"").replace(/,\s*black outline\b/gi,"").replace(/^black outline,\s*/i,"");
