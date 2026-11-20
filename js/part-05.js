@@ -2795,7 +2795,7 @@
     try{const r=pairPrompts();if(r&&r.blocked)return q.replace(/,\s*sexy, lewd/,"")}catch(e){}return q};
   const rs=renderSide;
   renderSide=function(){rs();try{renderPair()}catch(e){try{console.warn("[pair] "+e)}catch(_){}}};
-  window.PAIR={pairPrompts,sceneColors,toneOf,applyScene:t=>applyScene(t),sceneOutfit:(w,m,st)=>sceneOutfit(w,m,st)};
+  window.PAIR={tpl,pairPrompts,sceneColors,toneOf,applyScene:t=>applyScene(t),sceneOutfit:(w,m,st)=>sceneOutfit(w,m,st)};
   /* v189: per-scene quality style (pair.qStyle) is read by the Quality and UC tab (quc189.js) */
 
   /* ---------- Academy Couples: one design per pair, each carrying its partner ---------- */

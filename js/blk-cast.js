@@ -13,7 +13,9 @@
 "use strict";
 if(typeof ACAD==="undefined"||!window.PAIR||typeof tplById!=="function"||typeof openPop!=="function")return;
 const NUDE_TAG="completely nude";
-const tpl=id=>{try{return typeof id==="string"&&id?tplById(id):null}catch(e){return null}};
+/* v340: a saved design ("save:<id>") is looked up through the pair code, so it can be cast as character 1 too (it only worked
+   as character 2: character 1 said "That look isn't in this version") */
+const tpl=id=>{try{if(typeof id!=="string"||!id)return null;if(id.startsWith("save:"))return window.PAIR&&PAIR.tpl?PAIR.tpl(id):null;return tplById(id)}catch(e){return null}};
 const peek=t=>ACAD.peekOut?ACAD.peekOut(t):t&&t.out;
 const HN=h=>(ACAD.HNAME&&ACAD.HNAME[h])||(h?h.charAt(0).toUpperCase()+h.slice(1):"");
 const disp=l=>l==="Academy"?"House robes":String(l).replace(/^Academy /,"");
@@ -64,7 +66,7 @@ const minor=P=>!!(P&&P.h&&ACAD.isMinor&&ACAD.isMinor(P.h));
 /* ---------- character 1: who she is, from the design ---------- */
 function c1Look(){const L=S.out&&S.out.c1look;
   /* v283: only while the design is still the one picked here (loading another look keeps S.out, and with it a stale pick) */
-  if(L&&tpl(L)&&tpl(L).name===S.name)return L;
+  {const t=L&&tpl(L);if(t&&(t.name===S.name||(t._state&&t._state.name===S.name)))return L}   /* v340: a saved design goes by its own name or the save's */
   const h=window.SCENE_SLOTS&&SCENE_SLOTS.girlOfState?SCENE_SLOTS.girlOfState(S):null;return h?h+"robes":""}
 function c1Wear(){const o=S.outfits[S.cur],p=S.out&&S.out.pair;
   if(o&&/^nude$/i.test(o.name||"")&&!Object.keys(o.items||{}).length)return"nude";
