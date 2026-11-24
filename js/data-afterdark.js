@@ -13,6 +13,8 @@
   /* 2026-11: the Great Waking's hundred get their own After dark touch: one House accent and one cue of her personality,
      added to every one of her looks after her setting, so no girl's After dark prompt is a plain copy of another's */
   const ADX={
+anaconda:"a gold coiled-snake arm cuff, a slow, warm, inescapable embrace",
+pigeon:"a coral ribbon choker with a tiny silver locket, a chatty, flirty, secret-sharing warmth",
 cuttlefish:"a rose gold body chain, a slow, hypnotic, look-only-at-me allure",
 blueringed:"a thin electric blue ring choker, a sweet, dangerous, finger-to-the-lips tease",
 hippogriff:"a sky-blue silk ribbon tied at her throat, a gracious, romantic flush",roc:"stacked gold armlets on her upper arms, a warm, unhurried ease",thunderbird:"a gold lightning choker, wind-tossed hair and a fierce, joyful grin",simurgh:"a rose-gold healer's pendant between her breasts, a gentle, knowing tenderness",fenghuang:"long gold tassel earrings, a serene, regal composure",garuda:"a red thread bracelet and gold cuffs, a hot-headed, challenging glint",lamassu:"a broad gold-and-lapis collar necklace, a regal, unshakable stillness",firebird:"molten-gold body jewelry and a showgirl's flourish",baku:"a soft lavender ribbon in her hair, a sleepy, clingy sweetness",haetae:"a jade bead necklace, a severe composure melting into a secret softness",

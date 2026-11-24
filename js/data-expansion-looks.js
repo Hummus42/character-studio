@@ -3,6 +3,8 @@
    (the wardrobe drops any set that doesn't). Read by data-housecostume.js (window.HOUSE_COSTUME_EXTRA) and data-furry.js
    (window.FURRY_EXTRA: looks, studio species per House, and the new studio species). Danbooru tags checked with tagcheck.js. ---- */
 window.HOUSE_COSTUME_EXTRA={
+anaconda:["River Queen","an anaconda river-queen costume","lounging half in warm jungle river water, arms draped over a rock","a jungle river at golden hour","bra=deep green scale-pattern bikini top|@primary;panties=black bikini bottom|@secondary;outerwear=sheer gold-and-green scale-pattern sarong|@third;wristAccessory=gold coiled-snake arm cuff|@third","jungle, river, golden hour, partially submerged, wet, lounging"],
+pigeon:["Rooftop Messenger","a pigeon-messenger costume","perched on a rooftop ledge at dawn, a sealed letter between two fingers","Paris rooftops at sunrise","bra=iridescent violet-and-green satin bralette|@secondary;panties=dove grey lace panties|@primary;outerwear=cropped dove grey feather-trimmed jacket, open|@primary;legwear=white thigh-high stockings with coral bows|@accent","rooftop, sunrise, letter, paris, chimneys, birds, sitting on ledge"],
 cuttlefish:["Sepia Shimmer","a cuttlefish costume","turning slowly, hands rippling like fins, hair fanning out","a glowing kelp aquarium tunnel at night","bra=iridescent violet-to-teal bikini top|@secondary;panties=sepia brown bikini bottom|@primary;outerwear=sheer iridescent ruffled shawl like a rippling fin|@third","iridescent, aquarium, kelp, underwater lighting, glowing, hair spread"],
 blueringed:["Blue Ring","a blue-ringed octopus costume","perched on a tide-pool rock, one finger to her lips","a sunlit tide pool on a rocky shore","bra=golden yellow bikini top with an electric blue ring print|@primary;panties=black bikini bottom|@third;legwear=sheer black thigh-high stockings with tiny blue rings|@third;neckAccessory=electric blue ring choker|@secondary","tide pool, rocks, ocean, finger to lips, shushing, wet"],
 hippogriff:["Sky Courier","a hippogriff courier costume","landing on a balcony rail, wings half folded","a high balcony above the clouds","bra=tawny feather-trimmed bikini top|@primary;panties=white feather-trimmed thong|white;wingPiece=large tawny eagle wings|@secondary;tailPiece=silky horse tail|@primary;legwear=thigh-high riding boots|@primary;neckAccessory=messenger satchel strap between her breasts|brown","feathered wings, horse tail, bikini, thong, thigh boots, satchel"],
@@ -112,6 +114,8 @@ nue:["Chimera","a nue chimera costume","crouching on a stormy rooftop","a stormy
 window.FURRY_EXTRA={
  /* house: [animal, body (M B R S I), Danbooru species tags, studio species] */
  looks:{
+  anaconda:["green anaconda","R","lamia, snake tail, green scales","anaconda"],
+  pigeon:["pigeon","B","bird girl, feathered wings, grey feathers","pigeon"],
   cuttlefish:["cuttlefish","S","octopus girl, tentacles, iridescent","cuttlefish"],
   blueringed:["blue-ringed octopus","S","octopus girl, tentacles, blue rings","octopus"],
   hippogriff:["hippogriff, a feathered eagle-headed mare","B","horse tail, feathered wings","hippogriff"],roc:["giant roc bird","B","feathered wings, harpy","roc"],thunderbird:["thunderbird crackling with lightning","B","feathered wings, lightning","thunderbird"],
