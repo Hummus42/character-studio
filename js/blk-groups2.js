@@ -37,7 +37,11 @@
 
   if(typeof ENC==="undefined"||!ENC.pages)return;
   const E=ENC.E,lnk=(id,t)=>E("a",{href:"#",onclick:ev=>{ev.preventDefault();ENC.go(id)}},t);
-  const badge=k=>E("span",{class:"enc-banner-kind",style:{fontSize:"11px",fontWeight:"600",border:"1px solid currentColor",borderRadius:"999px",padding:"0 6px",marginLeft:"6px",opacity:".8"}},KIND[k]);
+  /* v2.43: the oath's kind as a gold swallowtail ribbon in the Encyclopedia's serif small caps (was a thin outline pill) */
+  if(!document.getElementById("enc-banner-kind-css")){const st=document.createElement("style");st.id="enc-banner-kind-css";
+    st.textContent='.enc-banner-kind{display:inline-flex;align-items:center;font-family:var(--e-serif,"Cormorant Garamond",Georgia,serif);font-variant:small-caps;font-weight:700;font-size:13px;letter-spacing:.07em;line-height:1;padding:2px 11px 2px 6px;margin-left:7px;vertical-align:1px;color:#21170a;background:linear-gradient(180deg,#f0d283,#c39433 60%,#a97b22);clip-path:polygon(0 0,100% 0,calc(100% - 5px) 50%,100% 100%,0 100%)}';
+    document.head.append(st)}
+  const badge=k=>E("span",{class:"enc-banner-kind"},KIND[k]);
 
   /* her House page: the record and a line before her people */
   const bh=ENC.buildHouse;
@@ -58,7 +62,7 @@
       side.insertBefore(E("div",{class:"enc-card"},E("h4",null,`Also of ${low(g.name)} (${who.length})`),
         E("p",{class:"enc-note",style:{margin:"0 0 8px"}},"They fly their own group's banner first and carry this one beside it."),
         who.map(h=>{const e=X[h].find(x=>x.g===g.id),hg=G(home(h));
-          return E("div",{class:"enc-person"},ENC.pixel?ENC.pixel(h,36):null,E("div",null,E("b",null,lnk("house:"+h,HN(h))),e.kind!=="sworn"?badge(e.kind):null,
+          return E("div",{class:"enc-person"},ENC.pixel?ENC.pixel(h,36):null,E("div",null,E("b",null,lnk("house:"+h,HN(h))),badge(e.kind),
             E("div",{class:"enc-note"},(hg?hg.name+". ":"")+e.oath.replace(/^./,c=>c.toUpperCase())+(/[.!]$/.test(e.oath)?"":"."))))})),side.children[1]||null)
     }catch(err){console.warn("groups2",err)}};pg.build.g2=true});
 

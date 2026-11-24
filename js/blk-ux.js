@@ -54,7 +54,12 @@
   .ad-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px;margin-top:6px}
   .ad-tile{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--rule2);background:var(--panel);border-radius:10px;padding:8px 4px;font-size:.78rem;line-height:1.2;text-align:center}
   .ad-tile:hover{border-color:var(--gold)}
-  .ad-tile .sw{font-size:.7rem;color:var(--gold)}
+  /* v2.43: sworn girls carry a gold swallowtail ribbon with their home group's crest (was a plain "⚑ sworn") */
+  .ad-tile.sworn{border-color:color-mix(in srgb,var(--gold) 45%,var(--rule2));background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 9%,var(--panel)),var(--panel) 70%)}
+  .ad-rib,.ad-tile .ad-sworn{display:inline-flex;align-items:center;gap:4px;font-family:"Cormorant Garamond","Cormorant","Palatino Linotype",Georgia,serif;font-variant:small-caps;font-weight:700;font-size:.82rem;letter-spacing:.07em;line-height:1;
+    padding:3px 13px 3px 5px;color:#21170a;background:linear-gradient(180deg,#f0d283,#c39433 60%,#a97b22);clip-path:polygon(0 0,100% 0,calc(100% - 6px) 50%,100% 100%,0 100%);white-space:nowrap}
+  .ad-rib img,.ad-tile .ad-sworn img{width:14px;height:14px;image-rendering:pixelated;flex:none}
+  .ad-tile .ad-sworn{margin-top:2px}
   .ad-h{font-family:var(--fh);font-size:.88rem;margin:16px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
   .ad-girl{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;margin-top:6px}
   .ad-por{width:92px;flex:none;height:auto;aspect-ratio:400/585;object-fit:cover;border-radius:10px;box-shadow:0 0 0 1px var(--rule2),0 4px 12px rgba(0,0,0,.16);background:#fff}
@@ -93,7 +98,8 @@
   .ad-load.x{border-style:dashed}
   .ad-load.on{background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--goldink);border-color:var(--gold)}
   .ad-gate{border:1px solid var(--rule);border-radius:10px;padding:12px;margin-top:10px}
-  .ad-badge{font-size:.7rem;border:1px solid currentColor;border-radius:999px;padding:0 6px;margin-left:4px;color:var(--gold)}
+  .ad-badge{display:inline-flex;align-items:center;font-family:"Cormorant Garamond","Cormorant","Palatino Linotype",Georgia,serif;font-variant:small-caps;font-weight:700;font-size:.8rem;letter-spacing:.07em;line-height:1;
+    padding:2px 11px 2px 6px;margin-left:6px;vertical-align:1px;color:#21170a;background:linear-gradient(180deg,#f0d283,#c39433 60%,#a97b22);clip-path:polygon(0 0,100% 0,calc(100% - 5px) 50%,100% 100%,0 100%)}
   @media (max-width:860px){
     .acad-btn{padding:5px 10px}.acad-btn span{font-size:.88rem}
     .acad-drawer{top:0;z-index:45;width:100vw}
@@ -148,7 +154,10 @@
     parts.forEach((p,i)=>{if(i)crumbs.append(" › ");crumbs.append(p)})}
   const groupRow=g=>E("button",{type:"button",class:"ad-row",onclick:()=>show({k:"group",id:g.id})},crest(g.id,28),
     E("span",null,E("b",null,g.name),E("span",{class:"k"},`${g.kind||""} · ${g.members.length} girls${ACAD.swornMembers&&ACAD.swornMembers(g.id).length?` · ${ACAD.swornMembers(g.id).length} sworn`:""}`)));
-  const girlTile=(h,sworn)=>E("button",{type:"button",class:"ad-tile",onclick:()=>show({k:"girl",h}),title:bio(h).fullName||HN(h)},face(h,56),E("span",null,HN(h)),sworn?E("span",{class:"sw"},"⚑ sworn"):null);
+  /* sworn: the id of the group she is sworn to; her ribbon shows her home group's crest and the kind of oath */
+  const girlTile=(h,sworn)=>{let rib=null;if(sworn){const e=(ACAD.extraGroups?ACAD.extraGroups(h):[]).find(x=>x.g===sworn)||{kind:"sworn"},hg=groupOf(h);
+      rib=E("span",{class:"ad-sworn",title:(hg?hg.name+", ":"")+((ACAD.BANNER_KINDS||{})[e.kind]||"sworn").toLowerCase()+" to "+((G(sworn)||{}).name||"this group")},hg?crest(hg.id,14):null,E("span",null,(ACAD.BANNER_KINDS||{})[e.kind]||"Sworn"))}
+    return E("button",{type:"button",class:"ad-tile"+(sworn?" sworn":""),onclick:()=>show({k:"girl",h}),title:bio(h).fullName||HN(h)},face(h,56),E("span",null,HN(h)),rib)};
   const girlRow=h=>{const g=groupOf(h),b=bio(h);return E("button",{type:"button",class:"ad-row",onclick:()=>show({k:"girl",h})},face(h,40),
     E("span",null,E("b",null,HN(h)+(b.fullName?" · "+b.fullName:"")),E("span",{class:"k"},g?g.name:"")))};
 
@@ -229,7 +238,7 @@
       if(g.hangout)facts.append(E("dt",null,"Hangout"),E("dd",null,g.hangout));body.append(facts);
       body.append(E("div",{class:"ad-h"},"Its girls"),E("div",{class:"ad-grid"},g.members.map(h=>girlTile(h))));
       const sw=ACAD.swornMembers?ACAD.swornMembers(g.id):[];
-      if(sw.length)body.append(E("div",{class:"ad-h"},"Also of "+low(g.name)),E("div",{class:"ad-grid"},sw.map(h=>girlTile(h,true))))}
+      if(sw.length)body.append(E("div",{class:"ad-h"},"Also of "+low(g.name)),E("div",{class:"ad-grid"},sw.map(h=>girlTile(h,g.id))))}
     else if(v.k==="girl"){const h=v.h,b=bio(h),g=groupOf(h);title.textContent=HN(h);
       const por=E("img",{class:"ad-por",src:`assets/portraits/${h}.c.webp`,alt:HN(h)+"'s portrait",loading:"lazy"});
       por.addEventListener("error",()=>{const f=face(h,96);if(f)por.replaceWith(f);else por.remove()},{once:true});
