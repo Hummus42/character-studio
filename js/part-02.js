@@ -25,7 +25,7 @@ const PLURAL_RX=/\b(headphones|jeans|trousers|pants|shorts|tights|leggings|stock
 function withArticle(p){
   p=String(p||"").trim();if(!p)return"";
   if(/^(a|an|the|no|one|some|two|multiple|both)\s/i.test(p))return p;
-  const head=p.replace(/,\s+and\s/g,", ").split(/\s(?:with|around|over|under|tied|worn|in|of|on|at|from|and)\s/i)[0];
+  const head=p.replace(/,\s+and\s/g,", ").split(/\s(?:with|around|over|under|tied|worn|in|of|on|at|from|and|across|scattered|along)\s/i)[0];
   if(PLURAL_RX.test(head)||(/s$/i.test(head)&&!/(ss|us|is)$/i.test(head))||/(teeth|antennae)$/i.test(head))return p;
   return (/^[aeiou]/i.test(p)&&!/^(uni|use|usu|u-|eu)/i.test(p)?"an ":"a ")+p;
 }
