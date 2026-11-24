@@ -13,6 +13,18 @@
   /* 2026-11: the Great Waking's hundred get their own After dark touch: one House accent and one cue of her personality,
      added to every one of her looks after her setting, so no girl's After dark prompt is a plain copy of another's */
   const ADX={
+coelacanth:"a retro polka-dot headscarf, a warm, chatty, slow-dance seduction to an old record",
+frilledshark:"a high ruffled lace collar with an antique brooch, a slow, stately unhurried seduction",
+gulpereel:"glowing pink pearl drop earrings, a loud, laughing, greedy appetite for everything",
+fangtooth:"a black choker with a gold tooth charm, a bossy, toothy, fight-you-for-it hunger",
+greenlandshark:"a carved bone shark pendant, a slow, sleepy, heavy-lidded and utterly unhurried seduction",
+glassoctopus:"clear Murano glass teardrop earrings, a shy, trembling, wide-eyed openness",
+barreleye:"a clear crystal visor, a calm, knowing upward gaze that already knows what you want",
+dumbooctopus:"pink silk ribbons in her twin buns, a shy, blushing, surprisingly bold sweetness",
+fireflysquid:"glowing blue LED bangles, a giggling, sparkling, show-off flirtation",
+dragonfish:"a black ear cuff set with a red stone, a silent, watchful command",
+goblinshark:"a long silver blade-shaped hairpin, a sweet smile that drops without warning",
+vampiresquid:"a black velvet choker with a crimson cameo, a trembling, melodramatic surrender",
 anaconda:"a gold coiled-snake arm cuff, a slow, warm, inescapable embrace",
 pigeon:"a coral ribbon choker with a tiny silver locket, a chatty, flirty, secret-sharing warmth",
 cuttlefish:"a rose gold body chain, a slow, hypnotic, look-only-at-me allure",
