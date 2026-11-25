@@ -13,6 +13,16 @@
   /* 2026-11: the Great Waking's hundred get their own After dark touch: one House accent and one cue of her personality,
      added to every one of her looks after her setting, so no girl's After dark prompt is a plain copy of another's */
   const ADX={
+parrotfish:"a woven rainbow anklet, a slow, sleepy, lazy-morning seduction",
+flyingfish:"a silver anklet with a tiny fish charm, a breathless, chase-me, catch-me-if-you-can seduction",
+pearloyster:"a single long strand of black pearls, a slow, layer-by-layer, opening-up seduction",
+seadragon:"a delicate gold leaf body chain, a slow, quiet, only-you-can-see-me seduction",
+nudibranch:"a mismatched pair of bright silk stockings, a bold, playful, dress-up seduction",
+pufferfish:"a tiny pufferfish charm on a thin anklet, a flustered, blushing, puffing-up seduction",
+anemone:"a thin rose gold body chain, a slow, look-but-don't-touch seduction",
+clownfish:"a tangerine-and-white striped garter, a loud, laughing, tickle-fight seduction",
+hermitcrab:"a tiny seashell anklet, a shy, slow, coming-out-of-her-shell seduction",
+seaotter:"a tiny pebble charm on a thin chain, a sleepy, cuddly, hold-my-hand seduction",
 coelacanth:"a silk scarf at her high ponytail, a warm, chatty, slow-dance seduction to an old record",
 frilledshark:"a high ruffled lace collar with an antique brooch, a slow, stately unhurried seduction",
 gulpereel:"glowing pink pearl drop earrings, a loud, laughing, greedy appetite for everything",
