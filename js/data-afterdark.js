@@ -13,6 +13,18 @@
   /* 2026-11: the Great Waking's hundred get their own After dark touch: one House accent and one cue of her personality,
      added to every one of her looks after her setting, so no girl's After dark prompt is a plain copy of another's */
   const ADX={
+greatdane:"a long gold body chain, a shy, gentle, careful-I'm-big seduction",
+samoyed:"a soft white fur stole and red beads, a warm, cuddly, come-get-warm seduction",
+dalmatian:"a red fire helmet and a spotted garter, a breathless, playful, sound-the-alarm seduction",
+doberman:"a studded leather collar and cuffs, a stern, commanding, yes-ma'am seduction",
+pomeranian:"a tiny gold tiara and a fluffy pink robe, a bossy, giggling, spoil-me seduction",
+kitfox:"a tiny silver star anklet, a sleepy, cuddly, stay-up-all-night seduction",
+tibetanfox:"a long string of turquoise and coral beads, a deadpan, unreadable, make-me-laugh seduction",
+ethiopianwolf:"a gold coin belly chain, a proud, slow, you-are-privileged seduction",
+dhole:"a thin gold waist chain with tiny bells, a sly, whistling, follow-me seduction",
+wilddog:"a beaded waist chain, a warm, laughing, everyone-together seduction",
+borzoi:"long burgundy velvet opera gloves, a languid, unhurried, aristocratic seduction",
+manedwolf:"a long gold body chain, a slow, aloof, come-find-me seduction",
 seaangel:"a tiny glowing coral heart charm on a thin chain, a sweet, giggling, hungry seduction",
 icefish:"a thin silver chain with a frozen crystal, a cool, calm, warm-me-up seduction",
 arctictern:"a thin chain with two tiny charms of the sun, a breathless, here-tonight-gone-tomorrow seduction",
