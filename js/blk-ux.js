@@ -248,6 +248,8 @@
       const act=(label,id,main)=>{if(!T(id))return;acts.append(E("button",{type:"button",class:"ad-act"+(main?" main":""),title:"Load into the studio",onclick:()=>{ENC.load(id);if(innerWidth<=860)toggle(false)}},label))};
       act("Load her",ACAD.robes?ACAD.robes(h):h+"robes",true);act("Her boyfriend",h+"man");act("Her headmistress",h+"head");
       acts.append(E("button",{type:"button",class:"ad-act",onclick:()=>ENC.open("house:"+h)},"Full page"));
+      /* 2026-11-25: copy her robes portrait (ACAD.copyImage lives in blk-unveil.js) */
+      const cp=E("button",{type:"button",class:"ad-act",title:"Copy her portrait to the clipboard",onclick:()=>{if(ACAD.copyImage)ACAD.copyImage(por.currentSrc||por.src,h+"_robes.png",cp)}},"Copy image");acts.append(cp);
       if(ENC.resolvers&&!minor(h))acts.append(E("button",{type:"button",class:"ad-act",title:"Her intimate life and scenes (18+)",onclick:()=>ENC.open("intimate:"+h)},"Private file"));
       card.append(acts);body.append(card);
       if(b.summary)body.append(E("details",{class:"ad-about"},E("summary",null,"About her"),E("p",{class:"ad-p"},b.summary),aboutFacts(h,b)));

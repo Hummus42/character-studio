@@ -150,18 +150,18 @@
     const img=side.querySelector('.enc-card img[alt^="Portrait of"]');if(!img||side.querySelector(".por-copy"))return;
     const card=img.closest(".enc-card")||img.parentElement;
     const b=document.createElement("button");b.type="button";b.className="enc-load por-copy";b.textContent="Copy image";
-    const say=t=>{b.textContent=t;setTimeout(()=>{b.textContent="Copy image"},1800)};
-    b.onclick=async()=>{
-      const fr=img.closest(".uv-frame"),bare=fr&&fr.classList.contains("open")&&fr.querySelector(".uv-bare");
-      const src=(bare&&bare.src)||img.currentSrc||img.src,name=h+(bare&&bare.src?"_unveil":"_robes")+".png";
-      try{
-        const im=new Image();im.crossOrigin="anonymous";im.src=src;await im.decode();
-        const cv=document.createElement("canvas");cv.width=im.naturalWidth;cv.height=im.naturalHeight;cv.getContext("2d").drawImage(im,0,0);
-        const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
-        try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);say("Copied")}
-        catch(e){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);say("Saved as "+name)}
-      }catch(e){console.warn("[copy]",e);say("Couldn't copy")}};
+    b.onclick=()=>{const fr=img.closest(".uv-frame"),bare=fr&&fr.classList.contains("open")&&fr.querySelector(".uv-bare");
+      copyImage((bare&&bare.src)||img.currentSrc||img.src,h+(bare&&bare.src?"_unveil":"_robes")+".png",b)};
     card.append(b)}
+  /* shared: copy an image URL to the clipboard as PNG (download fallback); btn shows the result, then its old label */
+  async function copyImage(src,name,btn){const old=btn.textContent,say=t=>{btn.textContent=t;setTimeout(()=>{btn.textContent=old},1800)};
+    try{const im=new Image();im.crossOrigin="anonymous";im.src=src;await im.decode();
+      const cv=document.createElement("canvas");cv.width=im.naturalWidth;cv.height=im.naturalHeight;cv.getContext("2d").drawImage(im,0,0);
+      const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
+      try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);say("Copied")}
+      catch(e){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);say("Saved as "+name)}
+    }catch(e){console.warn("[copy]",e);say("Couldn't copy")}}
+  ACAD.copyImage=copyImage;
   const bh=ENC.buildHouse;
   ENC.buildHouse=(el,h)=>{bh(el,h);try{const side=el.querySelector(".enc-side");if(side){enhance(side,h);copyBtn(side,h)}}catch(e){console.warn("[unveil]",e)}};
   ACAD.UNVEIL={enhance,reset:()=>{ok=false;try{localStorage.removeItem(KEY)}catch(e){}}};
