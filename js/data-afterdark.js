@@ -13,6 +13,17 @@
   /* 2026-11: the Great Waking's hundred get their own After dark touch: one House accent and one cue of her personality,
      added to every one of her looks after her setting, so no girl's After dark prompt is a plain copy of another's */
   const ADX={
+bowerbird:"a necklace of blue glass beads and nothing else, a slow, devoted, I-built-this-for-you seduction",
+turaco:"a green silk robe lined in crimson, a shy, slow, reveal-the-flame seduction",
+cardinal:"a crimson velvet ribbon and a quilt, a warm, slow, stay-the-night seduction",
+beeeater:"a rose-gold body chain and rose oil, a quick, playful, catch-me seduction",
+hoopoe:"a fringed silk shawl and a tall comb, a fierce, stamping, duel-with-me seduction",
+gouldianfinch:"body paint in every colour, a shy, slow, paint-me seduction",
+lorikeet:"rainbow body paint and neon wristbands, a loud, laughing, party's-in-my-room seduction",
+scarletibis:"a jewelled carnival bikini and a scarlet plume, a loud, dancing, wine-and-go-down seduction",
+spoonbill:"a pink silk robe and a string of pearls, a warm, flirty, stay-for-dessert seduction",
+mandarinduck:"a red silk cord tied in a lover's knot, a shy, sweet, only-you seduction",
+goldenpheasant:"a gold silk fan and nothing else, a slow, imperial, kneel-to-me seduction",
 greatdane:"a long gold body chain, a shy, gentle, careful-I'm-big seduction",
 samoyed:"a soft white fur stole and red beads, a warm, cuddly, come-get-warm seduction",
 dalmatian:"a red fire helmet and a spotted garter, a breathless, playful, sound-the-alarm seduction",
