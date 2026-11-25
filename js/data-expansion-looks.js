@@ -3,6 +3,18 @@
    (the wardrobe drops any set that doesn't). Read by data-housecostume.js (window.HOUSE_COSTUME_EXTRA) and data-furry.js
    (window.FURRY_EXTRA: looks, studio species per House, and the new studio species). Danbooru tags checked with tagcheck.js. ---- */
 window.HOUSE_COSTUME_EXTRA={
+frogmouth:["Living Branch","a frogmouth costume","perched perfectly still with her eyes half closed","a dark rainforest branch at dusk","top=mottled rust feather-patterned crop top|@primary;bottom=bark brown shorts|@secondary;outerwear=mottled bark-print cape|@secondary","still, half-closed eyes, rainforest, dusk, camouflage, mottled"],
+oilbird:["Cave Candle","an oilbird costume","holding a candle up in the dark with a warm smile","a vast dark cave lit by a single candle","top=chestnut crop top with white spots|@primary;bottom=chestnut shorts|@primary;outerwear=sheer gold-trimmed cape|@secondary","candle, cave, dark, warm glow, mysterious, gold"],
+aardwolf:["Gentle Stripe","an aardwolf costume","crouching gently with a beetle cupped in her hands","a moonlit savanna with termite mounds","top=sandy yellow fluffy crop top with black stripes|@primary;bottom=sandy yellow fluffy shorts|@primary;legwear=black striped thigh-high socks|@secondary;outerwear=olive cropped jacket|@accent","crouching, gentle, savanna, moonlight, striped, shy"],
+aardvark:["Night Dig","an aardvark costume","kneeling with a lantern beside her, brushing at the ground","a red desert at night under the Milky Way","top=terracotta fitted crop top|@primary;bottom=sand cargo shorts|@secondary;outerwear=dusty rose cropped jacket|@accent","kneeling, digging, desert night, Milky Way, earthy, patient"],
+kiwi:["Fern Burrow","a kiwi costume","peeking shyly out from behind a fern frond","a moonlit New Zealand fern forest","top=warm brown fluffy crop top|@primary;bottom=warm brown fluffy shorts|@primary;outerwear=cream fluffy cropped hoodie|@secondary;legwear=brown knit thigh-high socks|@primary","peeking, shy, ferns, moonlight, round, fluffy"],
+sugarglider:["Neon Glide","a sugar glider costume","leaping with her arms spread wide, glowing pink","a dark night sky full of neon light trails","top=soft grey fluffy crop top with glowing pink trim|@primary;bottom=soft grey fluffy shorts|@primary;outerwear=sheer cape glowing neon pink at the edges|@secondary;legwear=glowing pink striped thigh-high socks|@secondary","leaping, glowing, neon, night, tiny, joyful"],
+potoo:["Midnight Wail","a potoo costume","standing perfectly still with her hands folded and her eyes wide","a dark rainforest branch under moonlight","top=mottled brown feather-patterned crop top|@primary;bottom=mottled brown shorts|@primary;outerwear=bark grey cape with a mottled pattern|@secondary","still, wide eyes, rainforest, moonlight, mottled, haunting"],
+binturong:["Canopy Nap","a binturong costume","curled up sleepily on a branch with her cheek on her hands","a dark rainforest canopy at night with fireflies","top=charcoal fluffy crop top|@primary;bottom=charcoal fluffy shorts|@primary;outerwear=gold-tipped fluffy cropped jacket|@primary;legwear=charcoal knit thigh-high socks|@primary","sleepy, curled up, branch, rainforest, night, cosy"],
+pallascat:["Steppe Grump","a Pallas's cat costume","sitting with her arms crossed and a deeply grumpy pout","rocky snowy steppe under a starry sky","top=smoky grey fluffy crop top|@primary;bottom=smoky grey fluffy shorts|@primary;outerwear=huge fluffy grey cropped jacket|@primary;legwear=fluffy grey leg warmers|@primary","grumpy, arms crossed, steppe, stars, fluffy, cute"],
+fishingcat:["Midnight Swim","a fishing cat costume","rising from the water with her hair slicked back, sleek and shining","a dark mangrove creek under the moon","top=olive grey spotted sleek swimsuit|@primary;outerwear=sheer teal chiffon wrap|@third;legwear=sheer glossy stockings|@primary","rising from water, wet, sleek, mangrove, moonlight, shining"],
+blackfootedcat:["Night Hunter","a black-footed cat costume","crouched low with glowing eyes, about to pounce","a dark Karoo night under a sky full of stars","top=sand fluffy crop top with black stripes|@primary;bottom=sand fluffy shorts|@primary;legwear=black thigh-high stockings|@secondary;outerwear=black cropped jacket|@secondary","crouching, glowing eyes, night, Karoo, tiny, deadly"],
+margay:["Canopy Night","a margay costume","hanging by one arm from a branch with a daring grin","a misty cloud forest canopy at night","top=golden rosette-print crop top|@primary;bottom=golden rosette-print shorts|@primary;outerwear=black cropped jacket|@secondary;legwear=rosette-print thigh-high stockings|@primary","hanging, daring, cloud forest, night, spotted, agile"],
 bowerbird:["Bower","a satin bowerbird costume","kneeling beside an arch of blue treasures, offering a blue flower","a golden-hour forest clearing with a bower of blue objects","top=glossy blue-black satin crop top|@primary;bottom=violet satin shorts|@secondary;outerwear=cobalt blue sheer cape sewn with beads|@third","kneeling, offering, bower, forest clearing, blue, devoted"],
 turaco:["Forest Flame","a turaco costume","spinning slowly so a hidden crimson lining flashes out from her green","a misty green forest canopy at dawn","top=emerald sleek crop top|@primary;bottom=emerald pleated mini skirt with crimson-lined pleats|@primary;outerwear=emerald cape lined in crimson|@primary;headwear=white-tipped emerald hair ornament|@third","spinning, forest, mist, dawn, green, crimson"],
 cardinal:["Red Bird","a cardinal costume","perched on a snowy fence rail with a warm smile","a snowy Kentucky farm at dawn","top=crimson fluffy crop top|@primary;bottom=crimson fluffy shorts|@primary;outerwear=black cropped velvet jacket|@secondary;headwear=crimson velvet ribbon|@primary","perched, snow, farm, dawn, red, warm"],
@@ -171,6 +183,18 @@ nue:["Chimera","a nue chimera costume","crouching on a stormy rooftop","a stormy
 window.FURRY_EXTRA={
  /* house: [animal, body (M B R S I), Danbooru species tags, studio species] */
  looks:{
+  frogmouth:["Sri Lanka frogmouth","B","bird girl, mottled rust feathers, wide frog-like mouth","bird"],
+  oilbird:["oilbird","B","bird girl, chestnut feathers with white spots, hooked beak","bird"],
+  aardwolf:["aardwolf","M","hyena girl, sandy fur, black stripes, bristly mane","hyena"],
+  aardvark:["aardvark","M","aardvark girl, long ears, long snout, sparse fur","aardvark"],
+  kiwi:["kiwi","B","bird girl, fluffy brown feathers, long beak, round","bird"],
+  sugarglider:["sugar glider","M","possum girl, grey fur, big eyes, gliding membrane","possum"],
+  potoo:["great potoo","B","bird girl, mottled brown feathers, huge glowing eyes, wide mouth","bird"],
+  binturong:["binturong","M","bearcat girl, shaggy black fur, long prehensile tail","bearcat"],
+  pallascat:["Pallas's cat","M","cat girl, fluffy grey fur, flat face, grumpy","cat"],
+  fishingcat:["fishing cat","M","cat girl, olive spotted fur, webbed paws, wet","cat"],
+  blackfootedcat:["black-footed cat","M","cat girl, sandy spotted fur, black feet, glowing eyes","cat"],
+  margay:["margay","M","cat girl, spotted gold fur, huge eyes, long tail","cat"],
   bowerbird:["satin bowerbird","B","bird girl, glossy blue-black feathers, violet eyes","bird"],
   turaco:["Knysna turaco","B","bird girl, green feathers, crimson wings, white-tipped crest","bird"],
   cardinal:["northern cardinal","B","bird girl, red feathers, crest, black face mask","bird"],

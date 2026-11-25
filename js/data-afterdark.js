@@ -13,6 +13,18 @@
   /* 2026-11: the Great Waking's hundred get their own After dark touch: one House accent and one cue of her personality,
      added to every one of her looks after her setting, so no girl's After dark prompt is a plain copy of another's */
   const ADX={
+frogmouth:"mottled body paint and a twig hair stick, a slow, sly, did-you-even-see-me seduction",
+oilbird:"a gold bangle and a single lit candle, a warm, slow, find-me-in-the-dark seduction",
+aardwolf:"a striped beaded bracelet and nothing else, a shy, gentle, be-careful-with-me seduction",
+aardvark:"a bronze cuff and earth-paint patterns, a slow, patient, let-me-find-you seduction",
+kiwi:"a soft knitted blanket and a book, a shy, quiet, read-to-me seduction",
+sugarglider:"neon body paint that glows under a blacklight, a giggling, glowing, light-me-up seduction",
+potoo:"a single amber necklace and a song, a slow, haunting, sing-me-to-you seduction",
+binturong:"a warm fleece blanket and a bowl of popcorn, a sleepy, cuddly, stay-in-bed seduction",
+pallascat:"a huge fluffy blanket and nothing else, a grumpy, reluctant, fine-come-here seduction",
+fishingcat:"nothing but water droplets and a silver dive watch, a sleek, slow, come-swim seduction",
+blackfootedcat:"a black leather cuff and nothing else, a tiny, fierce, I-caught-you seduction",
+margay:"aerial silks and nothing else, a daring, upside-down, catch-me seduction",
 bowerbird:"a necklace of blue glass beads and nothing else, a slow, devoted, I-built-this-for-you seduction",
 turaco:"a green silk robe lined in crimson, a shy, slow, reveal-the-flame seduction",
 cardinal:"a crimson velvet ribbon and a quilt, a warm, slow, stay-the-night seduction",
