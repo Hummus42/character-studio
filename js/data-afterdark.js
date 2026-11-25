@@ -13,7 +13,7 @@
   /* 2026-11: the Great Waking's hundred get their own After dark touch: one House accent and one cue of her personality,
      added to every one of her looks after her setting, so no girl's After dark prompt is a plain copy of another's */
   const ADX={
-coelacanth:"a retro polka-dot headscarf, a warm, chatty, slow-dance seduction to an old record",
+coelacanth:"a silk scarf at her high ponytail, a warm, chatty, slow-dance seduction to an old record",
 frilledshark:"a high ruffled lace collar with an antique brooch, a slow, stately unhurried seduction",
 gulpereel:"glowing pink pearl drop earrings, a loud, laughing, greedy appetite for everything",
 fangtooth:"a black choker with a gold tooth charm, a bossy, toothy, fight-you-for-it hunger",
