@@ -3,6 +3,18 @@
    (the wardrobe drops any set that doesn't). Read by data-housecostume.js (window.HOUSE_COSTUME_EXTRA) and data-furry.js
    (window.FURRY_EXTRA: looks, studio species per House, and the new studio species). Danbooru tags checked with tagcheck.js. ---- */
 window.HOUSE_COSTUME_EXTRA={
+leafinsect:["Living Leaf","a leaf insect costume","standing perfectly still among leaves with a serene smile","a lush green herb garden after rain","top=leaf green crop top with leaf veins|@primary;bottom=olive skirt with leaf edges|@secondary;outerwear=leaf-shaped green cape|@primary","still, green, leaves, serene, garden, camouflage"],
+glasswing:["Clear Wings","a glasswing butterfly costume","holding a glass butterfly up to the light, shy smile","a misty cloud forest at dawn","top=sheer clear organza crop top|@primary;bottom=black skirt|@secondary;outerwear=sheer clear wing cape edged in orange|@primary","delicate, clear, glass, mist, shy, light"],
+cricket:["Night Fiddler","a cricket costume","playing a tiny violin with a cheeky grin","a moonlit courtyard garden","top=chestnut brown crop top|@primary;bottom=black pleated shorts|@secondary;outerwear=sheer brown wing cape|@primary","fiddling, cheeky, moonlight, courtyard, brown, music"],
+cicada:["Summer Song","a cicada costume","singing with her head thrown back and her arms wide","a summer night full of fireflies","top=sage green crop top with wing-vein pattern|@primary;bottom=cream skirt|@secondary;outerwear=sheer wing cape with veins|@third","singing, summer, fireflies, green, joyful, loud"],
+scarab:["Sun Disc","a scarab costume","holding a golden sun disc above her head","a temple at sunrise on the Nile","top=lapis blue crop top with gold collar|@primary;bottom=gold and lapis skirt|@secondary;outerwear=sheer gold wing cape|@secondary","regal, sunrise, temple, lapis, gold, sun"],
+jewelbeetle:["Jewel Shell","a jewel beetle costume","holding a gem up to the light with a confident grin","a glittering jewellery workshop","top=iridescent emerald crop top|@primary;bottom=iridescent emerald skirt|@primary;outerwear=shimmering green and violet cape|@primary;neckAccessory=gold collar necklace|@secondary","jewel, iridescent, emerald, gold, shining, confident"],
+blackladybug:["Lucky Spot","a black ladybug costume","tossing a die with a cocky smirk","a neon-lit casino at night","top=glossy black crop top with scarlet spots|@primary;bottom=glossy black skirt with scarlet spots|@primary;outerwear=scarlet cropped jacket|@secondary","cocky, dice, casino, glossy, black, scarlet"],
+hornet:["Hive Queen","a hornet costume","standing proud with a golden fan open, haughty smile","a golden throne room inside a giant hive","top=black and gold striped crop top|@third;bottom=black and gold striped skirt|@primary;outerwear=sheer gold wing cape|@secondary;headwear=small gold crown|@secondary","queen, haughty, gold, striped, regal, fan"],
+orchidmantis:["Petal Trap","an orchid mantis costume","perched sweetly with her hands folded, about to strike","a pink orchid garden","top=white and pink petal crop top|@primary;bottom=pink petal skirt|@primary;outerwear=sheer pink petal cape|@primary","sweet, deadly, petals, pink, orchid, perched"],
+rosymaplemoth:["Candy Floss","a rosy maple moth costume","hugging a jar of candy with a sleepy smile","a pink maple forest in autumn","top=pink fluffy crop top|@primary;bottom=butter yellow fluffy shorts|@secondary;outerwear=fluffy pink and yellow cropped jacket|@primary","sweet, sleepy, fluffy, pink, maple, candy"],
+erminemoth:["Silk Tent","an ermine moth costume","wrapped in a fluffy white silk shawl, peeking out shyly","a snowy hedgerow under white silk webs","top=fluffy white crop top with black dots|@primary;bottom=white fluffy shorts|@primary;outerwear=sheer white lace shawl|@primary","shy, peeking, white, fluffy, lace, snow"],
+lunamoth:["Moon Garden","a luna moth costume","drifting with her arms spread like pale green wings","a moonlit garden of white flowers","top=pale mint fluffy crop top|@primary;bottom=lavender fluffy shorts|@secondary;outerwear=sheer pale green wing cape|@primary","drifting, moonlight, garden, pale green, dreamy, soft"],
 frogmouth:["Living Branch","a frogmouth costume","perched perfectly still with her eyes half closed","a dark rainforest branch at dusk","top=mottled rust feather-patterned crop top|@primary;bottom=bark brown shorts|@secondary;outerwear=mottled bark-print cape|@secondary","still, half-closed eyes, rainforest, dusk, camouflage, mottled"],
 oilbird:["Cave Candle","an oilbird costume","holding a candle up in the dark with a warm smile","a vast dark cave lit by a single candle","top=chestnut crop top with white spots|@primary;bottom=chestnut shorts|@primary;outerwear=sheer gold-trimmed cape|@secondary","candle, cave, dark, warm glow, mysterious, gold"],
 aardwolf:["Gentle Stripe","an aardwolf costume","crouching gently with a beetle cupped in her hands","a moonlit savanna with termite mounds","top=sandy yellow fluffy crop top with black stripes|@primary;bottom=sandy yellow fluffy shorts|@primary;legwear=black striped thigh-high socks|@secondary;outerwear=olive cropped jacket|@accent","crouching, gentle, savanna, moonlight, striped, shy"],
@@ -183,6 +195,18 @@ nue:["Chimera","a nue chimera costume","crouching on a stormy rooftop","a stormy
 window.FURRY_EXTRA={
  /* house: [animal, body (M B R S I), Danbooru species tags, studio species] */
  looks:{
+  leafinsect:["leaf insect","M","insect girl, flat green leaf-shaped body, leaf-vein markings","insect"],
+  glasswing:["glasswing butterfly","M","butterfly girl, clear see-through wings edged in black and orange","insect"],
+  cricket:["cricket","M","cricket girl, chestnut body, long antennae, strong legs","insect"],
+  cicada:["cicada","M","cicada girl, sage green body, clear veined wings, big eyes","insect"],
+  scarab:["sacred scarab","M","beetle girl, glossy black-blue shell, gold markings","insect"],
+  jewelbeetle:["jewel beetle","M","beetle girl, iridescent emerald shell, gold legs","insect"],
+  blackladybug:["black ladybug","M","ladybug girl, glossy black shell with red spots, tiny antennae","insect"],
+  hornet:["giant hornet","M","hornet girl, gold and black stripes, glassy wings, stinger","insect"],
+  orchidmantis:["orchid mantis","M","mantis girl, pink and white petal limbs, big eyes","insect"],
+  rosymaplemoth:["rosy maple moth","M","moth girl, fluffy pink and yellow fur, feathery antennae","insect"],
+  erminemoth:["ermine moth","M","moth girl, fluffy white fur with black dots, small wings","insect"],
+  lunamoth:["luna moth","M","moth girl, pale green wings with eyespots, fluffy collar, feathery antennae","insect"],
   frogmouth:["Sri Lanka frogmouth","B","bird girl, mottled rust feathers, wide frog-like mouth","bird"],
   oilbird:["oilbird","B","bird girl, chestnut feathers with white spots, hooked beak","bird"],
   aardwolf:["aardwolf","M","hyena girl, sandy fur, black stripes, bristly mane","hyena"],
