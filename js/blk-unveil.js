@@ -64,6 +64,8 @@
 .uv-ask button{font:600 14px system-ui,sans-serif;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;cursor:pointer}
 .uv-ask button.pri{background:#b0283b;border-color:#b0283b}
 .uv-load{margin-top:10px;width:100%}
+.por-copy{margin-top:8px;width:100%}
+.uv-frame img{-webkit-touch-callout:default}
 @media (prefers-reduced-motion: reduce){.uv-frame .uv-robe,.uv-frame .uv-bare,.uv-seal .uv-l,.uv-seal .uv-r{transition:none}.uv-frame.falling .uv-silk{animation:none}}`;
   document.head.append(css);
   /* v303: the seal's filigree, pressed into the wax: a beaded rim, a fine ring, eight scrolls and a small wreath round
@@ -142,7 +144,25 @@
     seal.addEventListener("click",e=>e.preventDefault());
     bare.addEventListener("error",()=>{seal.remove();hint.remove();frame.classList.remove("open");if(loadBtn)loadBtn.remove()});
   }
+  /* 2026-11-25: "Copy image" under every girl's portrait. Copies the picture that is showing (robes, or the unveil when
+     she is unveiled) to the clipboard as a PNG; if the browser refuses clipboard access, it downloads the PNG instead. */
+  function copyBtn(side,h){
+    const img=side.querySelector('.enc-card img[alt^="Portrait of"]');if(!img||side.querySelector(".por-copy"))return;
+    const card=img.closest(".enc-card")||img.parentElement;
+    const b=document.createElement("button");b.type="button";b.className="enc-load por-copy";b.textContent="Copy image";
+    const say=t=>{b.textContent=t;setTimeout(()=>{b.textContent="Copy image"},1800)};
+    b.onclick=async()=>{
+      const fr=img.closest(".uv-frame"),bare=fr&&fr.classList.contains("open")&&fr.querySelector(".uv-bare");
+      const src=(bare&&bare.src)||img.currentSrc||img.src,name=h+(bare&&bare.src?"_unveil":"_robes")+".png";
+      try{
+        const im=new Image();im.crossOrigin="anonymous";im.src=src;await im.decode();
+        const cv=document.createElement("canvas");cv.width=im.naturalWidth;cv.height=im.naturalHeight;cv.getContext("2d").drawImage(im,0,0);
+        const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
+        try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);say("Copied")}
+        catch(e){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);say("Saved as "+name)}
+      }catch(e){console.warn("[copy]",e);say("Couldn't copy")}};
+    card.append(b)}
   const bh=ENC.buildHouse;
-  ENC.buildHouse=(el,h)=>{bh(el,h);try{const side=el.querySelector(".enc-side");if(side)enhance(side,h)}catch(e){console.warn("[unveil]",e)}};
+  ENC.buildHouse=(el,h)=>{bh(el,h);try{const side=el.querySelector(".enc-side");if(side){enhance(side,h);copyBtn(side,h)}}catch(e){console.warn("[unveil]",e)}};
   ACAD.UNVEIL={enhance,reset:()=>{ok=false;try{localStorage.removeItem(KEY)}catch(e){}}};
 })();
