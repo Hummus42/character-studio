@@ -206,7 +206,7 @@ unicorn:{c:{age:"mature woman",faceShape:"soft oval face with gentle cheekbones"
 dolphin:{c:{age:"mature woman",faceShape:"soft round face with full cheeks",expression:"bright, playful smile",impression:"a bright, sunny presence",hairStyle:"messy bun",bangs:"soft diagonal bangs",makeupStyle:"sun-bronzed makeup"},
   blurb:"The Dolphin headmistress: an athletic woman with aqua hair in a messy bun, round aqua eyes, sun-kissed skin and a bright, playful smile."},
 leopard:{c:{age:"mature woman",faceShape:"softly rounded face with a delicate tapered jawline",expression:"warm, radiant smile",impression:"a warm, welcoming presence with a radiant smile",hairStyle:"loose waves",bangs:"cute wispy bangs",makeupStyle:"soft glam makeup"},
-  blurb:"The Leopard headmistress: a petite, top-heavy woman with platinum-silver waves over a charcoal underlayer, ice-blue eyes, faint rosette freckles and a warm, radiant smile."},
+  blurb:"The Snow Leopard headmistress: a petite, top-heavy woman with platinum-silver waves over a charcoal underlayer, ice-blue eyes, faint rosette freckles and a warm, radiant smile."},
 lynx:{c:{age:"mature woman",faceShape:"refined heart-shaped face with high cheekbones",expression:"sly, amused smile",impression:"a sly, knowing, worldly allure",hairStyle:"side fishtail braid",bangs:"long side bangs over one eye",makeupStyle:"glamorous soft smoky makeup"},
   blurb:"The Lynx headmistress: a voluptuous woman with a dusty-mauve side fishtail braid, champagne eyes and a sly, amused smile."},
 hummingbird:{c:{age:"mature woman",faceShape:"soft feminine face with defined cheekbones",expression:"flirty, warm smile",impression:"a vivacious, feminine presence",hairStyle:"curly bob",bangs:"asymmetrical bangs",makeupStyle:"classic glam makeup"},

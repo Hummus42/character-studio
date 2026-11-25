@@ -51,7 +51,7 @@
     ["lounging across a rock, tail curled","clawing the air, growling","crouching on all fours, hips high"],
     "a jungle temple ruin in green light",
     "tiger ears, tiger tail, tiger print, animal print, micro bikini, paw gloves, striped thighhighs, fangs, "+FAKE,"a tiger costume"],
-  ["zoo09","Leopard Costume","Leopard",{top:["leopard-print bodycon micro dress, strapless and barely covering her ass","yellow"],headwear:["leopard ears headband","yellow"],tailPiece:["spotted leopard tail","yellow"],legwear:["fishnet pantyhose and stiletto heels","black"],neckAccessory:["gold chain choker","gold"]},
+  ["zoo09","Leopard Costume","Snow Leopard",{top:["leopard-print bodycon micro dress, strapless and barely covering her ass","yellow"],headwear:["leopard ears headband","yellow"],tailPiece:["spotted leopard tail","yellow"],legwear:["fishnet pantyhose and stiletto heels","black"],neckAccessory:["gold chain choker","gold"]},
     ["sultry, half-lidded stare","cocky smirk","glamorous, pouty lips"],
     ["walking the runway, hips swaying","leaning on a bar, ass out","sitting with her legs crossed high on a stool"],
     "a dark nightclub with a velvet rope",
