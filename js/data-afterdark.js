@@ -13,6 +13,18 @@
   /* 2026-11: the Great Waking's hundred get their own After dark touch: one House accent and one cue of her personality,
      added to every one of her looks after her setting, so no girl's After dark prompt is a plain copy of another's */
   const ADX={
+seaangel:"a tiny glowing coral heart charm on a thin chain, a sweet, giggling, hungry seduction",
+icefish:"a thin silver chain with a frozen crystal, a cool, calm, warm-me-up seduction",
+arctictern:"a thin chain with two tiny charms of the sun, a breathless, here-tonight-gone-tomorrow seduction",
+leopardseal:"a silver tooth pendant on a long chain, a slow, smiling, dangerous seduction",
+snowgoose:"a gold V-shaped body chain, a bossy, commanding, follow-my-lead seduction",
+muskox:"a soft hand-knit qiviut shawl and nothing else, a warm, slow, wrap-you-up seduction",
+ivorygull:"a mismatched pair of beach-glass anklets, a cheeky, shameless, steal-a-kiss seduction",
+snowpetrel:"a thin silver body chain, a cool, untouchable, come-closer seduction",
+snowbunting:"a tiny gold sun anklet, a sunny, giggling, good-morning seduction",
+lemming:"a woven berry red anklet, a loud, laughing, argue-then-kiss seduction",
+ptarmigan:"a thin scarlet ribbon tied at her throat, a slow, still, look-but-don't-move seduction",
+snowshoehare:"a tiny silver snowflake anklet, a quick, teasing, catch-me seduction",
 parrotfish:"a woven rainbow anklet, a slow, sleepy, lazy-morning seduction",
 flyingfish:"a silver anklet with a tiny fish charm, a breathless, chase-me, catch-me-if-you-can seduction",
 pearloyster:"a single long strand of black pearls, a slow, layer-by-layer, opening-up seduction",
