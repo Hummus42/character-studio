@@ -434,6 +434,8 @@ manticore:["claw-mark","manticores and flames","a roaring manticore","bronze-stu
 /* ---- v242: a girl's look saved to canon (edits.looks) replaces her robes design here, after every wave has made its
    templates and before anything reads them. ---- */
 if(typeof ACAD!=="undefined"&&ACAD.canonApply&&typeof tplById==="function")ACAD.canonApply("looks",tplById);
+/* 2026-11-26: Crow's hidden grown-up base ("crowbody", part-05) follows her final robes look; it keeps only its own face and makeup. */
+if(typeof tplById==="function"){const cr=tplById("crowrobes"),cb=tplById("crowbody");if(cr&&cb){const own=Object.fromEntries(Object.entries(cb.c||{}).filter(([f])=>/^(faceShape|makeupStyle|lashStyle|blushStyle)$/.test(f)));cb.pal=JSON.parse(JSON.stringify(cr.pal||{}));cb.c=Object.assign({},JSON.parse(JSON.stringify(cr.c||{})),own);cb.outfit=JSON.parse(JSON.stringify(cr.outfit||{}))}}
 
 /* ---- v215: every Academy girl's relationships, the one source for the biographies and the relationship scenes
    (best friends, secret girlfriends, rivals). Read by buddies215.js and groups215.js; checked by audit/rel215.py. */
