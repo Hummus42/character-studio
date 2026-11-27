@@ -3,6 +3,7 @@
    (the wardrobe drops any set that doesn't). Read by data-housecostume.js (window.HOUSE_COSTUME_EXTRA) and data-furry.js
    (window.FURRY_EXTRA: looks, studio species per House, and the new studio species). Danbooru tags checked with tagcheck.js. ---- */
 window.HOUSE_COSTUME_EXTRA={
+mandarinfish:["Reef Mandarin","a mandarinfish costume","dancing on a sea wall at sunset, arms raised","a coral lagoon at sunset","bra=electric blue bikini top with tangerine swirls|@primary;panties=electric blue bikini bottom with tangerine swirls|@primary;outerwear=sheer emerald green wrap with frilled fin-like edges|@third;legwear=sheer violet thigh-high stockings|@accent","dancing, sunset, sea wall, arms up, smile"],
 leafinsect:["Living Leaf","a leaf insect costume","standing perfectly still among leaves with a serene smile","a lush green herb garden after rain","top=leaf green crop top with leaf veins|@primary;bottom=olive skirt with leaf edges|@secondary;outerwear=leaf-shaped green cape|@primary","still, green, leaves, serene, garden, camouflage"],
 glasswing:["Clear Wings","a glasswing butterfly costume","holding a glass butterfly up to the light, shy smile","a misty cloud forest at dawn","top=sheer clear organza crop top|@primary;bottom=black skirt|@secondary;outerwear=sheer clear wing cape edged in orange|@primary","delicate, clear, glass, mist, shy, light"],
 cricket:["Night Fiddler","a cricket costume","playing a tiny violin with a cheeky grin","a moonlit courtyard garden","top=chestnut brown crop top|@primary;bottom=black pleated shorts|@secondary;outerwear=sheer brown wing cape|@primary","fiddling, cheeky, moonlight, courtyard, brown, music"],
@@ -195,6 +196,7 @@ nue:["Chimera","a nue chimera costume","crouching on a stormy rooftop","a stormy
 window.FURRY_EXTRA={
  /* house: [animal, body (M B R S I), Danbooru species tags, studio species] */
  looks:{
+  mandarinfish:["mandarinfish","S","fish girl, fins, swirl pattern","fish"],
   leafinsect:["leaf insect","M","insect girl, flat green leaf-shaped body, leaf-vein markings","insect"],
   glasswing:["glasswing butterfly","M","butterfly girl, clear see-through wings edged in black and orange","insect"],
   cricket:["cricket","M","cricket girl, chestnut body, long antennae, strong legs","insect"],

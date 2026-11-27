@@ -13,6 +13,7 @@
   /* 2026-11: the Great Waking's hundred get their own After dark touch: one House accent and one cue of her personality,
      added to every one of her looks after her setting, so no girl's After dark prompt is a plain copy of another's */
   const ADX={
+mandarinfish:"a gold swirl anklet, a shy smile that turns dazzling after sunset",
 leafinsect:"nothing but leaves and a calm smile, a slow, still, find-me seduction",
 glasswing:"sheer organza and nothing beneath it, a shy, see-through, look-closer seduction",
 cricket:"a violin bow and a ribbon, a cheeky, play-me-a-song seduction",
