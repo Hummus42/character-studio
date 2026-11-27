@@ -41,7 +41,7 @@
     (c.sections||[]).forEach((s,i)=>{art.append(E("h3",{class:"enc-h"},s.h),...s.p.map(t=>E("p",{class:"enc-p"},ENC.linkNames?ENC.linkNames(t):t)));
       const x=i%2===1&&c.cgs&&c.cgs[(i+1)/2];if(x)art.append(cg(c,x))});
     const used=new Set([0,...(c.sections||[]).map((s,i)=>i%2===1?(i+1)/2:-1)]);
-    (c.cgs||[]).forEach((x,i)=>{if(!used.has(i))art.append(cg(c,x))});
+    const rest=(c.cgs||[]).filter((x,i)=>!used.has(i));if(rest.length)art.append(E("h3",{class:"enc-h"},"Moments"),...rest.map(x=>cg(c,x)));
     el.append(art)}}));
   ENC.NAV_AFTER_GROUPS=(ENC.NAV_AFTER_GROUPS||[]).concat([{page:"crews",title:"Crews"}]);
   const bh=ENC.buildHouse;
