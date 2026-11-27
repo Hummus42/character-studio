@@ -13,7 +13,7 @@
 #encDlg .crew-m{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:inherit;text-align:center;font-size:14px}
 #encDlg .crew-m img{width:120px;height:175px;object-fit:cover;object-position:top;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
 #encDlg .crew-m small{opacity:.75}
-#encDlg .crew-cg{margin:22px 0}
+#encDlg .crew-cg{margin:22px 0;content-visibility:auto;contain-intrinsic-size:auto 560px}
 #encDlg .crew-cg img{width:100%;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.3);display:block}
 #encDlg .crew-cg h4{font-family:var(--e-serif);font-size:20px;margin:10px 0 4px}
 #encDlg .crew-cg .crew-strip{display:flex;gap:6px;overflow:hidden;border-radius:12px}
@@ -22,10 +22,10 @@
 #encDlg .crew-row .faces{display:flex}
 #encDlg .crew-row .faces img{width:44px;height:44px;border-radius:50%;margin-right:-10px;border:2px solid var(--e-bg,#1b1830);object-fit:cover}`;
   document.head.append(E("style",{id:"crewsCss"},css));
-  const head=h=>E("img",{src:`assets/portraits/${h}.h.webp`,alt:HN(h),loading:"lazy"});
+  const head=h=>E("img",{src:`assets/portraits/${h}.h.webp`,alt:HN(h),loading:"lazy",decoding:"async"});
   const member=h=>{const b=(typeof BIOS==="object"&&BIOS[h])||{};return E("a",{href:"#",class:"crew-m",onclick:ev=>{ev.preventDefault();ENC.go("house:"+h)}},
-    E("img",{src:`assets/portraits/${h}.c.webp`,alt:HN(h),loading:"lazy"}),E("b",null,HN(h)),b.fullName?E("small",null,b.fullName):null)};
-  const cg=(c,x)=>{const box=E("figure",{class:"crew-cg"});const img=E("img",{src:`assets/crews/${x.img}.webp`,alt:x.title,loading:"lazy"});
+    E("img",{src:`assets/portraits/${h}.c.webp`,alt:HN(h),loading:"lazy",decoding:"async"}),E("b",null,HN(h)),b.fullName?E("small",null,b.fullName):null)};
+  const cg=(c,x)=>{const box=E("figure",{class:"crew-cg"});const img=E("img",{src:`assets/crews/${x.img}.webp`,alt:x.title,loading:"lazy",decoding:"async"});
     img.addEventListener("error",()=>img.replaceWith(E("div",{class:"crew-strip"},c.members.map(h=>E("img",{src:`assets/portraits/${h}.c.webp`,alt:HN(h)})))),{once:true});
     box.append(img,E("h4",null,x.title),E("p",{class:"enc-p"},x.p));return box};
   ENC.page("crews",{title:"Crews",short:"Crews",sec:"groups",crumbs:["groups"],build:el=>{
@@ -50,7 +50,7 @@
       const draw=()=>{box.textContent="";
         if(!ok18()){box.append(E("p",{class:"enc-note"},"Sexually explicit scenes between adult characters. Confirm you are 18 or over to show them."),
           E("button",{type:"button",class:"enc-load",onclick:()=>{try{localStorage.setItem("everspire.adult18","1")}catch(e){}draw()}},"I am 18 or over, show them"));return}
-        c.scenes.forEach(x=>{const f=E("figure",{class:"crew-cg"},E("img",{src:`assets/crews/${x.img}.webp`,alt:x.title,loading:"lazy"}),E("h4",null,x.title));
+        c.scenes.forEach(x=>{const f=E("figure",{class:"crew-cg"},E("img",{src:`assets/crews/${x.img}.webp`,alt:x.title,loading:"lazy",decoding:"async"}),E("h4",null,x.title));
           box.append(f,...x.p.map(t=>E("p",{class:"enc-p"},md(t))))})};
       draw()}
     el.append(art)}}));

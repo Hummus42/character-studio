@@ -2,7 +2,9 @@
    The page and this file always come from the network when it is there (so a push shows on the next load); each js file is
    named by its content (?v=...), so it is kept on the device and fetched only when it changes; everything under assets/ is
    kept too and refreshed quietly in the background. */
-const ART="everspire-art-v1",SHELL="everspire-shell-v1",CODE="everspire-code-v1";
+/* 2026-11-27 v2: a stale v1 shell (an old copy of the page from the games era, with its title menu) could be served on
+   mobile after the tab crashed and reloaded; bumping the names makes activate delete every v1 cache. */
+const ART="everspire-art-v1",SHELL="everspire-shell-v2",CODE="everspire-code-v2";
 self.addEventListener("install",e=>{self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil((async()=>{
   for(const k of await caches.keys())if(k!==ART&&k!==SHELL&&k!==CODE)await caches.delete(k);
