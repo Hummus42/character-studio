@@ -144,7 +144,7 @@
   function show(v,replace){mark();if(replace&&stack.length>1&&stack[stack.length-1].k==="search"&&v.k==="search")stack[stack.length-1]=v;else stack.push(v);render();save()}
   function back(keepInput){if(stack.length>1)stack.pop();if(!keepInput&&input&&stack[stack.length-1].k!=="search")input.value="";render();save()}
   function home(){stack=[{k:"home"}];if(input)input.value="";render();save()}
-  function openFull(){const v=stack[stack.length-1];const id=v.k==="girl"?"house:"+v.h:v.k==="group"?"group:"+v.id:v.k==="faction"?"faction:"+v.id:"home";
+  function openFull(){const v=stack[stack.length-1];const id=v.k==="girl"?"house:"+v.h:v.k==="group"?"group:"+v.id:v.k==="faction"?"faction:"+v.id:v.k==="crew"?"crew:"+v.id:"home";
     try{ENC.open(id)}catch(e){ENC.open()}}
 
   const link=(t,fn)=>E("a",{href:"#",onclick:ev=>{ev.preventDefault();fn()}},t);
@@ -219,7 +219,8 @@
     sec("Rivals",((ACAD.RIVALS||{})[h]||[]).map(([o])=>chip(o)));
     sec("Family",(R.FAM||[]).filter(p=>p[0]===h||p[1]===h).map(p=>chip(p[0]===h?p[1]:p[0],String(p[0]===h?p[3]:p[4]).split(",")[0])));
     sec("Flings",(R.FLING||[]).filter(p=>p[0]===h||p[1]===h).map(p=>chip(p[0]===h?p[1]:p[0])));
-    if(g)sec("Groupmates",g.members.filter(x=>x!==h).map(o=>chip(o)))}
+    if(g)sec("Groupmates",g.members.filter(x=>x!==h).map(o=>chip(o)));
+    (ACAD.crewsOf?ACAD.crewsOf(h):[]).forEach(c=>sec(c.name,c.members.filter(x=>x!==h).map(o=>chip(o))))}
   function aboutFacts(h,b){const facts=E("dl",{class:"ad-facts"});[["Age",b.age],["From",b.birthplace],["Studies",b.occupation],["Boyfriend",b.partner]].forEach(([k,x])=>{if(x)facts.append(E("dt",null,k),E("dd",null,String(x)))});
     const ex=ACAD.extraGroups?ACAD.extraGroups(h):[];
     if(ex.length)facts.append(E("dt",null,"Banners"),E("dd",null,ex.map((e,i)=>[i?", ":"",link(G(e.g).name,()=>show({k:"group",id:e.g})),e.kind!=="sworn"?E("span",{class:"ad-badge"},(ACAD.BANNER_KINDS||{})[e.kind]||e.kind):null])));
@@ -229,7 +230,16 @@
     if(v.k==="home"){title.textContent="The Academy";
       body.append(E("p",{class:"ad-p muted"},"Every faction, group and girl at Everspire. Pick a girl to load her into the studio, or open her full page."));
       (ENC.FACTIONS||[]).forEach(f=>{const gs=f.groups.map(G).filter(Boolean);if(!gs.length)return;
-        body.append(E("div",{class:"ad-fac"},f.name,E("small",null,gs.length+" groups")),...gs.map(groupRow))})}
+        body.append(E("div",{class:"ad-fac"},f.name,E("small",null,gs.length+" groups")),...gs.map(groupRow))});
+      /* 2026-11-27: crews (blk-crews.js), picked the same way as a group */
+      const CR=ACAD.CREWS||[];if(CR.length)body.append(E("div",{class:"ad-fac"},"Crews",E("small",null,CR.length+" crews")),...CR.map(c=>E("button",{type:"button",class:"ad-row",onclick:()=>show({k:"crew",id:c.id})},face(c.members[0],28),
+        E("span",null,E("b",null,c.name),E("span",{class:"k"},c.members.length+" girls · "+c.members.map(HN).join(", "))))))}
+    else if(v.k==="crew"){const c=(ACAD.CREWS||[]).find(x=>x.id===v.id);if(!c)return back();title.textContent=c.name;
+      body.append(E("div",{class:"ad-row",style:{cursor:"default"}},face(c.members[0],44),E("span",null,E("b",null,c.name),E("span",{class:"k"},"Crew"+(c.also?" · "+c.also:"")))));
+      if(c.motto)body.append(E("p",{class:"ad-p"},E("i",null,c.motto)));
+      if(c.lead)body.append(E("p",{class:"ad-p muted"},c.lead));
+      body.append(E("div",{class:"ad-acts"},E("button",{type:"button",class:"ad-act",onclick:()=>ENC.open("crew:"+c.id)},"Full page")));
+      body.append(E("div",{class:"ad-h"},"Its girls"),E("div",{class:"ad-grid"},c.members.map(h=>girlTile(h))))}
     else if(v.k==="group"){const g=G(v.id);if(!g)return back();title.textContent=g.name;const f=ENC.factionOf(g.id),rv=G(g.rival);
       body.append(E("div",{class:"ad-row",style:{cursor:"default"}},crest(g.id,44),E("span",null,E("b",null,g.name),E("span",{class:"k"},[g.kind,f&&f.name].filter(Boolean).join(" · ")))));
       if(g.motto)body.append(E("p",{class:"ad-p"},E("i",null,g.motto)));
