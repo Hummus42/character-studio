@@ -42,6 +42,17 @@
       const x=i%2===1&&c.cgs&&c.cgs[(i+1)/2];if(x)art.append(cg(c,x))});
     const used=new Set([0,...(c.sections||[]).map((s,i)=>i%2===1?(i+1)/2:-1)]);
     const rest=(c.cgs||[]).filter((x,i)=>!used.has(i));if(rest.length)art.append(E("h3",{class:"enc-h"},"Moments"),...rest.map(x=>cg(c,x)));
+    /* 2026-11-27: explicit scenes (NovelAI on transparent + Codex background, relit), behind the same 18+ gate as the
+       private files (blk-intimate.js). Text uses **bold** for speakers and *italics* for sounds and stage notes. */
+    if(c.scenes&&c.scenes.length){const ok18=()=>ACAD.RX_ADULT&&ACAD.RX_ADULT.ok18?ACAD.RX_ADULT.ok18():(()=>{try{return localStorage.getItem("everspire.adult18")==="1"}catch(e){return false}})();
+      const md=t=>{const out=[];String(t).split(/(\*\*[^*]+\*\*|\*[^*]+\*)/).forEach(x=>{if(!x)return;if(/^\*\*.+\*\*$/.test(x))out.push(E("b",null,x.slice(2,-2)));else if(/^\*.+\*$/.test(x))out.push(E("i",null,x.slice(1,-1)));else out.push(x)});return out};
+      const box=E("div");art.append(E("h3",{class:"enc-h"},"After dark (18+)"),box);
+      const draw=()=>{box.textContent="";
+        if(!ok18()){box.append(E("p",{class:"enc-note"},"Sexually explicit scenes between adult characters. Confirm you are 18 or over to show them."),
+          E("button",{type:"button",class:"enc-load",onclick:()=>{try{localStorage.setItem("everspire.adult18","1")}catch(e){}draw()}},"I am 18 or over, show them"));return}
+        c.scenes.forEach(x=>{const f=E("figure",{class:"crew-cg"},E("img",{src:`assets/crews/${x.img}.webp`,alt:x.title,loading:"lazy"}),E("h4",null,x.title));
+          box.append(f,...x.p.map(t=>E("p",{class:"enc-p"},md(t))))})};
+      draw()}
     el.append(art)}}));
   ENC.NAV_AFTER_GROUPS=(ENC.NAV_AFTER_GROUPS||[]).concat([{page:"crews",title:"Crews"}]);
   const bh=ENC.buildHouse;
